@@ -1,0 +1,506 @@
+Endpoint ref: https://js.sportsdataverse.org/docs/nfl#nflgetweeklyscheduleweek-year-seasontype-⇒
+
+SCHEDULE FORMAT example:
+[
+    {
+        "20230907": {
+            "games": [
+                {
+                    "date": "2023-09-08T00:20Z",
+                    "uid": "s:20~l:28~e:401547353",
+                    "week": {
+                        "number": 1
+                    },
+                    "name": "Detroit Lions at Kansas City Chiefs",
+                    "competitions": [
+                        {
+                            "date": "2023-09-08T00:20Z",
+                            "venue": {
+                                "address": {
+                                    "city": "Kansas City",
+                                    "state": "MO"
+                                },
+                                "fullName": "GEHA Field at Arrowhead Stadium",
+                                "indoor": false,
+                                "id": "3622",
+                                "capacity": 73426
+                            },
+                            "conferenceCompetition": false,
+                            "notes": [],
+                            "timeValid": true,
+                            "geoBroadcasts": [
+                                {
+                                    "market": {
+                                        "id": "1",
+                                        "type": "National"
+                                    },
+                                    "media": {
+                                        "shortName": "NBC"
+                                    },
+                                    "type": {
+                                        "id": "1",
+                                        "shortName": "TV"
+                                    },
+                                    "lang": "en",
+                                    "region": "us"
+                                }
+                            ],
+                            "format": {
+                                "regulation": {
+                                    "periods": 4
+                                }
+                            },
+                            "broadcasts": [
+                                {
+                                    "market": "national",
+                                    "names": [
+                                        "NBC"
+                                    ]
+                                }
+                            ],
+                            "playByPlayAvailable": true,
+                            "leaders": [
+                                {
+                                    "shortDisplayName": "PASS",
+                                    "displayName": "Passing Leader",
+                                    "name": "passingYards",
+                                    "leaders": [
+                                        {
+                                            "displayValue": "253 YDS, 1 TD",
+                                            "athlete": {
+                                                "displayName": "Jared Goff",
+                                                "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/3046779.png",
+                                                "jersey": "16",
+                                                "fullName": "Jared Goff",
+                                                "active": true,
+                                                "links": [
+                                                    {
+                                                        "rel": [
+                                                            "playercard",
+                                                            "desktop",
+                                                            "athlete"
+                                                        ],
+                                                        "href": "http://www.espn.com/nfl/player/_/id/3046779/jared-goff"
+                                                    }
+                                                ],
+                                                "id": "3046779",
+                                                "position": {
+                                                    "abbreviation": "QB"
+                                                },
+                                                "team": {
+                                                    "id": "8"
+                                                },
+                                                "shortName": "J. Goff"
+                                            },
+                                            "team": {
+                                                "id": "8"
+                                            },
+                                            "value": 253
+                                        }
+                                    ],
+                                    "abbreviation": "PYDS"
+                                },
+                                {
+                                    "shortDisplayName": "RUSH",
+                                    "displayName": "Rushing Leader",
+                                    "name": "rushingYards",
+                                    "leaders": [
+                                        {
+                                            "displayValue": "21 CAR, 74 YDS, 1 TD",
+                                            "athlete": {
+                                                "displayName": "David Montgomery",
+                                                "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/4035538.png",
+                                                "jersey": "5",
+                                                "fullName": "David Montgomery",
+                                                "active": true,
+                                                "links": [
+                                                    {
+                                                        "rel": [
+                                                            "playercard",
+                                                            "desktop",
+                                                            "athlete"
+                                                        ],
+                                                        "href": "http://www.espn.com/nfl/player/_/id/4035538/david-montgomery"
+                                                    }
+                                                ],
+                                                "id": "4035538",
+                                                "position": {
+                                                    "abbreviation": "RB"
+                                                },
+                                                "team": {
+                                                    "id": "8"
+                                                },
+                                                "shortName": "D. Montgomery"
+                                            },
+                                            "team": {
+                                                "id": "8"
+                                            },
+                                            "value": 74
+                                        }
+                                    ],
+                                    "abbreviation": "RYDS"
+                                },
+                                {
+                                    "shortDisplayName": "REC",
+                                    "displayName": "Receiving Leader",
+                                    "name": "receivingYards",
+                                    "leaders": [
+                                        {
+                                            "displayValue": "4 REC, 80 YDS",
+                                            "athlete": {
+                                                "displayName": "Josh Reynolds",
+                                                "headshot": "https://a.espncdn.com/i/headshots/nfl/players/full/3115306.png",
+                                                "jersey": "8",
+                                                "fullName": "Josh Reynolds",
+                                                "active": true,
+                                                "links": [
+                                                    {
+                                                        "rel": [
+                                                            "playercard",
+                                                            "desktop",
+                                                            "athlete"
+                                                        ],
+                                                        "href": "http://www.espn.com/nfl/player/_/id/3115306/josh-reynolds"
+                                                    }
+                                                ],
+                                                "id": "3115306",
+                                                "position": {
+                                                    "abbreviation": "WR"
+                                                },
+                                                "team": {
+                                                    "id": "8"
+                                                },
+                                                "shortName": "J. Reynolds"
+                                            },
+                                            "team": {
+                                                "id": "8"
+                                            },
+                                            "value": 80
+                                        }
+                                    ],
+                                    "abbreviation": "RECYDS"
+                                }
+                            ],
+                            "type": {
+                                "id": "1",
+                                "abbreviation": "STD"
+                            },
+                            "uid": "s:20~l:28~e:401547353~c:401547353",
+                            "competitors": [
+                                {
+                                    "uid": "s:20~l:28~t:12",
+                                    "homeAway": "home",
+                                    "score": "20",
+                                    "winner": false,
+                                    "records": [
+                                        {
+                                            "summary": "0-1",
+                                            "name": "overall",
+                                            "abbreviation": "Game",
+                                            "type": "total"
+                                        },
+                                        {
+                                            "summary": "0-1",
+                                            "name": "Home",
+                                            "type": "home"
+                                        },
+                                        {
+                                            "summary": "0-0",
+                                            "name": "Road",
+                                            "type": "road"
+                                        }
+                                    ],
+                                    "id": "12",
+                                    "team": {
+                                        "alternateColor": "ffb612",
+                                        "venue": {
+                                            "id": "3622"
+                                        },
+                                        "color": "e31837",
+                                        "displayName": "Kansas City Chiefs",
+                                        "abbreviation": "KC",
+                                        "isActive": true,
+                                        "shortDisplayName": "Chiefs",
+                                        "uid": "s:20~l:28~t:12",
+                                        "name": "Chiefs",
+                                        "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/kc.png",
+                                        "location": "Kansas City",
+                                        "links": [
+                                            {
+                                                "isExternal": false,
+                                                "rel": [
+                                                    "clubhouse",
+                                                    "desktop",
+                                                    "team"
+                                                ],
+                                                "href": "https://www.espn.com/nfl/team/_/name/kc/kansas-city-chiefs",
+                                                "text": "Clubhouse",
+                                                "isPremium": false
+                                            },
+                                            {
+                                                "isExternal": false,
+                                                "rel": [
+                                                    "roster",
+                                                    "desktop",
+                                                    "team"
+                                                ],
+                                                "href": "http://www.espn.com/nfl/team/roster/_/name/kc/kansas-city-chiefs",
+                                                "text": "Roster",
+                                                "isPremium": false
+                                            },
+                                            {
+                                                "isExternal": false,
+                                                "rel": [
+                                                    "stats",
+                                                    "desktop",
+                                                    "team"
+                                                ],
+                                                "href": "http://www.espn.com/nfl/team/stats/_/name/kc/kansas-city-chiefs",
+                                                "text": "Statistics",
+                                                "isPremium": false
+                                            },
+                                            {
+                                                "isExternal": false,
+                                                "rel": [
+                                                    "schedule",
+                                                    "desktop",
+                                                    "team"
+                                                ],
+                                                "href": "https://www.espn.com/nfl/team/schedule/_/name/kc",
+                                                "text": "Schedule",
+                                                "isPremium": false
+                                            }
+                                        ],
+                                        "id": "12"
+                                    },
+                                    "type": "team",
+                                    "linescores": [
+                                        {
+                                            "value": 0
+                                        },
+                                        {
+                                            "value": 14
+                                        },
+                                        {
+                                            "value": 3
+                                        },
+                                        {
+                                            "value": 3
+                                        }
+                                    ],
+                                    "order": 0,
+                                    "statistics": []
+                                },
+                                {
+                                    "uid": "s:20~l:28~t:8",
+                                    "homeAway": "away",
+                                    "score": "21",
+                                    "winner": true,
+                                    "records": [
+                                        {
+                                            "summary": "1-0",
+                                            "name": "overall",
+                                            "abbreviation": "Game",
+                                            "type": "total"
+                                        },
+                                        {
+                                            "summary": "0-0",
+                                            "name": "Home",
+                                            "type": "home"
+                                        },
+                                        {
+                                            "summary": "1-0",
+                                            "name": "Road",
+                                            "type": "road"
+                                        }
+                                    ],
+                                    "id": "8",
+                                    "team": {
+                                        "alternateColor": "bbbbbb",
+                                        "venue": {
+                                            "id": "3727"
+                                        },
+                                        "color": "0076b6",
+                                        "displayName": "Detroit Lions",
+                                        "abbreviation": "DET",
+                                        "isActive": true,
+                                        "shortDisplayName": "Lions",
+                                        "uid": "s:20~l:28~t:8",
+                                        "name": "Lions",
+                                        "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/det.png",
+                                        "location": "Detroit",
+                                        "links": [
+                                            {
+                                                "isExternal": false,
+                                                "rel": [
+                                                    "clubhouse",
+                                                    "desktop",
+                                                    "team"
+                                                ],
+                                                "href": "https://www.espn.com/nfl/team/_/name/det/detroit-lions",
+                                                "text": "Clubhouse",
+                                                "isPremium": false
+                                            },
+                                            {
+                                                "isExternal": false,
+                                                "rel": [
+                                                    "roster",
+                                                    "desktop",
+                                                    "team"
+                                                ],
+                                                "href": "http://www.espn.com/nfl/team/roster/_/name/det/detroit-lions",
+                                                "text": "Roster",
+                                                "isPremium": false
+                                            },
+                                            {
+                                                "isExternal": false,
+                                                "rel": [
+                                                    "stats",
+                                                    "desktop",
+                                                    "team"
+                                                ],
+                                                "href": "http://www.espn.com/nfl/team/stats/_/name/det/detroit-lions",
+                                                "text": "Statistics",
+                                                "isPremium": false
+                                            },
+                                            {
+                                                "isExternal": false,
+                                                "rel": [
+                                                    "schedule",
+                                                    "desktop",
+                                                    "team"
+                                                ],
+                                                "href": "https://www.espn.com/nfl/team/schedule/_/name/det",
+                                                "text": "Schedule",
+                                                "isPremium": false
+                                            }
+                                        ],
+                                        "id": "8"
+                                    },
+                                    "type": "team",
+                                    "linescores": [
+                                        {
+                                            "value": 7
+                                        },
+                                        {
+                                            "value": 0
+                                        },
+                                        {
+                                            "value": 7
+                                        },
+                                        {
+                                            "value": 7
+                                        }
+                                    ],
+                                    "order": 1,
+                                    "statistics": []
+                                }
+                            ],
+                            "headlines": [
+                                {
+                                    "description": "— The Lions walked into roaring Arrowhead Stadium on Thursday night, where the Kansas City Chiefs are nearly unbeatable and were trying to open their latest Super Bowl title defense with a win, and proved what Detroit coach Dan Campbell has come to...",
+                                    "type": "Recap",
+                                    "shortLinkText": "Lions spoil Chiefs' celebration of Super Bowl title by rallying for a 21-20 win in the NFL's opener"
+                                }
+                            ],
+                            "id": "401547353",
+                            "neutralSite": false,
+                            "recent": false,
+                            "attendance": 73522,
+                            "startDate": "2023-09-08T00:20Z",
+                            "status": {
+                                "period": 4,
+                                "displayClock": "0:00",
+                                "clock": 0,
+                                "type": {
+                                    "name": "STATUS_FINAL",
+                                    "description": "Final",
+                                    "id": "3",
+                                    "state": "post",
+                                    "completed": true,
+                                    "detail": "Final",
+                                    "shortDetail": "Final"
+                                }
+                            }
+                        }
+                    ],
+                    "season": {
+                        "year": 2023,
+                        "type": 2,
+                        "slug": "regular-season"
+                    },
+                    "links": [
+                        {
+                            "isExternal": false,
+                            "shortText": "Gamecast",
+                            "rel": [
+                                "summary",
+                                "desktop",
+                                "event"
+                            ],
+                            "language": "en-US",
+                            "href": "https://www.espn.com/nfl/game/_/gameId/401547353",
+                            "text": "Gamecast",
+                            "isPremium": false
+                        },
+                        {
+                            "isExternal": false,
+                            "shortText": "Box Score",
+                            "rel": [
+                                "boxscore",
+                                "desktop",
+                                "event"
+                            ],
+                            "language": "en-US",
+                            "href": "https://www.espn.com/nfl/boxscore/_/gameId/401547353",
+                            "text": "Box Score",
+                            "isPremium": false
+                        },
+                        {
+                            "isExternal": false,
+                            "shortText": "Play-by-Play",
+                            "rel": [
+                                "pbp",
+                                "desktop",
+                                "event"
+                            ],
+                            "language": "en-US",
+                            "href": "https://www.espn.com/nfl/playbyplay/_/gameId/401547353",
+                            "text": "Play-by-Play",
+                            "isPremium": false
+                        },
+                        {
+                            "isExternal": false,
+                            "shortText": "Recap",
+                            "rel": [
+                                "recap",
+                                "desktop",
+                                "event"
+                            ],
+                            "language": "en-US",
+                            "href": "https://www.espn.com/nfl/recap?gameId=401547353",
+                            "text": "Recap",
+                            "isPremium": false
+                        }
+                    ],
+                    "id": "401547353",
+                    "shortName": "DET @ KC",
+                    "status": {
+                        "period": 4,
+                        "displayClock": "0:00",
+                        "clock": 0,
+                        "type": {
+                            "name": "STATUS_FINAL",
+                            "description": "Final",
+                            "id": "3",
+                            "state": "post",
+                            "completed": true,
+                            "detail": "Final",
+                            "shortDetail": "Final"
+                        }
+                    }
+                }
+            ]
+        },
+	}
+]
