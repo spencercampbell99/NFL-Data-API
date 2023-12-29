@@ -604,26 +604,10 @@ over_under_column_selects = [
     '(home.average_home_passing_yards + away.average_away_passing_yards) as passing_yards',
     '(home.average_home_rushing_yards + away.average_away_rushing_yards) as rushing_yards',
     '(home.average_home_first_downs + away.average_away_first_downs) as first_downs',
-    '(home.average_home_third_down_conversions + away.average_away_third_down_conversions) as third_down_conversions',
+    '(home.average_third_down_conversions + away.average_third_down_conversions) as third_down_conversions',
     '(home.average_home_redzone_attempts + away.average_away_redzone_attempts) as red_zone_attempts',
     '(home.average_home_offensive_plays + away.average_away_offensive_plays) as offensive_plays',
     '(home.average_home_yards_per_play + away.average_away_yards_per_play) as yards_per_play',
-    '(home.average_punts_inside_20 + away.average_punts_inside_20) as punts_inside_20',
-    '(home.average_fg_attempted + away.average_fg_attempted) as fg_attempted',
-]
-
-over_under_straight_column_selects = [
-    '(home.average_points_scored + away.average_points_allowed) as home_points_scored',
-    '(home.average_points_allowed + away.average_points_scored) as home_points_allowed',
-    'home.average_points_scored + away.average_points_allowed as total_points_scored',
-    '(home.average_total_score + away.average_total_score) / 2 as total_score',
-    '(home.average_passing_yards + away.average_passing_yards) as passing_yards',
-    '(home.average_rushing_yards + away.average_rushing_yards) as rushing_yards',
-    '(home.average_first_downs + away.average_first_downs) as first_downs',
-    '(home.average_third_down_conversions + away.average_third_down_conversions) as third_down_conversions',
-    '(home.average_redzone_attempts + away.average_redzone_attempts) as red_zone_attempts',
-    '(home.average_offensive_plays + away.average_offensive_plays) as offensive_plays',
-    '(home.average_yards_per_play + away.average_yards_per_play) as yards_per_play',
     '(home.average_punts_inside_20 + away.average_punts_inside_20) as punts_inside_20',
     '(home.average_fg_attempted + away.average_fg_attempted) as fg_attempted',
 ]
@@ -651,6 +635,7 @@ def get_over_under_data(start_year, end_year):
             schedules.away_team_char_id as away_team,
             over_under,
             schedules.id as schedule_id,
+            schedules.week as week,
             spread
         FROM
             schedules
@@ -705,6 +690,7 @@ def get_over_under_data_for_week(week, season, connection):
             schedules.away_team_char_id as away_team,
             over_under,
             schedules.id as schedule_id,
+            schedules.week as week,
             spread
         FROM
             schedules
