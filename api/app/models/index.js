@@ -52,37 +52,37 @@ db.modelPredictions = require('./modelPrediction.model')(sequelize, Sequelize);
 db.userPredictions = require('./userPrediction.model')(sequelize, Sequelize);
 db.averagedTeamPerformances = require('./averagedTeamPerformance.model')(sequelize, Sequelize);
 
-// // define associations
-// // teams
-// db.teams.hasMany(db.schedules, { foreignKey: 'home_team_id' }, { as: 'home_team' });
-// db.teams.hasMany(db.schedules, { foreignKey: 'away_team_id' }, { as: 'away_team' });
-// db.teams.hasMany(db.boxscores, { foreignKey: 'team_id' });
+// define associations
+// teams
+db.teams.hasMany(db.schedules, { foreignKey: 'home_team_id' }, { as: 'home_team' });
+db.teams.hasMany(db.schedules, { foreignKey: 'away_team_id' }, { as: 'away_team' });
+db.teams.hasMany(db.boxscores, { foreignKey: 'team_id' });
 
-// // schedules
-// db.schedules.belongsTo(db.teams, { foreignKey: 'home_team_id' }, { as: 'home_team' });
-// db.schedules.belongsTo(db.teams, { foreignKey: 'away_team_id' }, { as: 'away_team' });
-// db.schedules.hasMany(db.boxscores, { foreignKey: 'schedule_id' });
+// schedules
+db.schedules.belongsTo(db.teams, { foreignKey: 'home_team_id' }, { as: 'home_team' });
+db.schedules.belongsTo(db.teams, { foreignKey: 'away_team_id' }, { as: 'away_team' });
+db.schedules.hasMany(db.boxscores, { foreignKey: 'schedule_id' });
 
-// // boxscores
-// db.boxscores.belongsTo(db.teams, { foreignKey: 'team_id' });
-// db.boxscores.belongsTo(db.schedules, { foreignKey: 'schedule_id' });
+// boxscores
+db.boxscores.belongsTo(db.teams, { foreignKey: 'team_id' });
+db.boxscores.belongsTo(db.schedules, { foreignKey: 'schedule_id' });
 
-// // bets
-// db.bets.belongsTo(db.users, { foreignKey: 'bettor_id' }, { as: 'bettor' });
-// db.bets.hasMany(db.betLegs, { foreignKey: 'bet_id' });
-// db.betLegs.belongsTo(db.bets, { foreignKey: 'bet_id' });
-// db.betLegs.belongsTo(db.users, { foreignKey: 'bettor_id' }, { as: 'bettor' });
+// bets
+db.bets.belongsTo(db.users, { foreignKey: 'bettor_id' }, { as: 'bettor' });
+db.bets.hasMany(db.betLegs, { foreignKey: 'bet_id' });
+db.betLegs.belongsTo(db.bets, { foreignKey: 'bet_id' });
+db.betLegs.belongsTo(db.users, { foreignKey: 'bettor_id' }, { as: 'bettor' });
 
-// // model predictions
-// db.modelPredictions.belongsTo(db.schedules, { foreignKey: 'schedule_id' }, { as: 'schedule' });
+// model predictions
+db.modelPredictions.belongsTo(db.schedules, { foreignKey: 'schedule_id' }, { as: 'schedule' });
 
-// // user predictions
-// db.userPredictions.belongsTo(db.schedules, { foreignKey: 'schedule_id' }, { as: 'schedule' });
-// db.userPredictions.belongsTo(db.users, { foreignKey: 'user_id' }, { as: 'user' });
+// user predictions
+db.userPredictions.belongsTo(db.schedules, { foreignKey: 'schedule_id' }, { as: 'schedule' });
+db.userPredictions.belongsTo(db.users, { foreignKey: 'user_id' }, { as: 'user' });
 
-// // averaged team performances
-// db.averagedTeamPerformances.belongsTo(db.teams, { foreignKey: 'team_id' }, { as: 'team' });
-// db.averagedTeamPerformances.belongsTo(db.schedules, { foreignKey: 'schedule_id' }, { as: 'schedule' });
-// db.averagedTeamPerformances.belongsTo(db.boxscores, { foreignKey: 'boxscore_id' }, { as: 'boxscore' });
+// averaged team performances
+db.averagedTeamPerformances.belongsTo(db.teams, { foreignKey: 'team_id' }, { as: 'team' });
+db.averagedTeamPerformances.belongsTo(db.schedules, { foreignKey: 'schedule_id' }, { as: 'schedule' });
+db.averagedTeamPerformances.belongsTo(db.boxscores, { foreignKey: 'boxscore_id' }, { as: 'boxscore' });
 
 module.exports = db;

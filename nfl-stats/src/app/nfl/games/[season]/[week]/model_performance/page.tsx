@@ -1,6 +1,7 @@
 'use client'
 
 import axios from '@/axiosConfig';
+import RoundedButton from '@/components/roundedButton.component';
 import React from 'react'
 
 // import Table from '@/components/table/table.component';
@@ -96,7 +97,7 @@ const GameCard: React.FunctionComponent<{ game: Game }> = ({ game }) => {
                             <td>{game.home_team_score} ({game.schedule.boxscores[0].home_score})</td>
                             <td>{game.schedule.home_team_money_line}</td>
                             <td>{game.schedule.spread * -1}</td>
-                            <td>{(game.schedule.boxscores[0].away_score + game.schedule.boxscores[0].home_score) > game.schedule.over_under ? 'Over' : 'Under'}</td>
+                            <td className={`${game.correct_over_under ? 'font-bold' : ''}`}>{game.over_under.toLowerCase()} ({(game.schedule.boxscores[0].away_score + game.schedule.boxscores[0].home_score) > game.schedule.over_under ? 'Over' : 'Under'})</td>
                         </tr>
                     </tbody>
                 </table>
@@ -238,19 +239,27 @@ export default function WeekOverview({ params }: { params: { season: number, wee
     return (
         <main className="text-black">
             <div className="h-auto mb-1">
+                <RoundedButton text="Previous Week" onClick={() => {
+                    const previousWeek = Number(params.week) - 1;
+                    window.location.href = `/nfl/games/${params.season}/${previousWeek}/model_performance`;
+                }} className="absolute mt-1 left-1"/>
+                <RoundedButton text="Next Week" onClick={() => {
+                    const nextWeek = Number(params.week) + 1;
+                    window.location.href = `/nfl/games/${params.season}/${nextWeek}/model_performance`;
+                }} className="absolute mt-1 right-1" />
                 <h1 className="text-2xl font-bold text-center leading-[45px]">{`Week ${params.week} Overview`}</h1>
                 <div className="w-full">
                     <h2 className="text-center text-xl font-medium">{`Season ${params.season} Week ${params.week}`}</h2>
                     <h3 className="ml-5">Hypothetical bet: $10</h3>
                     {weekSummary ? (
                         <p className="ml-5">
-                            Total Money Wagered (Won) (Loss) (% return): ${weekSummary.moneyWagered.toFixed(2)} (${weekSummary.moneyWon.toFixed(2)}) (${(weekSummary.moneyWagered - weekSummary.moneyWon).toFixed(2)}) ({((weekSummary.moneyWon - weekSummary.moneyWagered) / weekSummary.moneyWagered * 100).toFixed(2)}%)
+                            Total Money Wagered (Won) (% return): ${weekSummary.moneyWagered.toFixed(2)} (${weekSummary.moneyWon.toFixed(2)}) ({((weekSummary.moneyWon - weekSummary.moneyWagered) / weekSummary.moneyWagered * 100).toFixed(2)}%)
                             <br />
-                            Moneyline Money Wagered (Won) (Loss) (% return): ${weekSummary.moneyLineMoneyWagered.toFixed(2)} (${weekSummary.moneyLineMoneyWon.toFixed(2)}) (${(weekSummary.moneyLineMoneyWagered - weekSummary.moneyLineMoneyWon).toFixed(2)}) ({((weekSummary.moneyLineMoneyWon - weekSummary.moneyLineMoneyWagered) / weekSummary.moneyLineMoneyWagered * 100).toFixed(2)}%)
+                            Moneyline Money Wagered (Won) (% return): ${weekSummary.moneyLineMoneyWagered.toFixed(2)} (${weekSummary.moneyLineMoneyWon.toFixed(2)}) ({((weekSummary.moneyLineMoneyWon - weekSummary.moneyLineMoneyWagered) / weekSummary.moneyLineMoneyWagered * 100).toFixed(2)}%)
                             <br />
                             {/* Spread Money Wagered (Won) (Loss) (% return): ${weekSummary.spreadMoneyWagered.toFixed(2)} (${weekSummary.spreadMoneyWon.toFixed(2)}) (${(weekSummary.spreadMoneyWagered - weekSummary.spreadMoneyWon).toFixed(2)}) ({((weekSummary.spreadMoneyWon - weekSummary.spreadMoneyWagered) / weekSummary.spreadMoneyWagered * 100).toFixed(2)}%)
                             <br /> */}
-                            Over/Under Money Wagered (Won) (Loss) (% return): ${weekSummary.overUnderMoneyWagered.toFixed(2)} (${weekSummary.overUnderMoneyWon.toFixed(2)}) (${(weekSummary.overUnderMoneyWagered - weekSummary.overUnderMoneyWon).toFixed(2)}) ({((weekSummary.overUnderMoneyWon - weekSummary.overUnderMoneyWagered) / weekSummary.overUnderMoneyWagered * 100).toFixed(2)}%)
+                            Over/Under Money Wagered (Won) (% return): ${weekSummary.overUnderMoneyWagered.toFixed(2)} (${weekSummary.overUnderMoneyWon.toFixed(2)}) ({((weekSummary.overUnderMoneyWon - weekSummary.overUnderMoneyWagered) / weekSummary.overUnderMoneyWagered * 100).toFixed(2)}%)
                         </p>
                     )
                         : null}
