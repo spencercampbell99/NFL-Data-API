@@ -6,23 +6,26 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import MinMaxScaler
 from data_getters import get_spread_model_data
 
-data = get_spread_model_data(2020, 2022)
+data = get_spread_model_data(2017, 2022)
 
 # drop data with nas
 data = data.dropna()
 
 full_features = [
     'points_difference',
+    # 'points_allowed_difference',
     'total_score',
     'rushing_yards_difference',
-    'passing_yards_difference',
+    # 'passing_yards_difference',
+    'red_zone_attempts_difference',
     'first_downs_difference',
-    'third_down_conversions_difference',
-    'offensive_plays_difference',
+    # 'third_down_conversions_difference',
+    # 'offensive_plays_difference',
     'yards_per_play_difference',
     'punts_inside_20_difference',
-    'fg_attempted_difference',
+    # 'fg_attempted_difference',
     'spread',
+    # 'over_under',
 ]
 
 # create X and y
@@ -46,7 +49,7 @@ np.random.seed(random_state)
 tf.random.set_seed(random_state)
 random.seed(random_state)
 
-model = RandomForestClassifier(random_state=random_state, max_depth=6, min_samples_leaf=3, min_samples_split=8, n_estimators=500)
+model = RandomForestClassifier(random_state=random_state, max_depth=10, min_samples_leaf=7, min_samples_split=8, n_estimators=100)
 
 # test hyper params
 # from sklearn.model_selection import RandomizedSearchCV
@@ -66,6 +69,10 @@ model = RandomForestClassifier(random_state=random_state, max_depth=6, min_sampl
 
 model.fit(X_train, y_train)
 
+# print feature importances
+for feature, importance in zip(full_features, model.feature_importances_):
+    print(f'{feature}: {importance}')
+
 # evaluate model accuracy
 from sklearn.metrics import accuracy_score
 y_pred = model.predict(X_test)
@@ -76,9 +83,9 @@ print(f'Accuracy: {score}')
 
 # save model with joblib
 import joblib
-# joblib.dump(model, 'models/spread_model.joblib')
-# joblib.dump(full_features, 'models/spread_model_features.joblib')
-# joblib.dump(scaler, 'models/spread_model_scaler.joblib')
+joblib.dump(model, 'models/spread_model.joblib')
+joblib.dump(full_features, 'models/spread_model_features.joblib')
+joblib.dump(scaler, 'models/spread_model_scaler.joblib')
 
 # get games from 2023
 df = get_spread_model_data(2023, 2023)

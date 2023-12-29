@@ -2,14 +2,14 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sqlalchemy import text
-from data_getters import get_over_under_data_for_week, get_games_for_week
+from data_getters import get_spread_model_data_for_week, get_games_for_week
 import joblib
 
 from mysql_connection import MySQLConnection
 conn = MySQLConnection()
 
 # load model from joblib (xgboost)
-model_name = 'over_under_model'
+model_name = 'spread_model'
 print(f'Loading {model_name}...')
 model = joblib.load(f'models/{model_name}.joblib')
 model_features = joblib.load(f'models/{model_name}_features.joblib')
@@ -19,14 +19,14 @@ total_correct = 0
 total_games = 0
 
 # dataframe to hold results for updating db
-results = pd.DataFrame(columns=['schedule_id', 'matchup', 'predicted_over_under_result', 'over_under_result', 'correct', 'line'])
+results = pd.DataFrame(columns=['schedule_id', 'matchup', 'predicted_spread_result', 'spread_result', 'correct', 'line'])
 results.set_index('matchup', inplace=True)
 
-for week in range(1, 17):
+for week in range(5, 17):
     games_for_week = get_games_for_week(week=week, season=2023, connection=conn)
     games_for_week.set_index('short_name', inplace=True)
     
-    data = get_over_under_data_for_week(week=week, season=2023, connection=conn)
+    data = get_spread_model_data_for_week(week=week, season=2023, connection=conn)
     data.reset_index(inplace=True)
     
     X = data[model_features]
@@ -36,31 +36,32 @@ for week in range(1, 17):
     
     for index, game in data.iterrows():
         y_pred = predictions[index]
-        predicted_over_under_result = 'over' if y_pred else 'under'
+        predicted_spread_result = 'cover' if y_pred else 'not_cover'
         
         schedule_game = games_for_week.loc[game['matchup']]
         game_completed = schedule_game['home_points_scored'] is not None
         
         if game_completed:
             # get actual total
-            actual_total = schedule_game['home_points_scored'] + schedule_game['away_points_scored']
-            
-            # get over/under
-            over_under = game['over_under']
+            actual_spread = schedule_game['home_points_scored'] - schedule_game['away_points_scored']
+            spread = game['spread']
             
             # get actual o/u result and predicted o/u result
-            actual_over_under_result = 'over' if actual_total > over_under else 'under' if actual_total != over_under else 'push'
+            if spread >= 0:
+                actual_spread_result = 'cover' if actual_spread > spread else 'not_cover' if actual_spread != spread else 'push'
+            else:
+                actual_spread_result = 'cover' if actual_spread < spread else 'not_cover' if actual_spread != spread else 'push'
         
             # update totals
-            total_correct += 1 if actual_over_under_result != 'push' and actual_over_under_result == predicted_over_under_result else 0
-            total_games += 1 if actual_over_under_result != 'push' else 0
+            total_correct += 1 if actual_spread_result != 'push' and actual_spread_result == predicted_spread_result else 0
+            total_games += 1 if actual_spread_result != 'push' else 0
         
         results.loc[game['matchup']] = {
             'schedule_id': game['schedule_id'],
-            'predicted_over_under_result': predicted_over_under_result,
-            'over_under_result': actual_over_under_result if game_completed else None,
-            'correct': 'N/A' if not game_completed else 'yes' if actual_over_under_result == predicted_over_under_result else 'no' if actual_over_under_result != 'push' else 'push',
-            'line': game['over_under']
+            'predicted_spread_result': predicted_spread_result,
+            'spread_result': actual_spread_result if game_completed else None,
+            'correct': 'N/A' if not game_completed else 'yes' if actual_spread_result == predicted_spread_result else 'no' if actual_spread_result != 'push' else 'push',
+            'line': game['spread']
         }
 
 # print results
@@ -74,8 +75,8 @@ print(results)
 # prediction table update query
 update_query = text("""
     UPDATE model_predictions
-    SET over_under = :predicted_over_under_result,
-        correct_over_under = :correct_over_under
+    SET cover_spread = :predicted_spread_result,
+        correct_spread = :correct_spread
     WHERE schedule_id = :schedule_id
 """)
 
@@ -83,8 +84,8 @@ should_update = input('Update database? (y/n): ')
 if should_update == 'y':
     for index, row in results.iterrows():
         res = conn.connection.execute(update_query, {
-            'predicted_over_under_result': row['predicted_over_under_result'].upper(),
-            'correct_over_under': True if row['correct'] == 'yes' else False,
+            'predicted_spread_result': row['predicted_spread_result'].upper(),
+            'correct_spread': True if row['correct'] == 'yes' else False,
             'schedule_id': row['schedule_id']
         })
         if res.rowcount != 1:
