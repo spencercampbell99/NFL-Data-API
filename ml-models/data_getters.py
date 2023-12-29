@@ -545,19 +545,34 @@ def get_data_for_points_scored_model_with_averages(week, season, connection, wee
     # data = data.dropna()
     return data
 
-spread_model_columns = [
-    'points_scored',
-    'points_allowed',
-    'first_downs',
-    'rushing_first_downs',
-    'third_down_conversions',
-    'red_zone_attempts',
-    'total_offensive_yards',
-    'yards_per_play',
-    'passing_attempts',
-    'interceptions_thrown',
-    'sacks_allowed',
-    'rushing_attempts',
+spread_model_columns_home_favorite = [
+    '(home.average_home_points_scored - away.average_away_points_allowed) as points_difference',
+    '(home.average_home_points_allowed - away.average_away_points_scored) as points_allowed_difference',
+    '(home.average_home_total_score + away.average_away_total_score) / 2 as total_score',
+    '(home.average_home_passing_yards - away.average_away_passing_yards) as passing_yards_difference',
+    '(home.average_home_rushing_yards - away.average_away_rushing_yards) as rushing_yards_difference',
+    '(home.average_home_first_downs - away.average_away_first_downs) as first_downs_difference',
+    '(home.average_third_down_conversions - away.average_third_down_conversions) as third_down_conversions_difference',
+    '(home.average_home_redzone_attempts - away.average_away_redzone_attempts) as red_zone_attempts_difference',
+    '(home.average_home_offensive_plays - away.average_away_offensive_plays) as offensive_plays_difference',
+    '(home.average_home_yards_per_play - away.average_away_yards_per_play) as yards_per_play_difference',
+    '(home.average_punts_inside_20 - away.average_punts_inside_20) as punts_inside_20_difference',
+    '(home.average_fg_attempted - away.average_fg_attempted) as fg_attempted_difference',
+]
+
+spread_model_columns_away_favorite = [
+    '(away.average_away_points_scored - home.average_home_points_allowed) as points_difference',
+    '(away.average_away_points_allowed - home.average_home_points_scored) as points_allowed_difference',
+    '(away.average_away_total_score + home.average_home_total_score) / 2 as total_score',
+    '(away.average_away_passing_yards - home.average_home_passing_yards) as passing_yards_difference',
+    '(away.average_away_rushing_yards - home.average_home_rushing_yards) as rushing_yards_difference',
+    '(away.average_away_first_downs - home.average_home_first_downs) as first_downs_difference',
+    '(away.average_third_down_conversions - home.average_third_down_conversions) as third_down_conversions_difference',
+    '(away.average_away_redzone_attempts - home.average_home_redzone_attempts) as red_zone_attempts_difference',
+    '(away.average_away_offensive_plays - home.average_home_offensive_plays) as offensive_plays_difference',
+    '(away.average_away_yards_per_play - home.average_home_yards_per_play) as yards_per_play_difference',
+    '(away.average_punts_inside_20 - home.average_punts_inside_20) as punts_inside_20_difference',
+    '(away.average_fg_attempted - home.average_fg_attempted) as fg_attempted_difference',
 ]
 
 def get_spread_model_data(start_year, end_year):
@@ -572,26 +587,61 @@ def get_spread_model_data(start_year, end_year):
     pandas.DataFrame: A DataFrame containing the total score data for the specified range of years.
     """
     
-    query = f"""
+    home_favorite_query = f"""
         SELECT
-            {', '.join([f'favorite.{col} - underdog.{col} as {col}' for col in spread_model_columns])},
-            CASE WHEN favorite.points_scored - underdog.points_scored > abs(spread) THEN 1 ELSE 0 END as spread_covered,
-            favorite.points_scored - underdog.points_scored - abs(spread) as spread_covered_by,
+            {', '.join(spread_model_columns_home_favorite)},
+            CASE WHEN favorite.points_scored + underdog.points_scored > over_under THEN 1 ELSE 0 END as over_under_covered,
+            CASE WHEN favorite.points_scored - underdog.points_scored >= abs(spread) THEN 1 ELSE 0 END as spread_covered,
+            favorite.points_scored + underdog.points_scored - over_under as over_under_covered_by,
+            favorite.points_scored + underdog.points_scored > over_under as over_under_result,
+            favorite.points_scored + underdog.points_scored as result_total_points_scored,
             schedules.home_team_char_id as home_team,
             schedules.away_team_char_id as away_team,
             over_under,
+            schedules.id as schedule_id,
+            schedules.week as week,
             spread
         FROM
             schedules
         JOIN box_scores as favorite ON CASE WHEN spread >= 0 THEN favorite.team_id = schedules.home_team_id ELSE favorite.team_id = schedules.away_team_id END AND favorite.schedule_id = schedules.id
         JOIN box_scores as underdog ON CASE WHEN spread < 0 THEN underdog.team_id = schedules.home_team_id ELSE underdog.team_id = schedules.away_team_id END AND underdog.schedule_id = schedules.id
+        JOIN averaged_team_performances home ON home.team_id = schedules.home_team_id AND home.schedule_id = schedules.id
+        JOIN averaged_team_performances away ON away.team_id = schedules.away_team_id AND away.schedule_id = schedules.id
         WHERE
             schedules.season_type = 'regular-season'
             AND (schedules.season >= {start_year} AND schedules.season <= {end_year})
+            AND favorite.home_team = 1
+    """
+    away_favorite_query = f"""
+        SELECT
+            {', '.join(spread_model_columns_away_favorite)},
+            CASE WHEN favorite.points_scored - underdog.points_scored >= abs(spread) THEN 1 ELSE 0 END as spread_covered,
+            favorite.points_scored + underdog.points_scored - over_under as over_under_covered_by,
+            favorite.points_scored + underdog.points_scored > over_under as over_under_result,
+            favorite.points_scored + underdog.points_scored as result_total_points_scored,
+            schedules.home_team_char_id as home_team,
+            schedules.away_team_char_id as away_team,
+            over_under,
+            schedules.id as schedule_id,
+            schedules.week as week,
+            spread
+        FROM
+            schedules
+        JOIN box_scores as favorite ON CASE WHEN spread >= 0 THEN favorite.team_id = schedules.home_team_id ELSE favorite.team_id = schedules.away_team_id END AND favorite.schedule_id = schedules.id
+        JOIN box_scores as underdog ON CASE WHEN spread < 0 THEN underdog.team_id = schedules.home_team_id ELSE underdog.team_id = schedules.away_team_id END AND underdog.schedule_id = schedules.id
+        JOIN averaged_team_performances home ON home.team_id = schedules.home_team_id AND home.schedule_id = schedules.id
+        JOIN averaged_team_performances away ON away.team_id = schedules.away_team_id AND away.schedule_id = schedules.id
+        WHERE
+            schedules.season_type = 'regular-season'
+            AND (schedules.season >= {start_year} AND schedules.season <= {end_year})
+            AND favorite.home_team = 0
     """
     connection = MySQLConnection()
-    data = pd.read_sql(query, con=connection.connection)
+    data = pd.read_sql(home_favorite_query, con=connection.connection)
+    away_data = pd.read_sql(away_favorite_query, con=connection.connection)
     connection.close()
+    
+    data = pd.concat([data, away_data])
     
     data = data.dropna()
     return data
