@@ -154,7 +154,7 @@ export default function WeekOverview({ params }: { params: { season: number, wee
         let overUnderMoneyWon = 0
         let decimalOdds = 0
 
-        const hypotheticalBet = 10
+        const hypotheticalBet = 1
         
         response.data.modelPredictions.forEach((game: Game) => {
             if (game.correct_winner) {
@@ -250,7 +250,7 @@ export default function WeekOverview({ params }: { params: { season: number, wee
                 <h1 className="text-2xl font-bold text-center leading-[45px]">{`Week ${params.week} Overview`}</h1>
                 <div className="w-full">
                     <h2 className="text-center text-xl font-medium">{`Season ${params.season} Week ${params.week}`}</h2>
-                    <h3 className="ml-5">Hypothetical bet: $10</h3>
+                    <h3 className="ml-5">Hypothetical bet: $1</h3>
                     {weekSummary ? (
                         <p className="ml-5">
                             Total Money Wagered (Won) (% return): ${weekSummary.moneyWagered.toFixed(2)} (${weekSummary.moneyWon.toFixed(2)}) ({((weekSummary.moneyWon - weekSummary.moneyWagered) / weekSummary.moneyWagered * 100).toFixed(2)}%)
