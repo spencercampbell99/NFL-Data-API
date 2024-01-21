@@ -423,30 +423,35 @@ async function populateGameStatsForPlayer ({ playerObject, statKeys, statName, t
  * Populate Boxscores for teams given full boxscore object from game
  * 
  * @param {Object} boxscore - The boxscore object.
+ * @param {number} scheduleId - The schedule id.
  * 
  * @returns {void}
  */
-async function populateBoxscoresForTeams (boxscore) {
+async function populateBoxscoresForTeams (boxscore, scheduleId) {
     // get home and away teams
     const home_team = boxscore.teams[1].team;
     const away_team = boxscore.teams[0].team;
 
     // check if teams exist
-    const homeTeamExists = await Team.findOne({
+    const dbHomeTeam = await Team.findOne({
         where: {
-            id: home_team.id,
-        }
+            char_id: convertCharIdFromOldToNew(home_team.abbreviation),
+        },
+        attributes: ['id'],
+        logging: false,
     });
-    if (!homeTeamExists) {
+    if (!dbHomeTeam) {
         console.log(`Team ${home_team.name} does not exist.`);
         return;
     }
-    const awayTeamExists = await Team.findOne({
+    const dbAwayTeam = await Team.findOne({
         where: {
-            id: away_team.id,
-        }
+            char_id: convertCharIdFromOldToNew(away_team.abbreviation),
+        },
+        attributes: ['id'],
+        logging: false,
     });
-    if (!awayTeamExists) {
+    if (!dbAwayTeam) {
         console.log(`Team ${away_team.name} does not exist.`);
         return;
     }
@@ -464,48 +469,52 @@ async function populateBoxscoresForTeams (boxscore) {
 
         // create boxscore
         await Boxscore.create({
-            team_id: team.id,
-            opponent_id: isHomeTeam ? away_team.id : home_team.id,
-            schedule_id: boxscore.id,
-            team_char_id: team.abbreviation,
-            home_team: isHomeTeam,
-            points_scored: isHomeTeam ? boxscore.home_team_score : boxscore.away_team_score,
-            points_allowed: isHomeTeam ? boxscore.away_team_score : boxscore.home_team_score,
-            first_downs: stats.firstDowns,
-            passing_first_downs: stats.firstDownsPassing,
-            rushing_first_downs: stats.firstDownsRushing,
-            penalty_first_downs: stats.firstDownsPenalty,
-            third_down_conversions: stats.thirdDownEff.length > 0 ? stats.thirdDownEff.split('-')[0] : 0,
-            third_down_attempts: stats.thirdDownEff.length > 0 ? stats.thirdDownEff.split('-')[1] : 0,
-            fourth_down_conversions: stats.fourthDownEff.length > 0 ? stats.fourthDownEff.split('-')[0] : 0,
-            fourth_down_attempts: stats.fourthDownEff.length > 0 ? stats.fourthDownEff.split('-')[1] : 0,
-            red_zone_attempts: stats.redZoneAttempts.length > 0 ? stats.redZoneAttempts.split('-')[1] : 0,
-            red_zone_scores: stats.redZoneAttempts.length > 0 ? stats.redZoneAttempts.split('-')[0] : 0,
-            total_drives: stats.totalDrives,
-            total_offensive_plays: stats.totalOffensivePlays,
-            total_offensive_yards: stats.totalYards,
-            yards_per_play: stats.yardsPerPlay,
-            passing_yards: stats.netPassingYards,
-            passing_attempts: stats.completionAttempts.length > 1 ? stats.completionAttempts.split('-')[1] : 0,
-            passing_completions: stats.completionAttempts.length > 0 ? stats.completionAttempts.split('-')[0] : 0,
-            yards_per_pass_attempt: stats.yardsPerPass,
-            yards_per_pass_completion: stats.completionAttempts.length > 0 ? stats.netPassingYards / stats.completionAttempts.split('-')[0] : 0,
-            interceptions_thrown: stats.interceptions,
-            sacks_allowed: stats.sacksYardsLost.length > 0 ? stats.sacksYardsLost.split('-')[0] : 0,
-            sack_yards_lost: stats.sacksYardsLost.length > 0 ? stats.sacksYardsLost.split('-')[1] : 0,
-            rushing_yards: stats.rushingYards,
-            rushing_attempts: stats.rushingAttempts,
-            yards_per_rush: stats.yardsPerRushAttempt,
-            turnovers: stats.turnovers,
-            fumbles: stats.fumblesLost, // stats.fumbles, // calulcated from player stats, for now, 0
-            fumbles_lost: stats.fumblesLost,
-            team_total_penalties: stats.totalPenaltiesYards.length > 0 ? stats.totalPenaltiesYards.split('-')[0] : 0,
-            penalty_yards_against: stats.totalPenaltiesYards.length > 0 ? stats.totalPenaltiesYards.split('-')[1] : 0,
-            time_of_possession: stats.possessionTime,
+                team_id: isHomeTeam ? dbHomeTeam.id : dbAwayTeam.id,
+                opponent_id: isHomeTeam ? dbAwayTeam.id : dbHomeTeam.id,
+                schedule_id: scheduleId,
+                team_char_id: team.abbreviation,
+                home_team: isHomeTeam,
+                points_scored: isHomeTeam ? boxscore.home_team_score : boxscore.away_team_score,
+                points_allowed: isHomeTeam ? boxscore.away_team_score : boxscore.home_team_score,
+                first_downs: stats.firstDowns,
+                passing_first_downs: stats.firstDownsPassing,
+                rushing_first_downs: stats.firstDownsRushing,
+                penalty_first_downs: stats.firstDownsPenalty,
+                third_down_conversions: stats.thirdDownEff.length > 0 ? stats.thirdDownEff.split('-')[0] : 0,
+                third_down_attempts: stats.thirdDownEff.length > 0 ? stats.thirdDownEff.split('-')[1] : 0,
+                fourth_down_conversions: stats.fourthDownEff.length > 0 ? stats.fourthDownEff.split('-')[0] : 0,
+                fourth_down_attempts: stats.fourthDownEff.length > 0 ? stats.fourthDownEff.split('-')[1] : 0,
+                red_zone_attempts: stats.redZoneAttempts.length > 0 ? stats.redZoneAttempts.split('-')[1] : 0,
+                red_zone_scores: stats.redZoneAttempts.length > 0 ? stats.redZoneAttempts.split('-')[0] : 0,
+                total_drives: stats.totalDrives,
+                total_offensive_plays: stats.totalOffensivePlays,
+                total_offensive_yards: stats.totalYards,
+                yards_per_play: stats.yardsPerPlay,
+                passing_yards: stats.netPassingYards,
+                passing_attempts: stats.completionAttempts.length > 1 ? stats.completionAttempts.split('-')[1] : 0,
+                passing_completions: stats.completionAttempts.length > 0 ? stats.completionAttempts.split('-')[0] : 0,
+                yards_per_pass_attempt: stats.yardsPerPass,
+                yards_per_pass_completion: stats.completionAttempts.length > 0 ? stats.netPassingYards / stats.completionAttempts.split('-')[0] : 0,
+                interceptions_thrown: stats.interceptions,
+                sacks_allowed: stats.sacksYardsLost.length > 0 ? stats.sacksYardsLost.split('-')[0] : 0,
+                sack_yards_lost: stats.sacksYardsLost.length > 0 ? stats.sacksYardsLost.split('-')[1] : 0,
+                rushing_yards: stats.rushingYards,
+                rushing_attempts: stats.rushingAttempts,
+                yards_per_rush: stats.yardsPerRushAttempt,
+                turnovers: stats.turnovers,
+                fumbles: stats.fumblesLost, // stats.fumbles, // calulcated from player stats, for now, 0
+                fumbles_lost: stats.fumblesLost,
+                team_total_penalties: stats.totalPenaltiesYards.length > 0 ? stats.totalPenaltiesYards.split('-')[0] : 0,
+                penalty_yards_against: stats.totalPenaltiesYards.length > 0 ? stats.totalPenaltiesYards.split('-')[1] : 0,
+                time_of_possession: stats.possessionTime,
 
-            // defense and special teams
-            defense_special_teams_tds: stats.defensiveTouchdowns,
-        });
+                // defense and special teams
+                defense_special_teams_tds: stats.defensiveTouchdowns,
+            }, 
+            {
+                logging: false,
+            }
+        );
     }
 }
 
@@ -632,7 +641,8 @@ exports.loadBoxscoreForGame = async (gameId) => {
         where: {
             schedule_id: gameId,
         },
-        attributes: ['id']
+        attributes: ['id'],
+        logging: false,
     });
     if (boxscoreExists) {
         const message = `Boxscore for game ${gameId} already exists. Call update if you wish to overwrite.`;
@@ -645,19 +655,27 @@ exports.loadBoxscoreForGame = async (gameId) => {
         where: {
             id: gameId,
         },
-        attributes: ['date']
+        attributes: ['id', 'date', 'espn_id'],
+        logging: false,
     });
-    if (game.date > Date.now()) {
+    if (game.date > Date.now() || !game.espn_id) {
         const message = `Game ${gameId} has not happened yet. Skipping.`;
         console.log(message);
         return message;
     }
 
     // get boxscore
-    var boxScore = await getBoxScore(gameId);
+    var boxScore = await getBoxScore(game.espn_id);
+
+    // if statistics for either team is empty, skip
+    if (boxScore.teams[0].statistics.length === 0 || boxScore.teams[1].statistics.length === 0) {
+        const message = `Game ${gameId} has no statistics. Skipping.`;
+        console.log(message);
+        return message;
+    }
 
     // populate boxscores for teams
-    await populateBoxscoresForTeams(boxScore);
+    await populateBoxscoresForTeams(boxScore, game.id);
 
     return boxScore
 }

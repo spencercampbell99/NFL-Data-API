@@ -52,7 +52,7 @@ module.exports = (sequelize, Sequelize) => {
     yards_per_pass_attempt: { type: DataTypes.DECIMAL(4, 2), allowNull: false },
     yards_per_pass_completion: { type: DataTypes.DECIMAL(4, 2), allowNull: false },
     interceptions_thrown: { type: DataTypes.TINYINT, allowNull: false },
-    passing_epa: { type: DataTypes.DECIMAL(4, 2), allowNull: false },
+    passing_epa: { type: DataTypes.DECIMAL(4, 2), allowNull: true },
 
     // o line/qb
     sacks_allowed: { type: DataTypes.TINYINT, allowNull: false },
@@ -62,10 +62,10 @@ module.exports = (sequelize, Sequelize) => {
     rushing_yards: { type: DataTypes.SMALLINT, allowNull: false },
     rushing_attempts: { type: DataTypes.TINYINT, allowNull: false },
     yards_per_rush: { type: DataTypes.DECIMAL(4, 2), allowNull: false },
-    rushing_epa: { type: DataTypes.DECIMAL(4, 2), allowNull: false },
+    rushing_epa: { type: DataTypes.DECIMAL(4, 2), allowNull: true },
 
-    receiving_epa: { type: DataTypes.DECIMAL(4, 2), allowNull: false },
-    total_epa: { type: DataTypes.DECIMAL(4, 2), allowNull: false },
+    receiving_epa: { type: DataTypes.DECIMAL(4, 2), allowNull: true },
+    total_epa: { type: DataTypes.DECIMAL(4, 2), allowNull: true },
 
     // penalties
     team_total_penalties: { type: DataTypes.TINYINT, allowNull: false },
