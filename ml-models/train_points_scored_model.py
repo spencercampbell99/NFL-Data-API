@@ -12,22 +12,22 @@ from keras.callbacks import EarlyStopping
 import joblib
 
 features = [
-    # 'first_downs',
     'team_passing_first_downs',
     'team_rushing_first_downs',
-    'team_third_down_conversions',
     'team_red_zone_attempts',
+    'team_total_offensive_yards',
+    'team_yards_per_play',
     'team_passing_yards',
     'team_yards_per_pass_attempt',
+    'team_passing_epa',
     'team_sacks_allowed',
-    'team_sack_yards_lost',
-    'team_rushing_yards',
     'team_rushing_attempts',
+    'team_rushing_epa',
+    'team_receiving_epa',
+    'team_total_epa',
     'team_turnovers',
-    'team_punts',
-    'opp_rushing_attempts',
-    # 'opp_defense_special_teams_sacks',
-    'opp_defense_special_teams_qb_hits',
+    'team_time_of_possession',
+    'opp_turnovers'
 ]
 
 # append home and away to each feature
@@ -41,7 +41,7 @@ full_features.append('over_under')
 # full_features.remove('opp_critical_situation_percentage')
 # full_features.remove('team_penalty_yards_against')
 
-data = get_data_for_points_scored_model(2019, 2022)
+data = get_data_for_points_scored_model(2017, 2022)
 
 # create test split
 X_train, X_test, y_train, y_test = train_test_split(data[full_features], data['points_scored'], test_size=0.1, random_state=42)
@@ -92,10 +92,10 @@ model.evaluate(X_test, y_test, verbose=1)
 model.summary()
 
 # save model and features with joblib
-model_name = 'points_scored_model'
-print(f'Saving {model_name}...')
-joblib.dump(model, f'models/{model_name}.joblib')
-joblib.dump(full_features, f'models/{model_name}_features.joblib')
+# model_name = 'points_scored_model'
+# print(f'Saving {model_name}...')
+# joblib.dump(model, f'models/{model_name}.joblib')
+# joblib.dump(full_features, f'models/{model_name}_features.joblib')
 
-# save the scaler
-joblib.dump(scaler, f'models/{model_name}_scaler.joblib')
+# # save the scaler
+# joblib.dump(scaler, f'models/{model_name}_scaler.joblib')

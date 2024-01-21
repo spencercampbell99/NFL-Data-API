@@ -45,6 +45,10 @@ total_model_columns = [
     "extra_points_attempted",
     "defense_special_teams_qb_hits",
     'defense_special_teams_sacks',
+    'total_epa',
+    'passing_epa',
+    'rushing_epa',
+    'receiving_epa'
 ]
 
 def get_total_score_data(start_year, end_year):
@@ -76,7 +80,7 @@ def get_total_score_data(start_year, end_year):
         JOIN box_scores home ON schedules.home_team_id = home.team_id AND schedules.id = home.schedule_id
         JOIN box_scores away ON schedules.away_team_id = away.team_id AND schedules.id = away.schedule_id
         WHERE
-            schedules.season_type = 'regular-season'
+            schedules.game_type = 'REG'
             AND (schedules.season >= {start_year} AND schedules.season <= {end_year})
     """
     connection = MySQLConnection()
@@ -98,8 +102,8 @@ def get_total_score_data(start_year, end_year):
     # data['away_critical_situation_percentage'] = (data['away_third_down_conversions'] + data['away_fourth_down_conversions'] + data['away_red_zone_scores']) / (data['away_third_down_attempts'] + data['away_fourth_down_attempts'] + data['away_red_zone_attempts'])
 
     # convert time of possession to seconds
-    # data['home_time_of_possession'] = data['home_time_of_possession'].apply(lambda x: int(x.split(':')[0]) * 60 + int(x.split(':')[1]))
-    # data['away_time_of_possession'] = data['away_time_of_possession'].apply(lambda x: int(x.split(':')[0]) * 60 + int(x.split(':')[1]))
+    data['home_time_of_possession'] = data['home_time_of_possession'].apply(lambda x: int(x.split(':')[0]) * 60 + int(x.split(':')[1]))
+    data['away_time_of_possession'] = data['away_time_of_possession'].apply(lambda x: int(x.split(':')[0]) * 60 + int(x.split(':')[1]))
     
     return data
 
@@ -125,7 +129,7 @@ def get_games_for_week(week, season, connection):
             schedules
         LEFT JOIN box_scores home ON schedules.home_team_id = home.team_id AND schedules.id = home.schedule_id
         WHERE
-            season_type = 'regular-season'
+            game_type = 'REG'
             AND season = %s
             AND week = %s
     """
@@ -360,7 +364,12 @@ score_model_columns = [
     "field_goals_attempted",
     "extra_points_made",
     "extra_points_attempted",
-    "defense_special_teams_qb_hits",
+    "defense_qb_hits",
+    'total_epa',
+    'passing_epa',
+    'rushing_epa',
+    'receiving_epa',
+    'time_of_possession'
 ]
 
 def get_data_for_points_scored_model(start_year, end_year):
@@ -390,7 +399,7 @@ def get_data_for_points_scored_model(start_year, end_year):
         JOIN box_scores opp ON team.opponent_id = opp.team_id AND team.schedule_id = opp.schedule_id
         JOIN schedules on team.schedule_id = schedules.id
         WHERE
-            schedules.season_type = 'regular-season'
+            schedules.game_type = 'REG'
             AND (schedules.season >= {start_year} AND schedules.season <= {end_year})
     """
     connection = MySQLConnection()
@@ -406,7 +415,7 @@ def get_data_for_points_scored_model(start_year, end_year):
     # data['opp_total_first_downs'] = data['opp_rushing_first_downs'] + data['opp_passing_first_downs'] + data['opp_penalty_first_downs']
 
     # convert time of possession to seconds
-    # data['home_time_of_possession'] = data['home_time_of_possession'].apply(lambda x: int(x.split(':')[0]) * 60 + int(x.split(':')[1]))
+    data['team_time_of_possession'] = data['team_time_of_possession'].apply(lambda x: int(x.split(':')[0]) * 60 + int(x.split(':')[1]))
     # data['away_time_of_possession'] = data['away_time_of_possession'].apply(lambda x: int(x.split(':')[0]) * 60 + int(x.split(':')[1]))
     
     data = data.dropna()
@@ -605,7 +614,7 @@ def get_spread_model_data(start_year, end_year):
         JOIN averaged_team_performances home ON home.team_id = schedules.home_team_id AND home.schedule_id = (SELECT schedule_id FROM averaged_team_performances atp JOIN schedules s ON s.id = atp.schedule_id WHERE team_id = schedules.home_team_id AND (s.season < schedules.season OR (s.season = schedules.season AND s.week < schedules.week)) ORDER BY s.season DESC, s.week DESC LIMIT 1)
         JOIN averaged_team_performances away ON away.team_id = schedules.away_team_id AND away.schedule_id = (SELECT schedule_id FROM averaged_team_performances atp JOIN schedules s ON s.id = atp.schedule_id WHERE team_id = schedules.away_team_id AND (s.season < schedules.season OR (s.season = schedules.season AND s.week < schedules.week)) ORDER BY s.season DESC, s.week DESC LIMIT 1)
         WHERE
-            schedules.season_type = 'regular-season'
+            schedules.game_type = 'REG'
             AND (schedules.season >= {start_year} AND schedules.season <= {end_year})
             AND favorite.home_team = 1
     """
@@ -626,7 +635,7 @@ def get_spread_model_data(start_year, end_year):
         JOIN averaged_team_performances home ON home.team_id = schedules.home_team_id AND home.schedule_id = (SELECT schedule_id FROM averaged_team_performances atp JOIN schedules s ON s.id = atp.schedule_id WHERE team_id = schedules.home_team_id AND (s.season < schedules.season OR (s.season = schedules.season AND s.week < schedules.week)) ORDER BY s.season DESC, s.week DESC LIMIT 1)
         JOIN averaged_team_performances away ON away.team_id = schedules.away_team_id AND away.schedule_id = (SELECT schedule_id FROM averaged_team_performances atp JOIN schedules s ON s.id = atp.schedule_id WHERE team_id = schedules.away_team_id AND (s.season < schedules.season OR (s.season = schedules.season AND s.week < schedules.week)) ORDER BY s.season DESC, s.week DESC LIMIT 1)
         WHERE
-            schedules.season_type = 'regular-season'
+            schedules.game_type = 'REG'
             AND (schedules.season >= {start_year} AND schedules.season <= {end_year})
             AND favorite.home_team = 0
     """
@@ -663,7 +672,7 @@ def get_spread_model_data_for_week(week, season, connection):
             JOIN schedules ON averaged_team_performances.schedule_id = schedules.id
             WHERE
                 (season < {season} OR (season = {season} AND week < {week}))
-                AND schedules.season_type = 'regular-season'
+                AND schedules.game_type = 'REG'
         )
         SELECT
             {', '.join(spread_model_columns_home_favorite)},
@@ -679,7 +688,7 @@ def get_spread_model_data_for_week(week, season, connection):
         JOIN MostRecentTeamPerformances home ON home.team_id = schedules.home_team_id AND home.row_number = 1
         JOIN MostRecentTeamPerformances away ON away.team_id = schedules.away_team_id AND away.row_number = 1
         WHERE
-            schedules.season_type = 'regular-season'
+            schedules.game_type = 'REG'
             AND schedules.season = {season}
             AND schedules.week = {week}
             AND schedules.spread > 0
@@ -694,7 +703,7 @@ def get_spread_model_data_for_week(week, season, connection):
             JOIN schedules ON averaged_team_performances.schedule_id = schedules.id
             WHERE
                 (season < {season} OR (season = {season} AND week < {week}))
-                AND schedules.season_type = 'regular-season'
+                AND schedules.game_type = 'REG'
         )
         SELECT
             {', '.join(spread_model_columns_away_favorite)},
@@ -710,7 +719,7 @@ def get_spread_model_data_for_week(week, season, connection):
         JOIN MostRecentTeamPerformances home ON home.team_id = schedules.home_team_id AND home.row_number = 1
         JOIN MostRecentTeamPerformances away ON away.team_id = schedules.away_team_id AND away.row_number = 1
         WHERE
-            schedules.season_type = 'regular-season'
+            schedules.game_type = 'REG'
             AND schedules.season = {season}
             AND schedules.week = {week}
             AND schedules.spread <= 0
@@ -771,7 +780,7 @@ def get_over_under_data(start_year, end_year):
         JOIN averaged_team_performances home ON home.team_id = schedules.home_team_id AND home.schedule_id = schedules.id
         JOIN averaged_team_performances away ON away.team_id = schedules.away_team_id AND away.schedule_id = schedules.id
         WHERE
-            schedules.season_type = 'regular-season'
+            schedules.game_type = 'REG'
             AND (schedules.season >= {start_year} AND schedules.season <= {end_year})
     """
     connection = MySQLConnection()
@@ -808,7 +817,7 @@ def get_over_under_data_for_week(week, season, connection):
             JOIN schedules ON averaged_team_performances.schedule_id = schedules.id
             WHERE
                 (season < {season} OR (season = {season} AND week < {week}))
-                AND schedules.season_type = 'regular-season'
+                AND schedules.game_type = 'REG'
         )
         SELECT
             {', '.join(over_under_column_selects)},
@@ -824,7 +833,7 @@ def get_over_under_data_for_week(week, season, connection):
         JOIN MostRecentTeamPerformances home ON home.team_id = schedules.home_team_id AND home.row_number = 1
         JOIN MostRecentTeamPerformances away ON away.team_id = schedules.away_team_id AND away.row_number = 1
         WHERE
-            schedules.season_type = 'regular-season'
+            schedules.game_type = 'REG'
             AND schedules.season = {season}
             AND schedules.week = {week}
     """
