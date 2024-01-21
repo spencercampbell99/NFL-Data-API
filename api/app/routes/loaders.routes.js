@@ -54,7 +54,12 @@ module.exports = app => {
     // load in player stats for a given game id
     router.get("/playerStats/:gameId", async (req, res) => {
         try {
-            const playerStats = await loaders.loadPlayerStatsForGame(req.params.gameId);
+            const verbose = req.query.verbose == 1 ? 
+                (sql) => {
+                    console.log(sql)
+                }
+                 : false;
+            const playerStats = await loaders.loadPlayerStatsForGame(req.params.gameId, verbose);
             res.status(200).send(playerStats);
         } catch (err) {
             res.status(500).send({

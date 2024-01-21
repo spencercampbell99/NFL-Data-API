@@ -22,7 +22,7 @@ exports.register = async (req, res) => {
         }
 
         // check that user doesn't already exist
-        const userExists = await userController.findByEmail(req.body.email);
+        const userExists = await userController._findByEmail(req.body.email);
         if (userExists) {
             return res.status(400).send({ message: `User with email ${req.body.email} already exists.` });
         }
@@ -63,7 +63,7 @@ exports.login = async (req, res) => {
             return res.status(400).send({ message: 'Email and password are required.' });
         }
 
-        const user = await userController.findByEmail(req.body.email);
+        const user = await userController._findByEmail(req.body.email);
 
         if (!user) {
             return res.status(400).send({ message: `User with email ${req.body.email} does not exist.` });

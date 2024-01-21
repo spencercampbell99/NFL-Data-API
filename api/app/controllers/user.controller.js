@@ -26,6 +26,32 @@ exports._find = async (id) => {
 }
 
 /**
+ * Find user by email
+ * 
+ * @param {string} email - The user email.
+ * 
+ * @returns {User}
+ * @throws {Error} If there is an error while retrieving the user.
+ * 
+ * @example
+ * // Returns the user with the email
+ * const user = await userController.findByEmail(email);
+ */
+exports._findByEmail = async (email) => {
+    try {
+        const user = await User.findOne({
+            where: {
+                email: email,
+            },
+        });
+        return user;
+    } catch (err) {
+        console.log(err);
+        return null;
+    }
+}
+
+/**
  * Find user by session token
  * 
  * @param {string} sessionToken - The session token.

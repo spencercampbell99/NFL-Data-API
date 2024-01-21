@@ -52,6 +52,7 @@ module.exports = (sequelize, Sequelize) => {
     yards_per_pass_attempt: { type: DataTypes.DECIMAL(4, 2), allowNull: false },
     yards_per_pass_completion: { type: DataTypes.DECIMAL(4, 2), allowNull: false },
     interceptions_thrown: { type: DataTypes.TINYINT, allowNull: false },
+    passing_epa: { type: DataTypes.DECIMAL(4, 2), allowNull: false },
 
     // o line/qb
     sacks_allowed: { type: DataTypes.TINYINT, allowNull: false },
@@ -61,6 +62,10 @@ module.exports = (sequelize, Sequelize) => {
     rushing_yards: { type: DataTypes.SMALLINT, allowNull: false },
     rushing_attempts: { type: DataTypes.TINYINT, allowNull: false },
     yards_per_rush: { type: DataTypes.DECIMAL(4, 2), allowNull: false },
+    rushing_epa: { type: DataTypes.DECIMAL(4, 2), allowNull: false },
+
+    receiving_epa: { type: DataTypes.DECIMAL(4, 2), allowNull: false },
+    total_epa: { type: DataTypes.DECIMAL(4, 2), allowNull: false },
 
     // penalties
     team_total_penalties: { type: DataTypes.TINYINT, allowNull: false },
@@ -77,16 +82,16 @@ module.exports = (sequelize, Sequelize) => {
     defense_special_teams_tds: { type: DataTypes.TINYINT, allowNull: false },
 
     // defense stats
-    defense_special_teams_interceptions: { type: DataTypes.TINYINT, allowNull: true },
-    defense_special_teams_sacks: { type: DataTypes.TINYINT, allowNull: true },
-    defense_special_teams_tackles_for_loss: { type: DataTypes.TINYINT, allowNull: true },
-    defense_special_teams_passes_defended: { type: DataTypes.TINYINT, allowNull: true },
-    defense_special_teams_forced_fumbles: { type: DataTypes.TINYINT, allowNull: true },
-    defense_special_teams_fumble_recoveries: { type: DataTypes.TINYINT, allowNull: true },
-    defense_special_teams_qb_hits: { type: DataTypes.TINYINT, allowNull: true },
-    defense_special_teams_tackles: { type: DataTypes.TINYINT, allowNull: true },
-    defense_special_teams_assists: { type: DataTypes.TINYINT, allowNull: true },
-    defense_special_teams_safeties: { type: DataTypes.TINYINT, allowNull: true },
+    defense_interceptions: { type: DataTypes.TINYINT, allowNull: true },
+    defense_sacks: { type: DataTypes.TINYINT, allowNull: true },
+    defense_tackles_for_loss: { type: DataTypes.TINYINT, allowNull: true },
+    defense_passes_defended: { type: DataTypes.TINYINT, allowNull: true },
+    defense_forced_fumbles: { type: DataTypes.TINYINT, allowNull: true },
+    defense_fumble_recoveries: { type: DataTypes.TINYINT, allowNull: true },
+    defense_qb_hits: { type: DataTypes.TINYINT, allowNull: true },
+    defense_tackles: { type: DataTypes.TINYINT, allowNull: true },
+    defense_assists: { type: DataTypes.TINYINT, allowNull: true },
+    defense_safeties: { type: DataTypes.TINYINT, allowNull: true },
 
     // kicking stats
     field_goals_made: { type: DataTypes.TINYINT, allowNull: true },

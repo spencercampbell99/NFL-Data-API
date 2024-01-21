@@ -35,7 +35,7 @@ module.exports = (sequelize, Sequelize) => {
     date: {type: DataTypes.DATE, allowNull: false},
     time: {type: DataTypes.TIME, allowNull: false},
     weekday: {type: DataTypes.STRING(9), allowNull: false},
-    espn_id: {type: DataTypes.STRING(30), allowNull: true},
+    espn_id: {type: DataTypes.INTEGER, allowNull: true},
 
     away_rest: {type: DataTypes.TINYINT, allowNull: true},
     home_rest: {type: DataTypes.TINYINT, allowNull: true},

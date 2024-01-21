@@ -224,88 +224,121 @@ async function findOrCreatePlayer (playerObject, team_id) {
  * @param {array} statKeys
  * @param {string} statName
  * @param {number} team_id
- * @param {number} boxscore_id
  * @param {number} game_id
+ * @param {boolean} verbose
  * 
  * @returns {boolean}
  */
-async function populateGameStatsForPlayer ({ playerObject, statKeys, statName, team_id, boxscore_id, game_id }) {
+async function populateGameStatsForPlayer ({ playerObject, statKeys, statName, team_id, game_id, verbose = false }) {
     // find or create player
-    const player = await findOrCreatePlayer(playerObject.athlete, team_id);
+    // const player = await findOrCreatePlayer(playerObject.athlete, team_id);
+
+    const espn_id = parseInt(playerObject.athlete.id, 10);
+    if (!espn_id) {
+        console.log(`Player ${playerObject.athlete.displayName} does not have a valid espn id. Skipping.`);
+        return false;
+    }
+
+    // find player or fail
+    const player = await Player.findOne({
+        where: {
+            [Op.or]: [
+                {espn_id: espn_id},
+                {full_name: playerObject.athlete.displayName},
+            ]
+        },
+        logging: verbose,
+    });
+
+    if (!player) {
+        console.log(`Player ${playerObject.athlete.displayName} does not exist. Skipping.`);
+        return false;
+    }
+
+    // if player espn_id is not set, set it
+    if (!player.espn_id) {
+        player.espn_id = espn_id;
+        player.save({ logging: verbose });
+    }
 
     // find existing player game stats for player and game
-    var playerGameStats = await PlayerGameStat.findOrCreate({
+    var playerGameStats = await PlayerGameStat.findOne({
         where: {
             player_id: player.id,
-            boxscore_id: boxscore_id,
-        },
-        defaults: {
-            player_id: player.id,
             game_id: game_id,
-            team_id: team_id,
-            boxscore_id: boxscore_id,
+            team_id: team_id
         },
-        logging: false,
+        logging: verbose,
     });
-    playerGameStats = playerGameStats[0]; // Get the first element of the array
+    if (!playerGameStats) {
+        return false; // skip
+    }
 
     // convert statistics array to object
     var stats = {};
     for (var i = 0; i < statKeys.length; i++) {
-        // fix the stat keys to avoid bad characters. -- means no stat, replace with 0
-        const statKey = statKeys[i].replace('/', '_').replace('-', '_');
-        const statValue = playerObject.stats[i].replace('/', '_').replace('--', '0').replace(/(?<!^)-/g, '_'); // replace all - with _ unless it is the first character
-        stats[statKey] = statValue;
+        try {
+            // fix the stat keys to avoid bad characters. -- means no stat, replace with 0
+            const statKey = statKeys[i].replace('/', '_').replace('-', '_');
+            const statValue = playerObject.stats[i].replace('/', '_').replace('--', '0').replace(/(?<!^)-/g, '_'); // replace all - with _ unless it is the first character
+            stats[statKey] = statValue;
+        } catch (err) {
+            console.log('ESPN broke something. Skipping.');
+            return false;
+        }
     }
+
+    /**
+     * Only updating stats that are missing from the current database
+     */
 
     switch (statName) {
         case 'passing':
             // get passing attempts
-            var passingAttempts = 0;
-            var passingCompletions = 0;
-            if (stats.completions_passingAttempts.length > 0) {
-                const split = stats.completions_passingAttempts.split('_');
-                passingAttempts = split[1];
-                passingCompletions = split[0];
-            }
+            // var passingAttempts = 0;
+            // var passingCompletions = 0;
+            // if (stats.completions_passingAttempts.length > 0) {
+            //     const split = stats.completions_passingAttempts.split('_');
+            //     passingAttempts = split[1];
+            //     passingCompletions = split[0];
+            // }
 
-            var sacks = 0;
-            var sackYards = 0;
-            if (stats.sacks_sackYardsLost.length > 0) {
-                const split = stats.sacks_sackYardsLost.split('_');
-                sacks = split[0];
-                sackYards = split[1];
-            }
+            // var sacks = 0;
+            // var sackYards = 0;
+            // if (stats.sacks_sackYardsLost.length > 0) {
+            //     const split = stats.sacks_sackYardsLost.split('_');
+            //     sacks = split[0];
+            //     sackYards = split[1];
+            // }
 
 
             // passing
-            playerGameStats.passing_attempts = passingAttempts;
-            playerGameStats.passing_completions = passingCompletions;
-            playerGameStats.passing_yards = stats.passingYards;
-            playerGameStats.yards_per_pass_attempt = stats.yardsPerPassAttempt;
-            playerGameStats.yards_per_pass_completion = passingCompletions > 0 ? stats.passingYards / passingCompletions : 0;
-            playerGameStats.passing_touchdowns = stats.passingTouchdowns;
-            playerGameStats.passing_interceptions = stats.interceptions;
-            playerGameStats.passing_sacks = sacks;
-            playerGameStats.passing_sack_yards = sackYards;
+            // playerGameStats.passing_attempts = passingAttempts;
+            // playerGameStats.passing_completions = passingCompletions;
+            // playerGameStats.passing_yards = stats.passingYards;
+            // playerGameStats.yards_per_pass_attempt = stats.yardsPerPassAttempt;
+            // playerGameStats.yards_per_pass_completion = passingCompletions > 0 ? stats.passingYards / passingCompletions : 0;
+            // playerGameStats.passing_touchdowns = stats.passingTouchdowns;
+            // playerGameStats.passing_interceptions = stats.interceptions;
+            // playerGameStats.passing_sacks = sacks;
+            // playerGameStats.passing_sack_yards = sackYards;
             playerGameStats.qb_rating = stats.QBRating;
             playerGameStats.adjQBR = stats.adjQBR;
-            // playerGameStats.passer_rating = stats.passerRating;
             break;
         case 'rushing':
-            playerGameStats.rushing_attempts = stats.rushingAttempts;
-            playerGameStats.rushing_yards = stats.rushingYards;
-            playerGameStats.yards_per_rush_attempt = stats.yardsPerRushAttempt;
-            playerGameStats.rushing_touchdowns = stats.rushingTouchdowns;
+            // playerGameStats.rushing_attempts = stats.rushingAttempts;
+            // playerGameStats.rushing_yards = stats.rushingYards;
+            // playerGameStats.yards_per_rush_attempt = stats.yardsPerRushAttempt;
+            // playerGameStats.rushing_touchdowns = stats.rushingTouchdowns;
             playerGameStats.rushing_long = stats.longRushing;
             break;
         case 'receiving':
-            playerGameStats.receptions = stats.receptions;
-            playerGameStats.targets = stats.receivingTargets;
-            playerGameStats.receiving_yards = stats.receivingYards;
-            playerGameStats.yards_per_reception = stats.yardsPerReception;
-            playerGameStats.receiving_touchdowns = stats.receivingTouchdowns;
-            playerGameStats.receiving_long = stats.longReceiving;
+            // playerGameStats.receptions = stats.receptions;
+            // playerGameStats.targets = stats.receivingTargets;
+            // playerGameStats.receiving_yards = stats.receivingYards;
+            // playerGameStats.yards_per_reception = stats.yardsPerReception;
+            // playerGameStats.receiving_touchdowns = stats.receivingTouchdowns;
+            playerGameStats.receiving_long = stats.longReception;
             break;
         case 'fumbles':
             playerGameStats.fumbles = stats.fumbles;
@@ -313,18 +346,20 @@ async function populateGameStatsForPlayer ({ playerObject, statKeys, statName, t
             playerGameStats.fumbles_recovered = stats.fumblesRecovered;
             break;
         case 'defensive':
-            playerGameStats.tackles = stats.totalTackles;
-            playerGameStats.tackles_for_loss = stats.tacklesForLoss;
-            playerGameStats.solo_tackles = stats.soloTackles;
-            playerGameStats.sacks = stats.sacks;
-            playerGameStats.qb_hits = stats.QBHits;
-            playerGameStats.defensive_touchdowns = stats.defensiveTouchdowns;
-            playerGameStats.passes_defended = stats.passesDefended;
+            // playerGameStats.tackles = stats.totalTackles;
+            // playerGameStats.tackles_for_loss = stats.tacklesForLoss;
+            // playerGameStats.solo_tackles = stats.soloTackles;
+            // playerGameStats.sacks = stats.sacks;
+            // playerGameStats.qb_hits = stats.QBHits;
+            // playerGameStats.defensive_touchdowns = stats.defensiveTouchdowns;
+            // playerGameStats.passes_defended = stats.passesDefended;
+            return true;
             break;
         case 'interceptions':
-            playerGameStats.interceptions = stats.interceptions;
-            playerGameStats.interception_yards = stats.interceptionYards;
-            playerGameStats.interception_touchdowns = stats.interceptionTouchdowns;
+            // playerGameStats.interceptions = stats.interceptions;
+            // playerGameStats.interception_yards = stats.interceptionYards;
+            // playerGameStats.interception_touchdowns = stats.interceptionTouchdowns;
+            return true;
             break;
         case 'kickReturns':
             playerGameStats.kick_returns = stats.kickReturns;
@@ -334,30 +369,31 @@ async function populateGameStatsForPlayer ({ playerObject, statKeys, statName, t
             playerGameStats.king_return_long = stats.longKickReturn;
             break;
         case 'kicking':
-            var fieldGoalsMade = 0; // this is broken for some reason
-            var fieldGoalsAttempted = 0;
-            if (stats.fieldGoalsMade_fieldGoalAttempts.length > 0) {
-                const split = stats.fieldGoalsMade_fieldGoalAttempts.split('_');
-                fieldGoalsMade = split[0];
-                fieldGoalsAttempted = split[1];
-            }
+            // var fieldGoalsMade = 0; // this is broken for some reason
+            // var fieldGoalsAttempted = 0;
+            // if (stats.fieldGoalsMade_fieldGoalAttempts.length > 0) {
+            //     const split = stats.fieldGoalsMade_fieldGoalAttempts.split('_');
+            //     fieldGoalsMade = split[0];
+            //     fieldGoalsAttempted = split[1];
+            // }
 
-            var extraPointsMade = 0; // this is also broken for some reason
-            var extraPointsAttempted = 0;
-            if (stats.extraPointsMade_extraPointAttempts.length > 0) {
-                const split = stats.extraPointsMade_extraPointAttempts.split('_');
-                extraPointsMade = split[0];
-                extraPointsAttempted = split[1];
-            }
+            // var extraPointsMade = 0; // this is also broken for some reason
+            // var extraPointsAttempted = 0;
+            // if (stats.extraPointsMade_extraPointAttempts.length > 0) {
+            //     const split = stats.extraPointsMade_extraPointAttempts.split('_');
+            //     extraPointsMade = split[0];
+            //     extraPointsAttempted = split[1];
+            // }
 
-            playerGameStats.field_goals_made = fieldGoalsMade;
-            playerGameStats.field_goal_attempts = fieldGoalsAttempted;
-            playerGameStats.field_goal_long = stats.longFieldGoalMade;
-            playerGameStats.field_goal_percentage = stats.fieldGoalPct == 100 ? 100 : stats.fieldGoalPct;
-            playerGameStats.total_kicking_points = stats.totalKickingPoints;
-            playerGameStats.extra_points_made = extraPointsMade;
-            playerGameStats.extra_point_attempts = extraPointsAttempted;
-            playerGameStats.extra_point_percentage = extraPointsAttempted > 0 ? extraPointsMade / extraPointsAttempted : 0;
+            // playerGameStats.field_goals_made = fieldGoalsMade;
+            // playerGameStats.field_goal_attempts = fieldGoalsAttempted;
+            // playerGameStats.field_goal_long = stats.longFieldGoalMade;
+            // playerGameStats.field_goal_percentage = stats.fieldGoalPct == 100 ? 100 : stats.fieldGoalPct;
+            // playerGameStats.total_kicking_points = stats.totalKickingPoints;
+            // playerGameStats.extra_points_made = extraPointsMade;
+            // playerGameStats.extra_point_attempts = extraPointsAttempted;
+            // playerGameStats.extra_point_percentage = extraPointsAttempted > 0 ? extraPointsMade / extraPointsAttempted : 0;
+            return true;
             break;
         case 'punting':
             playerGameStats.punts = stats.punts;
@@ -378,7 +414,7 @@ async function populateGameStatsForPlayer ({ playerObject, statKeys, statName, t
             console.log(`Unknown player stat type: ${statName}`);
             return false;
     }
-    playerGameStats.save({ logging: false })
+    playerGameStats.save({ logging: verbose })
 
     return playerGameStats;
 }
@@ -473,47 +509,79 @@ async function populateBoxscoresForTeams (boxscore) {
     }
 }
 
+const convertCharIdFromOldToNew = (char_id) => {
+    switch (char_id) {
+        case 'LAR':
+            return 'LA';
+        case 'OAK':
+            return 'LV';
+        case 'SD':
+            return 'LAC';
+        case 'WSH':
+            return 'WAS';
+        case 'STL':
+            return 'LA';
+        default:
+            return char_id;
+    }
+}
+
 /**
  * Load player stats for Game
  * 
  * Loads player stats from espn api via sportsdataverse and saves it to the database.
  * 
  * @param {number} gameId - The game id.
+ * @param {boolean} verbose - Whether to log verbose output.
  * 
  * @returns {object}
  */
-exports.loadPlayerStatsForGame = async (gameId) => {
+exports.loadPlayerStatsForGame = async (gameId, verbose = false) => {
     // get player data into loopable format to call populateGameStatsForPlayer
     const boxScore = await getBoxScore(gameId);
-
-    var boxScoreId;
 
     var playersAdded = 0;
     var playersFailed = 0;
     var boxScoreResults = [];
 
     for (const teamPlayerStats of boxScore.players) {
-        const team_id = teamPlayerStats.team.id;
-        const game_id = boxScore.id;
-
-        boxScoreId = await Boxscore.findOne({
+        // find team
+        const team = await Team.findOne({
             where: {
-                team_id: team_id,
-                schedule_id: game_id,
+                char_id: convertCharIdFromOldToNew(teamPlayerStats.team.abbreviation),
             },
             attributes: ['id'],
-            logging: false,
+            logging: verbose,
         });
-        if (!boxScoreId) {
-            const message = `Boxscore for game ${gameId} does not exist. Create that first. Skipping.`;
+        if (!team) {
+            const message = `Team ${teamPlayerStats.team.abbreviation} does not exist. Skipping.`;
             console.log(message);
             boxScoreResults.push({
-                team_id: team_id,
+                team_id: null,
                 message: message,
             });
             continue;
         }
-        boxScoreId = boxScoreId.id;
+        const team_id = team.id;
+
+        // find game by espn_id
+        const game = await Schedule.findOne({
+            where: {
+                espn_id: gameId,
+            },
+            attributes: ['id'],
+            logging: verbose,
+        });
+        if (!game) {
+            const message = `Game ${gameId} does not exist. Skipping.`;
+            console.log(message);
+            boxScoreResults.push({
+                team_id: team.id,
+                message: message,
+            });
+            continue;
+        }
+        const game_id = game.id;
 
         for (const statistic of teamPlayerStats.statistics) {
             const statKeys = statistic.keys;
@@ -525,8 +593,8 @@ exports.loadPlayerStatsForGame = async (gameId) => {
                     statKeys: statKeys,
                     statName: statName,
                     team_id: team_id,
-                    boxscore_id: boxScoreId,
-                    game_id: game_id
+                    game_id: game_id,
+                    verbose: verbose,
                 });
                 if (result) {
                     playersAdded++;

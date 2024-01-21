@@ -30,7 +30,7 @@ exports.getGamesBySeasonAndWeek = async ({ week, season, idsOnly = true }) => {
                 week: week,
                 season: season,
             },
-            attributes: idsOnly ? ['id'] : undefined
+            attributes: idsOnly ? ['id', 'espn_id'] : undefined
         });
         return games;
     } catch (err) {
