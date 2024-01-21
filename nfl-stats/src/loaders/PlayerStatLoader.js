@@ -19,7 +19,7 @@ const loadPlayerStats = async ({ week, season }) => {
             // flatten
             var gameIds = [];
             for (const game of response.data) {
-                gameIds.push(game.id);
+                gameIds.push(game.espn_id);
             }
             return gameIds;
         },
