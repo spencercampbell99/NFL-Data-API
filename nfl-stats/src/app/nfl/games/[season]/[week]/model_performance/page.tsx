@@ -97,9 +97,7 @@ const GameCard: React.FunctionComponent<{ game: Game }> = ({ game }) => {
                             <td>{game.home_team_score} ({game.schedule.boxscores[0].home_score})</td>
                             <td>{game.schedule.home_moneyline}</td>
                             <td>{game.schedule.spread * -1}</td>
-                            {game.correct_over_under ?
-                                <td className={`${game.correct_over_under ? 'font-bold' : ''}`}>{game.over_under.toLowerCase()} ({(game.schedule.boxscores[0].away_score + game.schedule.boxscores[0].home_score) > game.schedule.over_under ? 'Over' : 'Under'})</td>
-                                : null}
+                            <td className={`${game.correct_over_under ? 'font-bold' : ''}`}>{game.over_under.toLowerCase()} ({(game.schedule.boxscores[0].away_score + game.schedule.boxscores[0].home_score) > game.schedule.over_under ? 'Over' : 'Under'})</td>
                         </tr>
                     </tbody>
                 </table>
@@ -224,6 +222,7 @@ export default function WeekOverview({ params }: { params: { season: number, wee
             moneyWon: moneyWon,
             moneyLineMoneyWagered: moneyLineMoneyWagered,
             moneyLineMoneyWon: moneyLineMoneyWon,
+            moneyLinePercentReturn: ((moneyLineMoneyWon - moneyLineMoneyWagered) / moneyLineMoneyWagered * 100).toFixed(2),
             spreadMoneyWagered: spreadMoneyWagered,
             spreadMoneyWon: spreadMoneyWon,
             overUnderMoneyWagered: overUnderMoneyWagered,
