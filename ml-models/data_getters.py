@@ -2,6 +2,8 @@ from MysqlConnection import MySQLConnection
 import pandas as pd
 from sqlalchemy import text
 
+from simulation_testing import calculate_defense_stat_averages, calculate_offense_stat_averages
+
 total_model_columns = [
     "points_scored",
     "points_allowed",
@@ -853,5 +855,68 @@ def get_over_under_data_for_week(week, season, connection):
     
     # create matchup column
     data['matchup'] = data['away_team'] + ' @ ' + data['home_team']
+    
+    return data
+
+def build_expected_results_for_score_moden_training(start_year, end_year, conn=None, weeks_back=6):
+    
+    
+    should_close_connection = False
+    if conn is None:
+        conn = MySQLConnection()
+        should_close_connection = True
+    
+    data = None
+    
+    for year in range(start_year, end_year + 1):
+        for week in range(1, 18):
+            # games for week
+            games_for_week = get_games_for_week(week, 2023, connection=conn)
+            
+            for index, game in games_for_week.iterrows():
+                home_team_off_stats = calculate_offense_stat_averages(game['home_team_id'], 2023, week, weeks_back=weeks_back, conn=conn)
+                away_team_def_stats = calculate_defense_stat_averages(game['away_team_id'], 2023, week, weeks_back=weeks_back, conn=conn)
+                home_team_def_stats = calculate_defense_stat_averages(game['home_team_id'], 2023, week, weeks_back=weeks_back, conn=conn)
+                away_team_off_stats = calculate_offense_stat_averages(game['away_team_id'], 2023, week, weeks_back=weeks_back, conn=conn)
+                
+                # calculate the expected stats for the home team by taking the average of the home team's offensive stats and the away team's defensive stats
+                home_team_general_expected_stats = (home_team_off_stats + away_team_def_stats) / 2
+                away_team_general_expected_stats = (away_team_off_stats + home_team_def_stats) / 2
+
+                # rename columns (columns that don't contain _allowed, append team_ to the start, otherwise append opp_ and drop _allowed)
+                home_team_general_expected_stats.rename(columns=lambda x: 'team_' + x if '_allowed' not in x else 'opp_' + x.replace('_allowed', ''), inplace=True)
+                away_team_general_expected_stats.rename(columns=lambda x: 'team_' + x if '_allowed' not in x else 'opp_' + x.replace('_allowed', ''), inplace=True)
+
+                # rename opp_sacks_allowed to team_sacks_allowed
+                home_team_general_expected_stats.rename(columns={'opp_sacks': 'team_sacks_allowed'}, inplace=True)
+                away_team_general_expected_stats.rename(columns={'opp_sacks': 'team_sacks_allowed'}, inplace=True)
+
+                # add other columns (spread, over_under, is_home_team, etc.)
+                home_team_general_expected_stats['spread'] = game['spread']
+                home_team_general_expected_stats['over_under'] = game['over_under']
+                home_team_general_expected_stats['is_home_team'] = True
+                home_team_general_expected_stats['team_id'] = game['home_team_id']
+                home_team_general_expected_stats['team_char_id'] = game['home_team_char_id']
+                home_team_general_expected_stats['points_scored'] = game['home_points_scored']
+
+                away_team_general_expected_stats['spread'] = game['spread'] * -1
+                away_team_general_expected_stats['over_under'] = game['over_under']
+                away_team_general_expected_stats['is_home_team'] = False
+                away_team_general_expected_stats['team_id'] = game['away_team_id']
+                away_team_general_expected_stats['team_char_id'] = game['away_team_char_id']
+                away_team_general_expected_stats['points_scored'] = game['away_points_scored']
+
+                # concatenate dataframes
+                if data is None:
+                    data = home_team_general_expected_stats
+                else:
+                    data = pd.concat([data, home_team_general_expected_stats])
+                
+                data = pd.concat([data, away_team_general_expected_stats])
+        
+    if should_close_connection:
+        conn.close()
+        
+    data.dropna(inplace=True)
     
     return data

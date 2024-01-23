@@ -10,8 +10,9 @@ from MysqlConnection import MySQLConnection
 import signal
 conn = MySQLConnection()
 
-# load model from joblib (xgboost)
-model_name = 'points_scored_model'
+# load model from joblibn
+# model_name = 'points_scored_model'
+model_name = 'points_scored_averages_model'
 print(f'Loading {model_name}...')
 model = joblib.load(f'models/{model_name}.joblib')
 model_features = joblib.load(f'models/{model_name}_features.joblib')
