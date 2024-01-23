@@ -20,6 +20,7 @@ module.exports = (sequelize, Sequelize) => {
         'schedule_id': { type: DataTypes.INTEGER, allowNull: false, references: { model: 'schedules', key: 'id', as: 'schedule' } },
         'team_id': { type: DataTypes.INTEGER, allowNull: false, references: { model: 'teams', key: 'id', as: 'team' } },
         'boxscore_id': { type: DataTypes.INTEGER, allowNull: false, references: { model: 'box_scores', key: 'id', as: 'boxscore' } },
+        'next_schedule_id': { type: DataTypes.INTEGER, allowNull: true, references: { model: 'schedules', key: 'id' } },
 
         // averages
         'average_points_scored': { type: DataTypes.FLOAT, allowNull: true },
@@ -34,6 +35,7 @@ module.exports = (sequelize, Sequelize) => {
         'average_yards_per_play': { type: DataTypes.FLOAT, allowNull: true },
         'average_offensive_plays': { type: DataTypes.FLOAT, allowNull: true },
         'average_fg_attempted': { type: DataTypes.FLOAT, allowNull: true },
+        'average_epa': { type: DataTypes.FLOAT, allowNull: true },
 
         // home scoring averages
         'average_home_points_scored': { type: DataTypes.FLOAT, allowNull: true },
@@ -48,6 +50,7 @@ module.exports = (sequelize, Sequelize) => {
         'average_home_yards_per_play': { type: DataTypes.FLOAT, allowNull: true },
         'average_home_offensive_plays': { type: DataTypes.FLOAT, allowNull: true },
         'average_home_fg_attempted': { type: DataTypes.FLOAT, allowNull: true },
+        'average_home_epa': { type: DataTypes.FLOAT, allowNull: true },
 
         // away scoring averages
         'average_away_points_scored': { type: DataTypes.FLOAT, allowNull: true },
@@ -62,6 +65,7 @@ module.exports = (sequelize, Sequelize) => {
         'average_away_yards_per_play': { type: DataTypes.FLOAT, allowNull: true },
         'average_away_offensive_plays': { type: DataTypes.FLOAT, allowNull: true },
         'average_away_fg_attempted': { type: DataTypes.FLOAT, allowNull: true },
+        'average_away_epa': { type: DataTypes.FLOAT, allowNull: true },
 
         // averages against opponent
         'average_points_scored_against_opponent': { type: DataTypes.FLOAT, allowNull: true },
@@ -76,6 +80,7 @@ module.exports = (sequelize, Sequelize) => {
         'average_yards_per_play_against_opponent': { type: DataTypes.FLOAT, allowNull: true },
         'average_offensive_plays_against_opponent': { type: DataTypes.FLOAT, allowNull: true },
         'average_fg_attempted_against_opponent': { type: DataTypes.FLOAT, allowNull: true },
+        'average_epa_against_opponent': { type: DataTypes.FLOAT, allowNull: true },
     }, {
         sequelize,
         modelName: 'AveragedTeamPerformance',
