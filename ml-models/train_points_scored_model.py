@@ -27,7 +27,7 @@ features = [
     'team_total_epa',
     'team_turnovers',
     'team_time_of_possession',
-    'opp_turnovers'
+    # 'opp_turnovers'
 ]
 
 # append home and away to each feature
@@ -41,7 +41,7 @@ full_features.append('over_under')
 # full_features.remove('opp_critical_situation_percentage')
 # full_features.remove('team_penalty_yards_against')
 
-data = get_data_for_points_scored_model(2017, 2022)
+data = get_data_for_points_scored_model(2015, 2022)
 
 # create test split
 X_train, X_test, y_train, y_test = train_test_split(data[full_features], data['points_scored'], test_size=0.1, random_state=42)
@@ -73,7 +73,9 @@ X_test = scaler.transform(X_test)
 
 # create model
 model = tf.keras.models.Sequential([
-    tf.keras.layers.Dense(8, activation='relu', input_shape=(len(full_features),)),
+    tf.keras.layers.Dense(16, activation='relu', input_shape=(len(full_features),)),
+    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Dense(8, activation='relu'),
     tf.keras.layers.Dropout(0.2),
     tf.keras.layers.Dense(1, activation='linear')
 ])
@@ -83,7 +85,7 @@ model.compile(optimizer='adam', loss='mse', metrics=['mae'])
 # train model
 early_stop = EarlyStopping(monitor='val_loss', patience=6, restore_best_weights=True)
 
-model.fit(X_train, y_train, epochs=150, batch_size=4, validation_split=0.1, shuffle=True, verbose=1, callbacks=[early_stop])
+model.fit(X_train, y_train, epochs=150, batch_size=8, validation_split=0.1, shuffle=True, verbose=0, callbacks=[early_stop])
 
 # evaluate model
 model.evaluate(X_test, y_test, verbose=1)
@@ -92,10 +94,10 @@ model.evaluate(X_test, y_test, verbose=1)
 model.summary()
 
 # save model and features with joblib
-# model_name = 'points_scored_model'
-# print(f'Saving {model_name}...')
-# joblib.dump(model, f'models/{model_name}.joblib')
-# joblib.dump(full_features, f'models/{model_name}_features.joblib')
+model_name = 'points_scored_model'
+print(f'Saving {model_name}...')
+joblib.dump(model, f'models/{model_name}.joblib')
+joblib.dump(full_features, f'models/{model_name}_features.joblib')
 
-# # save the scaler
-# joblib.dump(scaler, f'models/{model_name}_scaler.joblib')
+# save the scaler
+joblib.dump(scaler, f'models/{model_name}_scaler.joblib')

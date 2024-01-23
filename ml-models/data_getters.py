@@ -43,8 +43,8 @@ total_model_columns = [
     "field_goals_attempted",
     "extra_points_made",
     "extra_points_attempted",
-    "defense_special_teams_qb_hits",
-    'defense_special_teams_sacks',
+    "defense_qb_hits",
+    'defense_sacks',
     'total_epa',
     'passing_epa',
     'rushing_epa',
@@ -134,6 +134,10 @@ def get_games_for_week(week, season, connection):
             AND week = %s
     """
     df = pd.read_sql(query, con=connection.connection, params=(season, week, ))
+    
+    # set short_name = away @ home
+    df['short_name'] = df['away_team_char_id'] + ' @ ' + df['home_team_char_id']
+    
     return df
 
 team_expected_values_query = text(f"""
@@ -176,7 +180,7 @@ team_expected_values_query = text(f"""
         (AVG(RankedOppDefenseGames.yards_per_rush) + AVG(RankedTeamOffenseGames.yards_per_rush)) / 2 as yards_per_rush,
         (AVG(RankedOppDefenseGames.punts) + AVG(RankedTeamOffenseGames.punts)) / 2 as punts,
         (AVG(RankedOppDefenseGames.punts_inside_20) + AVG(RankedTeamOffenseGames.punts_inside_20)) / 2 as punts_inside_20,
-        (AVG(RankedOppDefenseGames.defense_special_teams_sacks) + AVG(RankedTeamOffenseGames.defense_special_teams_sacks)) / 2 as defense_special_teams_sacks,
+        (AVG(RankedOppDefenseGames.defense_sacks) + AVG(RankedTeamOffenseGames.defense_sacks)) / 2 as defense_sacks,
         (AVG(RankedOppDefenseGames.sacks_allowed) + AVG(RankedTeamOffenseGames.sacks_allowed)) / 2 as sacks_allowed,
         (AVG(RankedOppDefenseGames.passing_completions) + AVG(RankedTeamOffenseGames.passing_completions)) / 2 as passing_completions
     FROM RankedOppDefenseGames

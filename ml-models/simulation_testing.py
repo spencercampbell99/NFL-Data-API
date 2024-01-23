@@ -22,7 +22,7 @@ features_coefs = {
     'team_turnovers': -1.157713429955479,
     'team_punts': 0.6257555170686746,
     'opp_rushing_attempts': -0.4873604991944854,
-    'opp_defense_special_teams_qb_hits': -0.12691653950059845,
+    'opp_defense_qb_hits': -0.12691653950059845,
     'spread': 0.7649359979796952,
     'over_under': 0.7381265848861227
 }
@@ -54,15 +54,22 @@ def calculate_offense_stat_averages(team_id, season, week, conn, weeks_back=5):
                     team.rushing_attempts AS team_rushing_attempts,
                     team.turnovers AS team_turnovers,
                     team.punts AS team_punts,
+                    team.total_offensive_yards AS team_total_offensive_yards,
+                    team.yards_per_play AS team_yards_per_play,
+                    team.passing_epa AS team_passing_epa,
+                    team.rushing_epa AS team_rushing_epa,
+                    team.receiving_epa AS team_receiving_epa,
+                    team.total_epa AS team_total_epa,
+                    team.time_of_possession AS team_time_of_possession,
                     opp.rushing_attempts AS opp_rushing_attempts,
-                    opp.defense_special_teams_qb_hits AS opp_defense_special_teams_qb_hits,
+                    opp.defense_qb_hits AS opp_defense_qb_hits,
                     ROW_NUMBER() OVER (PARTITION BY team.team_id ORDER BY season DESC, week DESC) AS `rank`
                 FROM
                     box_scores team
                 JOIN schedules on schedules.id = team.schedule_id
                 JOIN box_scores opp on opp.schedule_id = schedules.id AND opp.team_id != team.team_id
                 WHERE
-                    (season < {season} OR (season = {season} AND week < {week})) AND team.team_id = {team_id}
+                    (season < {season} OR (season = {season} AND week < {week})) AND team.team_id = {team_id} and game_type = 'REG'
                 LIMIT {weeks_back}
             )
             SELECT 
@@ -79,7 +86,14 @@ def calculate_offense_stat_averages(team_id, season, week, conn, weeks_back=5):
                 AVG(team_turnovers) AS turnovers,
                 AVG(team_punts) AS punts,
                 AVG(opp_rushing_attempts) AS rushing_attempts_allowed,
-                AVG(opp_defense_special_teams_qb_hits) AS defense_special_teams_qb_hits_allowed
+                AVG(opp_defense_qb_hits) AS defense_qb_hits_allowed,
+                AVG(team_total_offensive_yards) AS total_offensive_yards,
+                AVG(team_yards_per_play) AS yards_per_play,
+                AVG(team_passing_epa) AS passing_epa,
+                AVG(team_rushing_epa) AS rushing_epa,
+                AVG(team_receiving_epa) AS receiving_epa,
+                AVG(team_total_epa) AS total_epa,
+                AVG(team_time_of_possession) AS time_of_possession
             FROM RankedGames
             WHERE `rank` <= {weeks_back}
         """
@@ -87,6 +101,9 @@ def calculate_offense_stat_averages(team_id, season, week, conn, weeks_back=5):
     
     # execute query
     df = pd.read_sql_query(query, conn.connection)
+    
+    # convert time of possession to seconds
+    df['time_of_possession'] = df['time_of_possession'] * 60
     
     return df
 
@@ -116,16 +133,23 @@ def calculate_defense_stat_averages(team_id, season, week, conn, weeks_back=5):
                     opp.rushing_yards AS opp_rushing_yards,
                     opp.rushing_attempts AS opp_rushing_attempts,
                     opp.turnovers AS opp_turnovers,
+                    opp.total_offensive_yards AS opp_total_offensive_yards,
+                    opp.yards_per_play AS opp_yards_per_play,
+                    opp.passing_epa AS opp_passing_epa,
+                    opp.rushing_epa AS opp_rushing_epa,
+                    opp.receiving_epa AS opp_receiving_epa,
+                    opp.total_epa AS opp_total_epa,
+                    opp.time_of_possession AS opp_time_of_possession,
                     opp.punts AS opp_punts,
                     team.rushing_attempts AS team_rushing_attempts,
-                    team.defense_special_teams_qb_hits AS team_defense_special_teams_qb_hits,
+                    team.defense_qb_hits AS team_defense_qb_hits,
                     ROW_NUMBER() OVER (PARTITION BY team.team_id ORDER BY season DESC, week DESC) AS `rank`
                 FROM
                     box_scores team
                 JOIN schedules on schedules.id = team.schedule_id
                 JOIN box_scores opp on opp.schedule_id = schedules.id AND opp.team_id != team.team_id
                 WHERE
-                    (season < {season} OR (season = {season} AND week < {week})) AND team.team_id = {team_id}
+                    (season < {season} OR (season = {season} AND week < {week})) AND team.team_id = {team_id} and game_type = 'REG'
                 LIMIT {weeks_back}
             )
             SELECT 
@@ -142,12 +166,22 @@ def calculate_defense_stat_averages(team_id, season, week, conn, weeks_back=5):
                 AVG(opp_turnovers) AS turnovers,
                 AVG(opp_punts) AS punts,
                 AVG(team_rushing_attempts) AS rushing_attempts_allowed,
-                AVG(team_defense_special_teams_qb_hits) AS defense_special_teams_qb_hits_allowed
+                AVG(team_defense_qb_hits) AS defense_qb_hits_allowed,
+                AVG(opp_total_offensive_yards) AS total_offensive_yards,
+                AVG(opp_yards_per_play) AS yards_per_play,
+                AVG(opp_passing_epa) AS passing_epa,
+                AVG(opp_rushing_epa) AS rushing_epa,
+                AVG(opp_receiving_epa) AS receiving_epa,
+                AVG(opp_total_epa) AS total_epa,
+                AVG(opp_time_of_possession) AS time_of_possession
             FROM RankedGames
             WHERE `rank` <= {weeks_back}
         """
     )
     df = pd.read_sql_query(query, conn.connection)
+    
+    # convert time of possession to seconds
+    df['time_of_possession'] = df['time_of_possession'] * 60
     
     return df
     

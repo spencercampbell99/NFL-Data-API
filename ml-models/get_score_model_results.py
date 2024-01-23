@@ -23,7 +23,7 @@ scaler = joblib.load(f'models/{model_name}_scaler.joblib')
 matchup_predictions = pd.DataFrame(columns=['schedule_id', 'matchup', 'home_team', 'away_team', 'predicted_home_score', 'predicted_away_score', 'actual_home_score', 'actual_away_score', 'actual_total', 'correct_winner', 'predicted_total', 'over_under', 'predicted_over_under_result', 'actual_over_under_result', 'spread', 'correct_spread', 'predicted_underdog_win', 'actual_underdog_win'])
 matchup_predictions.set_index('matchup', inplace=True)
 
-for week in range(1, 17):
+for week in range(1, 19):
     # data = get_data_for_points_scored_model_with_averages(week=week, season=2023, connection=conn, weeks_back=10)
     
     # make the index 0 -> length
@@ -161,12 +161,10 @@ prediction_insert_query = text(f"""
         home_team_score, 
         away_team_score, 
         total_score,
-        # over_under,
         cover_spread,
         home_win,
         underdog_win,
         correct_winner,
-        # correct_over_under,
         correct_spread,
         correct_underdog_win,
         home_team_error,
@@ -177,12 +175,10 @@ prediction_insert_query = text(f"""
         :home_team_score, 
         :away_team_score, 
         :total_score,
-        # :over_under,
         :cover_spread,
         :home_win,
         :underdog_win,
         :correct_winner,
-        # :correct_over_under,
         :correct_spread,
         :correct_underdog_win,
         :home_team_error,
@@ -194,12 +190,10 @@ prediction_update_query = text(f"""
     SET home_team_score = :home_score,
         away_team_score = :away_score,
         total_score = :total_score,
-        # over_under = :over_under,
         cover_spread = :cover_spread,
         home_win = :home_win,
         underdog_win = :underdog_win,
         correct_winner = :correct_winner,
-        # correct_over_under = :correct_over_under,
         correct_spread = :correct_spread,
         correct_underdog_win = :correct_underdog_win,
         home_team_error = :home_error,
