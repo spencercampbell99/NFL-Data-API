@@ -28,7 +28,7 @@ interface Game {
     schedule: {
         name: string
         away_team_char_id: string
-        away_team_money_line: number
+        away_moneyline: number
         boxscores: {
             away_score: number
             home_score: number
@@ -36,7 +36,7 @@ interface Game {
         }[]
         date: string
         home_team_char_id: string
-        home_team_money_line: number
+        home_moneyline: number
         over_under: number
         season: number
         spread: number
@@ -88,16 +88,18 @@ const GameCard: React.FunctionComponent<{ game: Game }> = ({ game }) => {
                         <tr>
                             <td>{game.schedule.away_team_char_id}</td>
                             <td>{game.away_team_score} ({game.schedule.boxscores[0].away_score})</td>
-                            <td>{game.schedule.away_team_money_line}</td>
+                            <td>{game.schedule.away_moneyline}</td>
                             <td>{game.schedule.spread}</td>
                             <td>{game.schedule.over_under} ({game.schedule.boxscores[0].away_score + game.schedule.boxscores[0].home_score})</td>
                         </tr>
                         <tr>
                             <td>{game.schedule.home_team_char_id}</td>
                             <td>{game.home_team_score} ({game.schedule.boxscores[0].home_score})</td>
-                            <td>{game.schedule.home_team_money_line}</td>
+                            <td>{game.schedule.home_moneyline}</td>
                             <td>{game.schedule.spread * -1}</td>
-                            <td className={`${game.correct_over_under ? 'font-bold' : ''}`}>{game.over_under.toLowerCase()} ({(game.schedule.boxscores[0].away_score + game.schedule.boxscores[0].home_score) > game.schedule.over_under ? 'Over' : 'Under'})</td>
+                            {game.correct_over_under ?
+                                <td className={`${game.correct_over_under ? 'font-bold' : ''}`}>{game.over_under.toLowerCase()} ({(game.schedule.boxscores[0].away_score + game.schedule.boxscores[0].home_score) > game.schedule.over_under ? 'Over' : 'Under'})</td>
+                                : null}
                         </tr>
                     </tbody>
                 </table>
@@ -180,14 +182,14 @@ export default function WeekOverview({ params }: { params: { season: number, wee
             const homeWinner = game.home_team_score > game.away_team_score
             
             // calculate decimal odds for winner
-            if (homeWinner && game.schedule.home_team_money_line < 0) {
-                decimalOdds = 100 / (game.schedule.home_team_money_line * -1) + 1
-            } else if (!homeWinner && game.schedule.away_team_money_line < 0) {
-                decimalOdds = 100 / (game.schedule.away_team_money_line * -1) + 1
-            } else if (homeWinner && game.schedule.home_team_money_line > 0) {
-                decimalOdds = game.schedule.home_team_money_line / 100 + 1
-            } else if (!homeWinner && game.schedule.away_team_money_line > 0) {
-                decimalOdds = game.schedule.away_team_money_line / 100 + 1
+            if (homeWinner && game.schedule.home_moneyline < 0) {
+                decimalOdds = 100 / (game.schedule.home_moneyline * -1) + 1
+            } else if (!homeWinner && game.schedule.away_moneyline < 0) {
+                decimalOdds = 100 / (game.schedule.away_moneyline * -1) + 1
+            } else if (homeWinner && game.schedule.home_moneyline > 0) {
+                decimalOdds = game.schedule.home_moneyline / 100 + 1
+            } else if (!homeWinner && game.schedule.away_moneyline > 0) {
+                decimalOdds = game.schedule.away_moneyline / 100 + 1
             }
 
             // calculate money won/lost
