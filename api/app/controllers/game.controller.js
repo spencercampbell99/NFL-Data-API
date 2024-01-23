@@ -63,7 +63,7 @@ exports.getGamesOverviewBySeasonAndWeek = async (req, res) => {
                 week: week,
                 season: season,
             },
-            attributes: ['id', 'name', 'short_name', 'home_team_char_id', 'away_team_char_id', 'spread', 'over_under', 'date', ['home_team_money_line', 'home_moneyline'], ['away_team_money_line', 'away_moneyline']],
+            attributes: ['id', 'name', 'short_name', 'home_team_char_id', 'away_team_char_id', 'spread', 'over_under', 'date', ['home_moneyline', 'home_moneyline'], ['away_moneyline', 'away_moneyline']],
             include: [
                 {
                     model: db.boxscores,

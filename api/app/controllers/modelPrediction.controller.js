@@ -28,9 +28,9 @@ exports.getModelPredictionsOverviewBySeasonAndWeek = async (req, res) => {
                     where: {
                         season: season,
                         week: week,
-                        season_type: 'regular-season',
+                        game_type: 'REG',
                     },
-                    attributes: ['season', 'week', 'over_under', 'spread', 'date', 'home_team_money_line', 'away_team_money_line', 'home_team_char_id', 'away_team_char_id', 'name'],
+                    attributes: ['season', 'week', 'over_under', 'spread', 'date', 'home_moneyline', 'away_moneyline', 'home_team_char_id', 'away_team_char_id'],
                     include: [
                         {
                             model: db.boxscores,
@@ -48,6 +48,11 @@ exports.getModelPredictionsOverviewBySeasonAndWeek = async (req, res) => {
         if (!modelPredictions) {
             return res.status(404).send({ message: 'Model predictions not found.' });
         }
+
+        // add name column as away_team_char_id @ home_team_char_id
+        modelPredictions.forEach(modelPrediction => {
+            modelPrediction.schedule.dataValues.name = `${modelPrediction.schedule.dataValues.away_team_char_id} @ ${modelPrediction.schedule.dataValues.home_team_char_id}`;
+        });
 
         return res.status(200).send({ modelPredictions });
     } catch (err) {
