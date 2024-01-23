@@ -750,6 +750,10 @@ over_under_column_selects = [
     '(home.average_home_yards_per_play + away.average_away_yards_per_play) as yards_per_play',
     '(home.average_punts_inside_20 + away.average_punts_inside_20) as punts_inside_20',
     '(home.average_fg_attempted + away.average_fg_attempted) as fg_attempted',
+    # '(home.passing_epa + away.passing_epa) / 2 as passing_epa',
+    # '(home.rushing_epa + away.rushing_epa) / 2 as rushing_epa',
+    # '(home.receiving_epa + away.receiving_epa) / 2 as receiving_epa',
+    '(home.average_home_epa + away.average_away_epa) / 2 as total_epa',
 ]
 
 def get_over_under_data(start_year, end_year):
@@ -781,8 +785,8 @@ def get_over_under_data(start_year, end_year):
             schedules
         JOIN box_scores as favorite ON CASE WHEN spread >= 0 THEN favorite.team_id = schedules.home_team_id ELSE favorite.team_id = schedules.away_team_id END AND favorite.schedule_id = schedules.id
         JOIN box_scores as underdog ON CASE WHEN spread < 0 THEN underdog.team_id = schedules.home_team_id ELSE underdog.team_id = schedules.away_team_id END AND underdog.schedule_id = schedules.id
-        JOIN averaged_team_performances home ON home.team_id = schedules.home_team_id AND home.schedule_id = schedules.id
-        JOIN averaged_team_performances away ON away.team_id = schedules.away_team_id AND away.schedule_id = schedules.id
+        JOIN averaged_team_performances home ON home.team_id = schedules.home_team_id AND home.next_schedule_id = schedules.id
+        JOIN averaged_team_performances away ON away.team_id = schedules.away_team_id AND away.next_schedule_id = schedules.id
         WHERE
             schedules.game_type = 'REG'
             AND (schedules.season >= {start_year} AND schedules.season <= {end_year})
@@ -825,7 +829,6 @@ def get_over_under_data_for_week(week, season, connection):
         )
         SELECT
             {', '.join(over_under_column_selects)},
-            short_name as matchup,
             schedules.home_team_char_id as home_team,
             schedules.away_team_char_id as away_team,
             over_under,
@@ -847,5 +850,8 @@ def get_over_under_data_for_week(week, season, connection):
     
     # drop duplicate rows by schedule_id
     data = data.drop_duplicates(subset=['schedule_id'])
+    
+    # create matchup column
+    data['matchup'] = data['away_team'] + ' @ ' + data['home_team']
     
     return data

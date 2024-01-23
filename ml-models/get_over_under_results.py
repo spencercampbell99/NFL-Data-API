@@ -22,7 +22,7 @@ total_games = 0
 results = pd.DataFrame(columns=['schedule_id', 'matchup', 'predicted_over_under_result', 'over_under_result', 'correct', 'line'])
 results.set_index('matchup', inplace=True)
 
-for week in range(5, 17):
+for week in range(1, 19):
     games_for_week = get_games_for_week(week=week, season=2023, connection=conn)
     games_for_week.set_index('short_name', inplace=True)
     
@@ -84,7 +84,7 @@ if should_update == 'y':
     for index, row in results.iterrows():
         res = conn.connection.execute(update_query, {
             'predicted_over_under_result': row['predicted_over_under_result'].upper(),
-            'correct_over_under': True if row['correct'] == 'yes' else False,
+            'correct_over_under': True if row['correct'] == 'yes' or row['correct'] == 'push' else False,
             'schedule_id': row['schedule_id']
         })
         if res.rowcount != 1:

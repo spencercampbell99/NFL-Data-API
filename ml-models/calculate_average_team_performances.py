@@ -32,7 +32,8 @@ get_average_team_performance = text(f"""
         avg(yards_per_play) as average_yards_per_play,
         avg(total_offensive_plays) as average_offensive_plays,
         avg(red_zone_attempts) as average_redzone_attempts,
-        avg(field_goals_attempted) as average_fg_attempted
+        avg(field_goals_attempted) as average_fg_attempted,
+        avg(total_epa) as average_epa
     FROM
         RankedBoxScores
     WHERE
@@ -65,7 +66,8 @@ get_average_team_performance_for_home = text(f"""
         avg(yards_per_play) as average_home_yards_per_play,
         avg(total_offensive_plays) as average_home_offensive_plays,
         avg(red_zone_attempts) as average_home_redzone_attempts,
-        avg(field_goals_attempted) as average_fg_attempted
+        avg(field_goals_attempted) as average_fg_attempted,
+        avg(total_epa) as average_epa
     FROM
         RankedBoxScores
     WHERE
@@ -98,7 +100,8 @@ get_average_team_performance_for_away = text(f"""
         avg(yards_per_play) as average_home_yards_per_play,
         avg(total_offensive_plays) as average_home_offensive_plays,
         avg(red_zone_attempts) as average_home_redzone_attempts,
-        avg(field_goals_attempted) as average_fg_attempted
+        avg(field_goals_attempted) as average_fg_attempted,
+        avg(total_epa) as average_epa
     FROM
         RankedBoxScores
     WHERE
@@ -131,7 +134,8 @@ get_average_team_performance_vs_opponent = text(f"""
         avg(yards_per_play) as average_home_yards_per_play,
         avg(total_offensive_plays) as average_home_offensive_plays,
         avg(red_zone_attempts) as average_home_redzone_attempts,
-        avg(field_goals_attempted) as average_fg_attempted
+        avg(field_goals_attempted) as average_fg_attempted,
+        avg(total_epa) as average_epa
     FROM
         RankedBoxScores
     WHERE
@@ -143,6 +147,7 @@ insert_query = text(f"""
     INSERT INTO averaged_team_performances (
         team_id,
         schedule_id,
+        next_schedule_id,
         boxscore_id,
         average_points_scored,
         average_points_allowed,
@@ -191,11 +196,16 @@ insert_query = text(f"""
         average_fg_attempted,
         average_home_fg_attempted,
         average_away_fg_attempted,
-        average_fg_attempted_against_opponent
+        average_fg_attempted_against_opponent,
+        average_epa,
+        average_home_epa,
+        average_away_epa,
+        average_epa_against_opponent
     )
     VALUES (
         :team_id,
         :schedule_id,
+        :next_schedule_id,
         :boxscore_id,
         :average_points_scored,
         :average_points_allowed,
@@ -244,7 +254,11 @@ insert_query = text(f"""
         :average_fg_attempted,
         :average_home_fg_attempted,
         :average_away_fg_attempted,
-        :average_vs_opponent_fg_attempted
+        :average_vs_opponent_fg_attempted,
+        :average_epa,
+        :average_home_epa,
+        :average_away_epa,
+        :average_epa_against_opponent
     )
 """)
 
@@ -252,6 +266,7 @@ insert_query = text(f"""
 update_query = text(f"""
     UPDATE averaged_team_performances
     SET
+        next_schedule_id = :next_schedule_id,
         average_points_scored = :average_points_scored,
         average_points_allowed = :average_points_allowed,
         average_total_score = :average_total_score,
@@ -299,14 +314,31 @@ update_query = text(f"""
         average_fg_attempted = :average_fg_attempted,
         average_home_fg_attempted = :average_home_fg_attempted,
         average_away_fg_attempted = :average_away_fg_attempted,
-        average_fg_attempted_against_opponent = :average_vs_opponent_fg_attempted
+        average_fg_attempted_against_opponent = :average_vs_opponent_fg_attempted,
+        average_epa = :average_epa,
+        average_home_epa = :average_home_epa,
+        average_away_epa = :average_away_epa,
+        average_epa_against_opponent = :average_epa_against_opponent
     WHERE
         team_id = :team_id
         AND schedule_id = :schedule_id      
 """)
 
 # get all box_scores from 2013 onwards
-box_scores = pd.read_sql('select schedules.id as schedule_id, box_scores.id as boxscore_id, box_scores.team_id as team_id, box_scores.opponent_id as opponent_id, schedules.season as season, schedules.week as week from box_scores join schedules on schedules.id = box_scores.schedule_id where season >= 2013', con=conn.connection)
+box_scores = pd.read_sql('select schedules.id as schedule_id, box_scores.id as boxscore_id, box_scores.team_id as team_id, box_scores.opponent_id as opponent_id, schedules.season as season, schedules.week as week from box_scores join schedules on schedules.id = box_scores.schedule_id where season >= 2013 ORDER BY season ASC, week ASC', con=conn.connection)
+
+# get next schedule id query
+next_schedule_id_query = text(f"""
+    SELECT
+        schedules.id as schedule_id
+    FROM
+        schedules
+    WHERE
+        (away_team_id = :team_id or home_team_id = :team_id)
+        and (season > :season or (season = :season and week > :week))
+    ORDER BY schedules.season ASC, schedules.week ASC
+    LIMIT 1
+""")
 
 completed = 0
 total_box_scores = len(box_scores)
@@ -326,6 +358,10 @@ for index, box_score in box_scores.iterrows():
     week = box_score['week'].item()
     boxscore_id = box_score['boxscore_id'].item()
     
+    # get next schedule id
+    next_schedule_id_result = conn.connection.execute(next_schedule_id_query, {'team_id': team_id, 'season': season, 'week': week}).fetchone()
+    next_schedule_id = next_schedule_id_result[0] if next_schedule_id_result is not None else None
+    
     # get average team performance
     average_team_performance = pd.read_sql(get_average_team_performance, con=conn.connection, params={'team_id': team_id, 'season': season, 'week': week, 'weeks_back': weeks_back})
     average_team_performance_for_home = pd.read_sql(get_average_team_performance_for_home, con=conn.connection, params={'team_id': team_id, 'season': season, 'week': week, 'weeks_back': weeks_back})
@@ -336,6 +372,7 @@ for index, box_score in box_scores.iterrows():
     res = conn.connection.execute(update_query, {
         'team_id': team_id,
         'schedule_id': schedule_id,
+        'next_schedule_id': next_schedule_id,
         'average_points_scored': average_team_performance.loc[0, 'average_points_scored'],
         'average_points_allowed': average_team_performance.loc[0, 'average_points_allowed'],
         'average_total_score': average_team_performance.loc[0, 'average_total_score'],
@@ -383,7 +420,11 @@ for index, box_score in box_scores.iterrows():
         'average_fg_attempted': average_team_performance.loc[0, 'average_fg_attempted'],
         'average_home_fg_attempted': average_team_performance_for_home.loc[0, 'average_fg_attempted'],
         'average_away_fg_attempted': average_team_performance_for_away.loc[0, 'average_fg_attempted'],
-        'average_vs_opponent_fg_attempted': average_team_performance_vs_opponent.loc[0, 'average_fg_attempted']
+        'average_vs_opponent_fg_attempted': average_team_performance_vs_opponent.loc[0, 'average_fg_attempted'],
+        'average_epa': average_team_performance.loc[0, 'average_epa'],
+        'average_home_epa': average_team_performance_for_home.loc[0, 'average_epa'],
+        'average_away_epa': average_team_performance_for_away.loc[0, 'average_epa'],
+        'average_epa_against_opponent': average_team_performance_vs_opponent.loc[0, 'average_epa']
     })
     
     # see if update failed
@@ -392,6 +433,7 @@ for index, box_score in box_scores.iterrows():
             'team_id': team_id,
             'schedule_id': schedule_id,
             'boxscore_id': boxscore_id,
+            'next_schedule_id': next_schedule_id, # this is the last schedule id for the team
             'average_points_scored': average_team_performance.loc[0, 'average_points_scored'],
             'average_points_allowed': average_team_performance.loc[0, 'average_points_allowed'],
             'average_total_score': average_team_performance.loc[0, 'average_total_score'],
@@ -439,7 +481,11 @@ for index, box_score in box_scores.iterrows():
             'average_fg_attempted': average_team_performance.loc[0, 'average_fg_attempted'],
             'average_home_fg_attempted': average_team_performance_for_home.loc[0, 'average_fg_attempted'],
             'average_away_fg_attempted': average_team_performance_for_away.loc[0, 'average_fg_attempted'],
-            'average_vs_opponent_fg_attempted': average_team_performance_vs_opponent.loc[0, 'average_fg_attempted']
+            'average_vs_opponent_fg_attempted': average_team_performance_vs_opponent.loc[0, 'average_fg_attempted'],
+            'average_epa': average_team_performance.loc[0, 'average_epa'],
+            'average_home_epa': average_team_performance_for_home.loc[0, 'average_epa'],
+            'average_away_epa': average_team_performance_for_away.loc[0, 'average_epa'],
+            'average_epa_against_opponent': average_team_performance_vs_opponent.loc[0, 'average_epa']
         })
         # print(f'Inserted {team_id} for {schedule_id}')
     completed += 1
