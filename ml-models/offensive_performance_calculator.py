@@ -2,7 +2,7 @@ from collections import Counter
 from matplotlib import pyplot as plt
 from matplotlib.pylab import norm
 from scipy import stats
-from mysql_connection import MySQLConnection
+from MysqlConnection import MySQLConnection
 from sqlalchemy import text
 conn = MySQLConnection()
 import pandas as pd

@@ -6,7 +6,7 @@ from simulation_testing import calculate_offense_stat_averages, calculate_defens
 import joblib
 from sqlalchemy import text
 
-from mysql_connection import MySQLConnection
+from MysqlConnection import MySQLConnection
 import signal
 conn = MySQLConnection()
 

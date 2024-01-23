@@ -1,5 +1,5 @@
 # get sql connection
-from mysql_connection import MySQLConnection
+from MysqlConnection import MySQLConnection
 from sqlalchemy import text
 conn = MySQLConnection()
 

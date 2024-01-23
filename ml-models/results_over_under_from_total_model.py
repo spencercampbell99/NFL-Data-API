@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from data_getters import get_total_score_data_expected_values
 import joblib
 
-from mysql_connection import MySQLConnection
+from MysqlConnection import MySQLConnection
 conn = MySQLConnection()
 
 # load model from joblib (xgboost)

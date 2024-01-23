@@ -1,4 +1,4 @@
-from mysql_connection import MySQLConnection
+from MysqlConnection import MySQLConnection
 import pandas as pd
 from sqlalchemy import text
 
