@@ -15,12 +15,8 @@ interface Game {
     short_name: string
     home_team_char_id: string
     away_team_char_id: string
-    boxscores: [
-        {
-            home_score: number
-            away_score: number
-        }
-    ],
+    home_score: number
+    away_score: number
     over_under: number
     spread: number
     date: string
@@ -60,14 +56,14 @@ const GameCard: React.FunctionComponent<{ game: Game }> = ({ game }) => {
                     </div>
                     <div className={`grid grid-cols-5${!game.homeWin ? ' font-bold' : ''}`}>
                         <p>{game.away_team_char_id}</p>
-                        <p>{game.boxscores[0].away_score}</p>
+                        <p>{game.away_score}</p>
                         <p>{game.away_moneyline}</p>
                         <p>{game.spread}</p>
                         <p className="!font-light">{game.over_under}</p>
                     </div>
                     <div className={`grid grid-cols-5${game.homeWin ? ' font-bold' : ''}`}>
                         <p>{game.home_team_char_id}</p>
-                        <p>{game.boxscores[0].home_score}</p>
+                        <p>{game.home_score}</p>
                         <p>{game.home_moneyline}</p>
                         <p>{game.spread * -1}</p>
                         <p className="!font-light">{game.overUnder ? 'Over' : 'Under'}</p>
@@ -149,16 +145,16 @@ export default function WeekOverview({ params }: { params: { season: number, wee
             games[i].date = moment(games[i].date).format('dddd');
 
             games[i].homeFavorite = games[i].spread > 0 ? true : false
-            games[i].homeWin = games[i].boxscores[0].home_score > games[i].boxscores[0].away_score
+            games[i].homeWin = games[i].home_score > games[i].away_score
             games[i].underdogWin = (games[i].homeFavorite && !games[i].homeWin) || (!games[i].homeFavorite && games[i].homeWin)
-            games[i].overUnder = games[i].boxscores[0].home_score + games[i].boxscores[0].away_score > games[i].over_under
+            games[i].overUnder = games[i].home_score + games[i].away_score > games[i].over_under
 
             // flatten data structure and get it table ready
             tableData.push({
                 date: games[i].date,
                 home_team: games[i].home_team_char_id + ` (${games[i].spread})`,
                 away_team: games[i].away_team_char_id + ` (${games[i].spread * -1})`,
-                result: `${games[i].boxscores[0].home_score}-${games[i].boxscores[0].away_score}`,
+                result: `${games[i].home_score}-${games[i].away_score}`,
                 over_under: games[i].over_under,
                 spread: games[i].spread,
                 home_moneyline: games[i].home_moneyline,

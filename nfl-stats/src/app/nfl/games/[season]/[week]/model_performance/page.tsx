@@ -191,7 +191,7 @@ export default function WeekOverview({ params }: { params: { season: number, wee
             }
 
             // calculate money won/lost
-            moneyWagered += hypotheticalBet * 2
+            moneyWagered += hypotheticalBet * 3
             moneyLineMoneyWagered += hypotheticalBet
             spreadMoneyWagered += hypotheticalBet
             overUnderMoneyWagered += hypotheticalBet
@@ -201,8 +201,8 @@ export default function WeekOverview({ params }: { params: { season: number, wee
                 moneyLineMoneyWon += hypotheticalBet * decimalOdds
             }
             if (game.correct_spread) {
-                // moneyWon += hypotheticalBet * 1.91 // assuming -110 odds
-                // spreadMoneyWon += hypotheticalBet * 1.91 // assuming -110 odds
+                moneyWon += hypotheticalBet * 1.91 // assuming -110 odds
+                spreadMoneyWon += hypotheticalBet * 1.91 // assuming -110 odds
             }
             if (game.correct_over_under) {
                 moneyWon += hypotheticalBet * 1.91 // assuming -110 odds
@@ -222,7 +222,6 @@ export default function WeekOverview({ params }: { params: { season: number, wee
             moneyWon: moneyWon,
             moneyLineMoneyWagered: moneyLineMoneyWagered,
             moneyLineMoneyWon: moneyLineMoneyWon,
-            moneyLinePercentReturn: ((moneyLineMoneyWon - moneyLineMoneyWagered) / moneyLineMoneyWagered * 100).toFixed(2),
             spreadMoneyWagered: spreadMoneyWagered,
             spreadMoneyWon: spreadMoneyWon,
             overUnderMoneyWagered: overUnderMoneyWagered,
@@ -258,8 +257,8 @@ export default function WeekOverview({ params }: { params: { season: number, wee
                             <br />
                             Moneyline Money Wagered (Won) (% return): ${weekSummary.moneyLineMoneyWagered.toFixed(2)} (${weekSummary.moneyLineMoneyWon.toFixed(2)}) ({((weekSummary.moneyLineMoneyWon - weekSummary.moneyLineMoneyWagered) / weekSummary.moneyLineMoneyWagered * 100).toFixed(2)}%)
                             <br />
-                            {/* Spread Money Wagered (Won) (Loss) (% return): ${weekSummary.spreadMoneyWagered.toFixed(2)} (${weekSummary.spreadMoneyWon.toFixed(2)}) (${(weekSummary.spreadMoneyWagered - weekSummary.spreadMoneyWon).toFixed(2)}) ({((weekSummary.spreadMoneyWon - weekSummary.spreadMoneyWagered) / weekSummary.spreadMoneyWagered * 100).toFixed(2)}%)
-                            <br /> */}
+                            Spread Money Wagered (Won) (Loss) (% return): ${weekSummary.spreadMoneyWagered.toFixed(2)} (${weekSummary.spreadMoneyWon.toFixed(2)}) ({((weekSummary.spreadMoneyWon - weekSummary.spreadMoneyWagered) / weekSummary.spreadMoneyWagered * 100).toFixed(2)}%)
+                            <br />
                             Over/Under Money Wagered (Won) (% return): ${weekSummary.overUnderMoneyWagered.toFixed(2)} (${weekSummary.overUnderMoneyWon.toFixed(2)}) ({((weekSummary.overUnderMoneyWon - weekSummary.overUnderMoneyWagered) / weekSummary.overUnderMoneyWagered * 100).toFixed(2)}%)
                         </p>
                     )
