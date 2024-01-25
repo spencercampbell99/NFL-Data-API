@@ -63,18 +63,27 @@ exports.getGamesOverviewBySeasonAndWeek = async (req, res) => {
                 week: week,
                 season: season,
             },
-            attributes: ['id', 'name', 'short_name', 'home_team_char_id', 'away_team_char_id', 'spread', 'over_under', 'date', ['home_moneyline', 'home_moneyline'], ['away_moneyline', 'away_moneyline']],
+            attributes: ['id', 'home_team_char_id', 'away_team_char_id', 'spread', 'over_under', 'date', 'home_moneyline', 'away_moneyline', 'home_score', 'away_score'],
             include: [
                 {
-                    model: db.boxscores,
-                    where: {
-                        home_team: true
-                    },
-                    as: 'boxscores',
-                    attributes: [['points_scored', 'home_score'], ['points_allowed', 'away_score']],
-                }
+                    model: db.teams,
+                    as: 'home_team',
+                    attributes: [['short_display_name', 'team_name'], ['team_logo_wikipedia', 'wiki_logo_url']],
+                },
+                {
+                    model: db.teams,
+                    as: 'away_team',
+                    attributes: [['short_display_name', 'team_name'], ['team_logo_wikipedia', 'wiki_logo_url']],
+                },
             ],
         });
+
+        // build name and short name
+        games.forEach(game => {
+            game.short_name = `${game.away_team_char_id} @ ${game.home_team_char_id}`;
+            game.name = `${game.away_team.team_name} @ ${game.home_team.team_name}`;
+        });
+
         res.status(200).send({
             games: games,
         });
