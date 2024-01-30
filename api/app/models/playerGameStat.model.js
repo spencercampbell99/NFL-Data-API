@@ -12,7 +12,143 @@ module.exports = (sequelize, Sequelize) => {
    * @extends Model
    */
   class PlayerGameStat extends Model {
-    
+      static getPassingStatColumns() {
+        return [
+          'passing_attempts',
+          'passing_completions',
+          'passing_yards',
+          'passing_air_yards',
+          'yards_per_pass_attempt',
+          'yards_per_pass_completion',
+          'passing_touchdowns',
+          'passing_interceptions',
+          'passing_sacks',
+          'passing_sack_yards',
+          'passing_sack_fumbles_lost',
+          'qb_rating',
+          'adjQBR',
+          'passer_rating',
+          'passing_first_downs',
+          'passing_yards_after_catch',
+          'passing_epa',
+          'passing_2pt_conversions',
+          'pacr',
+          'dakota',
+        ];
+      }
+
+      static getRushingStatColumns() {
+        return [
+          'rushing_attempts',
+          'rushing_yards',
+          'yards_per_rush_attempt',
+          'rushing_touchdowns',
+          'rushing_long',
+          'rushing_first_downs',
+          'rushing_fumbles_lost',
+          'rushing_epa',
+          'rushing_2pt_conversions',
+        ];
+      }
+
+      static getReceivingStatColumns() {
+        return [
+          'receptions',
+          'targets',
+          'receiving_yards',
+          'yards_per_reception',
+          'receiving_touchdowns',
+          'receiving_long',
+          'receiving_first_downs',
+          'receiving_fumbles_lost',
+          'receiving_epa',
+          'receiving_2pt_conversions',
+          'receiving_yards_after_catch',
+          'receiving_air_yards',
+          'racr',
+          'target_share',
+          'wopr',
+          'air_yards_share',
+        ];
+      }
+
+      static getFumblesStatColumns() {
+        return [
+          'fumbles',
+          'fumbles_lost',
+          'fumbles_recovered',
+        ];
+      }
+
+      static getDefensiveStatColumns() {
+        return [
+          'tackles',
+          'tackles_for_loss',
+          'fumbles_forced',
+          'sacks',
+          'qb_hits',
+          'defensive_touchdowns',
+          'interceptions',
+          'pass_defended',
+          'def_fumble_recovery_opp',
+          'def_safety_forced',
+          'def_penalty',
+          'def_penalty_yards',
+        ];
+      }
+
+      static getKickReturnStatColumns() {
+        return [
+          'kick_returns',
+          'kick_return_yards',
+          'yards_per_kick_return',
+          'kick_return_touchdowns',
+          'kick_return_long',
+        ];
+      }
+
+      static getPuntStatColumns() {
+        return [
+          'punts',
+          'punt_yards',
+          'yards_per_punt',
+          'punt_long',
+          'punts_inside_20',
+          'touchbacks',
+        ];
+      }
+
+      static getPuntReturnStatColumns() {
+        return [
+          'punt_returns',
+          'punt_return_yards',
+          'yards_per_punt_return',
+          'punt_return_touchdowns',
+          'punt_return_long',
+        ];
+      }
+
+      static getFieldGoalStatColumns() {
+        return [
+          'fg_made',
+          'fg_missed',
+          'fg_blocked',
+          'fg_long',
+          'fg_att',
+          'fg_pct',
+          'pat_made',
+          'pat_missed',
+          'pat_blocked',
+          'pat_att',
+          'pat_pct',
+          'fg_made_distance',
+          'fg_missed_distance',
+          'gwfg_att',
+          'gwfg_made',
+          'gwfg_missed',
+          'gwfg_blocked',
+        ];
+      }
   }
 
   // init model
@@ -100,12 +236,12 @@ module.exports = (sequelize, Sequelize) => {
     def_penalty: {type: DataTypes.TINYINT, allowNull: true, defaultValue: 0},
     def_penalty_yards: {type: DataTypes.SMALLINT, allowNull: true, defaultValue: 0},
 
-    // kicking
+    // kick returns
     kick_returns: {type: DataTypes.TINYINT, allowNull: true, defaultValue: 0},
     kick_return_yards: {type: DataTypes.SMALLINT, allowNull: true, defaultValue: 0},
     yards_per_kick_return: {type: DataTypes.DECIMAL(5, 2), allowNull: true, defaultValue: 0},
     kick_return_touchdowns: {type: DataTypes.TINYINT, allowNull: true, defaultValue: 0},
-    king_return_long: {type: DataTypes.SMALLINT, allowNull: true, defaultValue: 0},
+    kick_return_long: {type: DataTypes.SMALLINT, allowNull: true, defaultValue: 0},
 
     // punts
     punts: {type: DataTypes.TINYINT, allowNull: true, defaultValue: 0},
