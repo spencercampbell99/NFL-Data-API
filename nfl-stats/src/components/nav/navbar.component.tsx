@@ -47,8 +47,13 @@ const Navbar: FunctionComponent<{}> = () => {
         },
     })
 
-    // toggle the dropdown menu
+    // toggle the dropdown menu and disable all other dropdowns
     const toggleActiveDropdown = (dropdown: string) => {
+        // disable all dropdowns
+        for (const dropdown in dropdowns) {
+            dropdowns[dropdown].active = false;
+        }
+
         setDropdowns(prevState => ({
             ...prevState,
             [dropdown]: {

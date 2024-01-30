@@ -67,9 +67,9 @@ const GameOverview: React.FunctionComponent<{ game: Game }> = ({ game }) => {
                         <Link className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded text-center" href={espnLink} target="_blank">
                         ESPN GAMECAST
                         </Link>
-                        <Link className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-1 px-4 rounded text-center" href={`/nfl/games/overview/${game.id}`}>
+                        <button className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-1 px-4 rounded text-center">
                         BOX SCORE
-                        </Link>
+                        </button>
                         <Link className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-1 px-4 rounded text-center" href={espnLink} target="_blank">
                         ESPN HIGHLIGHTS
                         </Link>
@@ -80,21 +80,23 @@ const GameOverview: React.FunctionComponent<{ game: Game }> = ({ game }) => {
     );
 }
 
-const PlayerGamePage: React.FunctionComponent<{}> = () => {
-    const [season, setSeason] = React.useState<number>(2023);
-    const [week, setWeek] = React.useState<number>(1);
+interface Params {
+    gameId: string
+}
+
+const PlayerGamePage: React.FunctionComponent<{ params: Params }> = ({ params }) => {
     const [games, setGames] = React.useState<Game[]>([]);
 
     // fetch games
     React.useEffect(() => {
         const fetchGames = async () => {
-            const response = await axios.get(`/games/overview/${season}/${week}`);
-            setGames(response.data.games);
+            const response = await axios.get(`/game/overview/${params.gameId}`);
+            setGames(response.data.game);
 
-            console.log(response.data.games);
+            console.log(response.data.game);
         }
         fetchGames();
-    }, [season, week]);
+    }, []);
 
     return (
         <>
