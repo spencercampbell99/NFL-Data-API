@@ -125,14 +125,6 @@ exports.getGameOverviewById = async (req, res) => {
                     attributes: [['short_display_name', 'team_name'], ['team_logo_wikipedia', 'wiki_logo_url']],
                 },
                 {
-                    model: db.boxscores,
-                    as: 'home_boxscore',
-                },
-                {
-                    model: db.boxscores,
-                    as: 'away_boxscore',
-                },
-                {
                     model: db.playerGameStats,
                     as: 'playerGameStats',
                     include: [
@@ -165,7 +157,8 @@ exports.getGameOverviewById = async (req, res) => {
         // convert game object to game overview object with stats
         const gameOverview = convertGameToGameOverview(game);
 
-        console.log(gameOverview.player_stats)
+        // drop playerGameStats from gameOverview to reduce size
+        delete gameOverview.playerGameStats;
 
         res.status(200).send({
             game: gameOverview,
