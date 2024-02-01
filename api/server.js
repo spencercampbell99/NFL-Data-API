@@ -22,6 +22,10 @@ app.use(cookieParser());
 const db = require('./app/models');
 db.sequelize.sync();
 
+// cfb db
+const cfbDb = require('./app/models/cfb');
+cfbDb.sequelize.sync();
+
 // load routes
 require('./app/routes/loaders.routes')(app);
 require('./app/routes/games.routes')(app);

@@ -1,15 +1,15 @@
-const db = require('../models');
-const Team = db.teams;
-const Schedule = db.schedules;
-const Boxscore = db.boxscores;
-const Player = db.players;
-const PlayerGameStat = db.playerGameStats;
-const Op = db.Sequelize.Op;
+const nflDb = require('../models').nfl;
+const Team = nflDb.teams;
+const Schedule = nflDb.schedules;
+const Boxscore = nflDb.boxscores;
+const Player = nflDb.players;
+const PlayerGameStat = nflDb.playerGameStats;
+const Op = nflDb.Sequelize.Op;
 const axios = require('axios');
 
 /**
  * Loads teams into the database.
- * @param {Object} req - The request object. Body should contain an array of teams with all the fields needed to create them in the db. Fields are:
+ * @param {Object} req - The request object. Body should contain an array of teams with all the fields needed to create them in the nflDb. Fields are:
  *                     - name: String
  *                     - char_id: Number
  *                     - uid: Number
@@ -70,7 +70,7 @@ exports.loadTeams = async (req, res) => {
 
 /**
  * Loads schedules into the database.
- * @param {Object} req - The request object. Body should contain an array of schedules with all the fields needed to create them in the db. Fields are:
+ * @param {Object} req - The request object. Body should contain an array of schedules with all the fields needed to create them in the nflDb. Fields are:
  *                     - id: Number
  *                     - sdv_game_id: Number
  *                     - sdv_game_uid: Number

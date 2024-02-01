@@ -1,5 +1,5 @@
-const db = require('../models');
-const ModelPrediction = db.modelPredictions;
+const nflDb = require('../models').nfl;
+const ModelPrediction = nflDb.modelPredictions;
 
 /**
  * Get all model predictions for season and week for display.
@@ -23,7 +23,7 @@ exports.getModelPredictionsOverviewBySeasonAndWeek = async (req, res) => {
         const modelPredictions = await ModelPrediction.findAll({
             include: [
                 {
-                    model: db.schedules,
+                    model: nflDb.schedules,
                     as: 'schedule',
                     where: {
                         season: season,
@@ -33,7 +33,7 @@ exports.getModelPredictionsOverviewBySeasonAndWeek = async (req, res) => {
                     attributes: ['season', 'week', 'over_under', 'spread', 'date', 'home_moneyline', 'away_moneyline', 'home_team_char_id', 'away_team_char_id'],
                     include: [
                         {
-                            model: db.boxscores,
+                            model: nflDb.boxscores,
                             as: 'boxscores',
                             where: {
                                 home_team: true,

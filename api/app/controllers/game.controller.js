@@ -1,6 +1,6 @@
-const db = require('../models');
-const Schedule = db.schedules;
-const PlayerGameStat = db.playerGameStats;
+const nflDb = require('../models').nfl;
+const Schedule = nflDb.schedules;
+const PlayerGameStat = nflDb.playerGameStats;
 
 /**
  * Find game by id
@@ -66,12 +66,12 @@ exports.getGamesOverviewBySeasonAndWeek = async (req, res) => {
             attributes: ['id', 'home_team_char_id', 'away_team_char_id', 'spread', 'over_under', 'date', 'home_moneyline', 'away_moneyline', 'home_score', 'away_score'],
             include: [
                 {
-                    model: db.teams,
+                    model: nflDb.teams,
                     as: 'home_team',
                     attributes: [['short_display_name', 'team_name'], ['team_logo_wikipedia', 'wiki_logo_url']],
                 },
                 {
-                    model: db.teams,
+                    model: nflDb.teams,
                     as: 'away_team',
                     attributes: [['short_display_name', 'team_name'], ['team_logo_wikipedia', 'wiki_logo_url']],
                 },
@@ -115,26 +115,26 @@ exports.getGameOverviewById = async (req, res) => {
         var game = await Schedule.findByPk(id, {
             include: [
                 {
-                    model: db.teams,
+                    model: nflDb.teams,
                     as: 'home_team',
                     attributes: [['short_display_name', 'team_name'], ['team_logo_wikipedia', 'wiki_logo_url']],
                 },
                 {
-                    model: db.teams,
+                    model: nflDb.teams,
                     as: 'away_team',
                     attributes: [['short_display_name', 'team_name'], ['team_logo_wikipedia', 'wiki_logo_url']],
                 },
                 {
-                    model: db.playerGameStats,
+                    model: nflDb.playerGameStats,
                     as: 'playerGameStats',
                     include: [
                         {
-                            model: db.players,
+                            model: nflDb.players,
                             as: 'player',
                             attributes: ['full_name', 'position'],
                         },
                         {
-                            model: db.teams,
+                            model: nflDb.teams,
                             as: 'team',
                             attributes: ['short_display_name'],
                         }
