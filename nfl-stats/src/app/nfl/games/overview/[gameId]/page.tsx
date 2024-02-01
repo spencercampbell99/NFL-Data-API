@@ -3,31 +3,12 @@ import React from 'react';
 import axios from '@/axiosConfig';
 import moment from 'moment';
 import Link from 'next/link';
+import GameHeader from '@/components/gameHeader.component';
+import Game from '@/interfaces/game.interface';
 
 interface Team {
     team_name: string
     wiki_logo_url: string
-}
-
-interface Game {
-    id: number
-    name: string
-    short_name: string
-    home_team_char_id: string
-    away_team_char_id: string
-    home_score: number
-    away_score: number
-    over_under: number
-    spread: number
-    date: string
-    home_moneyline: number
-    away_moneyline: number
-    homeFavorite: boolean
-    homeWin: boolean
-    underdogWin: boolean
-    overUnder: boolean
-    home_team: Team
-    away_team: Team
 }
 
 const TeamSeasonOverview: React.FunctionComponent<{ team: Team }> = ({ team }) => {
@@ -85,13 +66,13 @@ interface Params {
 }
 
 const PlayerGamePage: React.FunctionComponent<{ params: Params }> = ({ params }) => {
-    const [games, setGames] = React.useState<Game[]>([]);
+    const [game, setGame] = React.useState<Game|null>(null);
 
     // fetch games
     React.useEffect(() => {
         const fetchGames = async () => {
             const response = await axios.get(`/game/overview/${params.gameId}`);
-            setGames(response.data.game);
+            setGame(response.data.game);
 
             console.log(response.data.game);
         }
@@ -100,7 +81,8 @@ const PlayerGamePage: React.FunctionComponent<{ params: Params }> = ({ params })
 
     return (
         <>
-            <div id="games-container" className="flex flex-col gap-2 mt-2">
+            { game ? <GameHeader game={game} /> : null }
+            {/* <div id="games-container" className="flex flex-col gap-2 mt-2">
                 {games.length > 0 ?
                     games.map((game, index) => {
                         return (
@@ -108,7 +90,7 @@ const PlayerGamePage: React.FunctionComponent<{ params: Params }> = ({ params })
                         )
                     })
                 : null}
-            </div>
+            </div> */}
         </>
     );
 }
