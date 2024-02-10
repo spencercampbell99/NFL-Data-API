@@ -26,6 +26,10 @@ db.sequelize.sync();
 const cfbDb = require('./app/models/cfb');
 cfbDb.sequelize.sync();
 
+// nfl db
+const nflDb = require('./app/models/nfl');
+nflDb.sequelize.sync();
+
 // load routes
 require('./app/routes/loaders.routes')(app);
 require('./app/routes/games.routes')(app);
