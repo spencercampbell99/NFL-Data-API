@@ -10,11 +10,13 @@ try:
 except FileNotFoundError:
     print("Error: cfb_api_key.txt file not found. Create the file in /cfb with your API key and try again.")
     exit()
+
+years = list(range(2010, 2024))
+data = pd.DataFrame()
+for year in years:
+    year_data = api_client.call_endpoint('games', params={'year': year, 'seasonType': 'regular'}, verbose=True)
+    data = pd.concat([data, pd.DataFrame(year_data)], ignore_index=True)
     
-data = api_client.call_endpoint('games', params={'year': 2023, 'week': 1, 'seasonType': 'regular'}, verbose=True)
-
-data = pd.DataFrame(data)
-
 # cols to keep
 cols = [
     'id', 'season', 'week', 'season_type', 'start_date', 'completed', 'neutral_site', 'conference_game', 'attendance', 'home_id', 'away_id',
@@ -33,7 +35,7 @@ update_query = text("UPDATE schedules SET season=:season, week=:week, season_typ
 check_exists_query = text("SELECT * FROM schedules WHERE id=:id")
 
 # check if both team exists
-check_team_exists_query = text("SELECT id FROM teams WHERE id=:home_id and id=:away_id")
+check_team_exists_query = text("SELECT count(id) FROM teams WHERE id=:home_id or id=:away_id")
 
 # create an instance of the MySQLConnection
 conn = MySQLConnection()
@@ -50,10 +52,15 @@ for index, row in data.iterrows():
     # convert NaN to None
     row = row.where(pd.notna(row), None)
     
+    # cast ids to ints
+    row['id'] = int(row['id'])
+    row['home_id'] = int(row['home_id'])
+    row['away_id'] = int(row['away_id'])
+    
     # check if home team exists
     teams_exist = mysql.execute(check_team_exists_query, {'home_id': row['home_id'], 'away_id': row['away_id']}).fetchone()
-    if not teams_exist:
-        print(f"Error: Team with id {row['home_id']} or {row['away_id']} does not exist")
+    if not teams_exist[0] == 2:
+        # print(f"Error: Team with id {row['home_id']} or {row['away_id']} does not exist")
         skipped += 1
         continue
     
