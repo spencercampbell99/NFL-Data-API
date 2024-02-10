@@ -1,5 +1,5 @@
 import pandas as pd
-from SQLConnector import MySQLConnection
+from CfbSQLConnector import MySQLConnection
 from CollegeFootballDataApi import APIClient
 from sqlalchemy import text
 
