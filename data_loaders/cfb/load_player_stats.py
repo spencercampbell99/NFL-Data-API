@@ -79,6 +79,9 @@ def load_passing_stats(data):
     
     # check player stat entry exists
     exists_query = text("SELECT id FROM player_game_passing_stats WHERE schedule_id = :game_id AND player_id = :player_id")
+
+    # insert player query
+    insert_player_query = text("INSERT INTO players (id) VALUES (:id)")
     
     total = len(data)
     
@@ -126,7 +129,7 @@ def load_passing_stats(data):
             for player_id, stats in passing_players_stats.iterrows():
                 # calculate average per attempt and completion
                 stats['average_per_attempt'] = stats['yards'] / stats['attempts']
-                stats['average_per_completion'] = stats['yards'] / stats['completions']
+                stats['average_per_completion'] = stats['yards'] / stats['completions'] if stats['completions'] != 0 else 0
                 
                 # check if player stat entry exists
                 player_stat_exists = mysql.connection.execute(exists_query, {'game_id': game_id, 'player_id': player_id}).fetchone()
@@ -134,13 +137,18 @@ def load_passing_stats(data):
                 stats['game_id'] = game_id
                 stats['player_id'] = player_id
                 stats['team_id'] = team_id[0]
-                print(stats)
                 if player_stat_exists:
                     # update player stat
                     mysql.connection.execute(update_query, stats.to_dict())
                 else:
                     # insert player stat
-                    mysql.connection.execute(insert_query, stats.to_dict())
+                    try:
+                        mysql.connection.execute(insert_query, stats.to_dict())
+                    except:
+                        # insert player
+                        mysql.connection.execute(insert_player_query, {'id': player_id})
+                        # insert player stat
+                        mysql.connection.execute(insert_query, stats.to_dict())
 
     mysql.connection.commit()
 
