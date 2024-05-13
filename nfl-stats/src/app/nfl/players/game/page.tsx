@@ -60,24 +60,79 @@ const GameOverview: React.FunctionComponent<{ game: Game }> = ({ game }) => {
     );
 }
 
+const currentDate = new Date();
+const maxYear = currentDate.getMonth() < 8 ? currentDate.getFullYear() - 1 : currentDate.getFullYear();
+
 const PlayerGamePage: React.FunctionComponent<{}> = () => {
     const [season, setSeason] = React.useState<number>(2023);
     const [week, setWeek] = React.useState<number>(1);
+    const [currentSeason, setCurrentSeason] = React.useState<number>(2023);
+    const [currentWeek, setCurrentWeek] = React.useState<number>(1);
     const [games, setGames] = React.useState<Game[]>([]);
+
+    const fetchGames = async (season: number, week: number) => {
+        const response = await axios.get(`/games/overview/${season}/${week}`);
+        setGames(response.data.games);
+    }
+
+    // go to season/week entered
+    const goToSeasonWeek = () => {
+        if (season === currentSeason && week === currentWeek) {
+            return;
+        }
+        if (season < 2010 || season > maxYear) {
+            alert('Invalid season');
+            return;
+        }
+        if (week < 1 || week > 18) {
+            alert('Invalid week');
+            return;
+        }
+        fetchGames(season, week);
+        setCurrentSeason(season);
+        setCurrentWeek(week);
+    }
 
     // fetch games
     React.useEffect(() => {
-        const fetchGames = async () => {
-            const response = await axios.get(`/games/overview/${season}/${week}`);
-            setGames(response.data.games);
-
-            console.log(response.data.games);
-        }
-        fetchGames();
-    }, [season, week]);
+        fetchGames(season, week);
+    }, []);
 
     return (
         <>
+            <div id="navigator" className="flex flex-row items-center justify-center gap-2 mt-2 text-black">
+                <label htmlFor="season" className="font-bold mr-2">Season:</label>
+                <input 
+                    type="number" 
+                    id="season" 
+                    className="border-2 border-gray-300 bg-white h-10 px-5 pr-16 rounded-lg text-sm focus:outline-none"
+                    value={season} 
+                    min={2010} 
+                    max={maxYear}
+                    onChange={(e) => setSeason(parseInt(e.target.value))}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            goToSeasonWeek();
+                        }
+                    }}
+                />
+                <label htmlFor="week" className="font-bold ml-2 mr-2">Week:</label>
+                <input 
+                    type="number" 
+                    id="week" 
+                    className="border-2 border-gray-300 bg-white h-10 px-5 pr-16 rounded-lg text-sm focus:outline-none"
+                    value={week} 
+                    min={1} 
+                    max={18}
+                    onChange={(e) => setWeek(parseInt(e.target.value))}
+                />
+                <button 
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-center"
+                    onClick={goToSeasonWeek}
+                >
+                    GO
+                </button>
+            </div>
             <div id="games-container" className="flex flex-col gap-2 mt-2">
                 {games.length > 0 ?
                     games.map((game, index) => {
