@@ -63,7 +63,7 @@ exports.getGamesOverviewBySeasonAndWeek = async (req, res) => {
                 week: week,
                 season: season,
             },
-            attributes: ['id', 'home_team_char_id', 'away_team_char_id', 'spread', 'over_under', 'date', 'home_moneyline', 'away_moneyline', 'home_score', 'away_score'],
+            attributes: ['id', 'home_team_char_id', 'away_team_char_id', 'spread', 'over_under', 'date', 'home_moneyline', 'away_moneyline', 'home_score', 'away_score', 'espn_id'],
             include: [
                 {
                     model: nflDb.teams,
@@ -117,12 +117,12 @@ exports.getGameOverviewById = async (req, res) => {
                 {
                     model: nflDb.teams,
                     as: 'home_team',
-                    attributes: [['short_display_name', 'team_name'], ['team_logo_wikipedia', 'wiki_logo_url']],
+                    attributes: [['short_display_name', 'team_name'], ['team_logo_wikipedia', 'wiki_logo_url'], 'char_id'],
                 },
                 {
                     model: nflDb.teams,
                     as: 'away_team',
-                    attributes: [['short_display_name', 'team_name'], ['team_logo_wikipedia', 'wiki_logo_url']],
+                    attributes: [['short_display_name', 'team_name'], ['team_logo_wikipedia', 'wiki_logo_url'], 'char_id'],
                 },
                 {
                     model: nflDb.playerGameStats,
@@ -198,16 +198,23 @@ const convertGameToGameOverview = (game) => {
         game.player_stats[category] = [];
     });
 
+    // append additional attributes to player stats such as full_name, team_name, and team_id
+    const appendAdditionalAttributes = (statObj, stat) => {
+        statObj.full_name = stat.player.full_name;
+        statObj.team_name = stat.team.short_display_name;
+        statObj.team_id = stat.team_id;
+        return statObj;
+    }
+
     // add player stats to game object
     game.playerGameStats.forEach(stat => {
         // if passing_attempts, append to passing stats
         if (stat.passing_attempts) {
             var passing = {}
             playerStatCategories.passing.forEach(category => {
-                passing[category] = stat[category];
+                passing[category] = parseFloat(stat[category]);
             });
-            passing.full_name = stat.player.full_name;
-            passing.team_name = stat.team.short_display_name;
+            passing = appendAdditionalAttributes(passing, stat);
             game.player_stats.passing.push(passing);
         }
 
@@ -215,10 +222,9 @@ const convertGameToGameOverview = (game) => {
         if (stat.rushing_attempts) {
             var rushing = {}
             playerStatCategories.rushing.forEach(category => {
-                rushing[category] = stat[category];
+                rushing[category] = parseFloat(stat[category]);
             });
-            rushing.full_name = stat.player.full_name;
-            rushing.team_name = stat.team.short_display_name;
+            rushing = appendAdditionalAttributes(rushing, stat);
             game.player_stats.rushing.push(rushing);
         }
 
@@ -226,10 +232,9 @@ const convertGameToGameOverview = (game) => {
         if (stat.targets) {
             var receiving = {}
             playerStatCategories.receiving.forEach(category => {
-                receiving[category] = stat[category];
+                receiving[category] = parseFloat(stat[category]);
             });
-            receiving.full_name = stat.player.full_name;
-            receiving.team_name = stat.team.short_display_name;
+            receiving = appendAdditionalAttributes(receiving, stat);
             game.player_stats.receiving.push(receiving);
         }
 
@@ -237,10 +242,9 @@ const convertGameToGameOverview = (game) => {
         if (stat.fumbles) {
             var fumbles = {}
             playerStatCategories.fumbles.forEach(category => {
-                fumbles[category] = stat[category];
+                fumbles[category] = parseFloat(stat[category]);
             });
-            fumbles.full_name = stat.player.full_name;
-            fumbles.team_name = stat.team.short_display_name;
+            fumbles = appendAdditionalAttributes(fumbles, stat);
             game.player_stats.fumbles.push(fumbles);
         }
 
@@ -248,10 +252,9 @@ const convertGameToGameOverview = (game) => {
         if (stat.tackles || stat.interceptions || stat.passes_defended || stat.defensive_touchdowns) {
             var defensive = {}
             playerStatCategories.defensive.forEach(category => {
-                defensive[category] = stat[category];
+                defensive[category] = parseFloat(stat[category]);
             });
-            defensive.full_name = stat.player.full_name;
-            defensive.team_name = stat.team.short_display_name;
+            defensive = appendAdditionalAttributes(defensive, stat);
             game.player_stats.defensive.push(defensive);
         }
 
@@ -259,10 +262,9 @@ const convertGameToGameOverview = (game) => {
         if (stat.kick_returns) {
             var kick_returns = {}
             playerStatCategories.kick_returns.forEach(category => {
-                kick_returns[category] = stat[category];
+                kick_returns[category] = parseFloat(stat[category]);
             });
-            kick_returns.full_name = stat.player.full_name;
-            kick_returns.team_name = stat.team.short_display_name;
+            kick_returns = appendAdditionalAttributes(kick_returns, stat);
             game.player_stats.kick_returns.push(kick_returns);
         }
 
@@ -270,10 +272,9 @@ const convertGameToGameOverview = (game) => {
         if (stat.punt_returns) {
             var punt_returns = {}
             playerStatCategories.punt_returns.forEach(category => {
-                punt_returns[category] = stat[category];
+                punt_returns[category] = parseFloat(stat[category]);
             });
-            punt_returns.full_name = stat.player.full_name;
-            punt_returns.team_name = stat.team.short_display_name;
+            punt_returns = appendAdditionalAttributes(punt_returns, stat);
             game.player_stats.punt_returns.push(punt_returns);
         }
 
@@ -281,10 +282,9 @@ const convertGameToGameOverview = (game) => {
         if (stat.fg_att) {
             var kicking = {}
             playerStatCategories.kicking.forEach(category => {
-                kicking[category] = stat[category];
+                kicking[category] = parseFloat(stat[category]);
             });
-            kicking.full_name = stat.player.full_name;
-            kicking.team_name = stat.team.short_display_name;
+            kicking = appendAdditionalAttributes(kicking, stat);
             game.player_stats.kicking.push(kicking);
         }
 
@@ -292,10 +292,9 @@ const convertGameToGameOverview = (game) => {
         if (stat.punts) {
             var punting = {}
             playerStatCategories.punting.forEach(category => {
-                punting[category] = stat[category];
+                punting[category] = parseFloat(stat[category]);
             });
-            punting.full_name = stat.player.full_name;
-            punting.team_name = stat.team.short_display_name;
+            punting = appendAdditionalAttributes(punting, stat);
             game.player_stats.punting.push(punting);
         }
     });

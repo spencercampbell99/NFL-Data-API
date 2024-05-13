@@ -49,9 +49,16 @@ const Navbar: FunctionComponent<{}> = () => {
 
     // toggle the dropdown menu and disable all other dropdowns
     const toggleActiveDropdown = (dropdown: string) => {
-        // disable all dropdowns
-        for (const dropdown in dropdowns) {
-            dropdowns[dropdown].active = false;
+        dropdown = dropdown.toLowerCase();
+
+        // disable all other dropdowns
+        for (const dropdownKey in dropdowns) {
+            if (dropdowns[dropdownKey]['title'].toLowerCase() === dropdown.toLowerCase()) {
+                console.log(dropdown);
+                continue;
+            }
+
+            dropdowns[dropdownKey].active = false;
         }
 
         setDropdowns(prevState => ({
