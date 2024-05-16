@@ -1,11 +1,9 @@
 'use client'
-import React from 'react';
+import React, { ReactNode } from 'react';
 import axios from '@/axiosConfig';
-import moment from 'moment';
-import Link from 'next/link';
-import GameHeader from '@/components/gameHeader.component';
+import GameHeader from '@/components/games/gameHeader.component';
 import Game from '@/interfaces/game.interface';
-import * as PlayerStats from '@/interfaces/boxScorePlayerStats.interface';
+import TeamStatsAtAGlance from '@/components/games/atAGlance.component';
 
 interface Params {
     gameId: string
@@ -250,9 +248,10 @@ const PlayerGamePage: React.FunctionComponent<{ params: Params }> = ({ params })
     return (
         <>
             { game ? <GameHeader game={game} /> : null }
+            { game ? <TeamStatsAtAGlance awayBoxscore={game.away_boxscore} homeBoxscore={game.home_boxscore} awayName={game.away_team.short_display_name} homeName={game.home_team.short_display_name} /> : null }
             { game ? 
             <div>
-                <div className="grid grid-cols-2 gap-4 text-black w-[100%] mt-5">
+                <div className="grid grid-cols-2 gap-4 text-black w-[100%] mt-5 min-w-[1250px]">
                     <div className="w-full">
                         <StatBlock title={`${game.away_team.team_name} Passing`} stats={game.player_stats.passing} team_id={game.away_team_id} stat_type='passing' columns={passingColumns}/>
                     </div>

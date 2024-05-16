@@ -27,7 +27,10 @@ module.exports = (sequelize, Sequelize) => {
     slug: {type: DataTypes.STRING(45), allowNull: true},
     color1: {type: DataTypes.STRING(7), allowNull: true},
     color2: {type: DataTypes.STRING(7), allowNull: true},
-    logo: {type: DataTypes.STRING(255), allowNull: true},
+    color3: {type: DataTypes.STRING(7), allowNull: true},
+    color4: {type: DataTypes.STRING(7), allowNull: true},
+    team_logo_wikipedia: {type: DataTypes.STRING(255), allowNull: true},
+    team_logo_squared: {type: DataTypes.STRING(255), allowNull: true},
   }, {
     sequelize,
     modelName: 'team',

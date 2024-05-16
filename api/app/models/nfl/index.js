@@ -42,8 +42,9 @@ db.schedules.hasMany(db.playerGameStats, { foreignKey: 'game_id' });
 db.schedules.hasMany(db.fantasyPlayerPerformances, { foreignKey: 'schedule_id' });
 
 // boxscores
-db.boxscores.belongsTo(db.teams, { foreignKey: 'team_id' });
-db.boxscores.belongsTo(db.schedules, { foreignKey: 'schedule_id' });
+db.boxscores.belongsTo(db.teams, { foreignKey: 'team_id', as: 'team' });
+db.boxscores.belongsTo(db.teams, { foreignKey: 'opponent_id', as: 'opponent' });
+db.boxscores.belongsTo(db.schedules, { foreignKey: 'schedule_id', as: 'schedule' });
 db.boxscores.hasMany(db.playerGameStats, { foreignKey: 'boxscore_id' });
 
 // model predictions

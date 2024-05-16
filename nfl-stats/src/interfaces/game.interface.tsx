@@ -1,5 +1,6 @@
 import Team from './team.interface';
 import {BoxScorePlayerStats as PlayerStats} from './boxScorePlayerStats.interface';
+import BoxScore from './boxScore.interface';
 
 export default interface Game {
     id: number;
@@ -23,5 +24,7 @@ export default interface Game {
     home_team: Team;
     away_team: Team;
     player_stats: PlayerStats;
+    home_boxscore: BoxScore;
+    away_boxscore: BoxScore;
     espn_id: number;
 }

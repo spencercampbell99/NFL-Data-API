@@ -4,18 +4,14 @@ import axios from '@/axiosConfig';
 import moment from 'moment';
 import Link from 'next/link';
 import Game from '@/interfaces/game.interface';
-
-interface Team {
-    team_name: string
-    wiki_logo_url: string
-}
+import Team from '@/interfaces/team.interface';
 
 const TeamSeasonOverview: React.FunctionComponent<{ team: Team }> = ({ team }) => {
     return (
         <div className="flex flex-row">
-            <img className="w-[32px] h-[32px] mr-2" src={team.wiki_logo_url} />
+            <img className="w-[32px] h-[32px] mr-2" src={team.team_logo_wikipedia} />
             <div className="text-left">
-                <div className="text-lg font-bold text-gray-800">{team.team_name}</div>
+                <div className="text-lg font-bold text-gray-800">{team.short_display_name}</div>
                 <div className="text-xs font-medium text-gray-500">12-5</div> {/* TODO: Make dynamic */}
             </div>
         </div>
@@ -25,6 +21,11 @@ const TeamSeasonOverview: React.FunctionComponent<{ team: Team }> = ({ team }) =
 const GameOverview: React.FunctionComponent<{ game: Game }> = ({ game }) => {
     const homeWin = game.home_score > game.away_score;
     const espnLink = `https://www.espn.com/nfl/game/_/gameId/${game.espn_id}`;
+
+    // if away_team or home_team is null, return null
+    if (!game.away_team || !game.home_team) {
+        return null;
+    }
 
     return (
         <>

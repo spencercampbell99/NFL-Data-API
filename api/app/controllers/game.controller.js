@@ -68,12 +68,12 @@ exports.getGamesOverviewBySeasonAndWeek = async (req, res) => {
                 {
                     model: nflDb.teams,
                     as: 'home_team',
-                    attributes: [['short_display_name', 'team_name'], ['team_logo_wikipedia', 'wiki_logo_url']],
+                    attributes: ['short_display_name', 'team_logo_wikipedia'],
                 },
                 {
                     model: nflDb.teams,
                     as: 'away_team',
-                    attributes: [['short_display_name', 'team_name'], ['team_logo_wikipedia', 'wiki_logo_url']],
+                    attributes: ['short_display_name', 'team_logo_wikipedia'],
                 },
             ],
         });
@@ -81,7 +81,7 @@ exports.getGamesOverviewBySeasonAndWeek = async (req, res) => {
         // build name and short name
         games.forEach(game => {
             game.short_name = `${game.away_team_char_id} @ ${game.home_team_char_id}`;
-            game.name = `${game.away_team.team_name} @ ${game.home_team.team_name}`;
+            game.name = `${game.away_team.short_display_name} @ ${game.home_team.short_display_name}`;
         });
 
         res.status(200).send({
@@ -112,17 +112,25 @@ exports.getGamesOverviewBySeasonAndWeek = async (req, res) => {
 exports.getGameOverviewById = async (req, res) => {
     try {
         const { id } = req.params;
+
+        const boxScoreAttributes = [
+            'total_offensive_yards', 'total_drives', 'total_offensive_plays', 'yards_per_play', 'first_downs',
+            'passing_yards', 'rushing_yards', 'passing_first_downs', 'rushing_first_downs', 'third_down_conversions',
+            'fourth_down_conversions', 'red_zone_attempts', 'turnovers', 'field_goals_made', 'field_goals_attempted',
+            'punts_inside_20', 'time_of_possession'
+        ]
+
         var game = await Schedule.findByPk(id, {
             include: [
                 {
                     model: nflDb.teams,
                     as: 'home_team',
-                    attributes: [['short_display_name', 'team_name'], ['team_logo_wikipedia', 'wiki_logo_url'], 'char_id'],
+                    attributes: ['short_display_name', 'team_logo_wikipedia', 'char_id'],
                 },
                 {
                     model: nflDb.teams,
                     as: 'away_team',
-                    attributes: [['short_display_name', 'team_name'], ['team_logo_wikipedia', 'wiki_logo_url'], 'char_id'],
+                    attributes: ['short_display_name', 'team_logo_wikipedia', 'char_id'],
                 },
                 {
                     model: nflDb.playerGameStats,
@@ -139,6 +147,16 @@ exports.getGameOverviewById = async (req, res) => {
                             attributes: ['short_display_name'],
                         }
                     ]
+                },
+                {
+                    model: nflDb.boxscores,
+                    as: 'home_boxscore',
+                    attributes: boxScoreAttributes
+                },
+                {
+                    model: nflDb.boxscores,
+                    as: 'away_boxscore',
+                    attributes: boxScoreAttributes
                 }
             ],
             logging: false,
@@ -159,6 +177,10 @@ exports.getGameOverviewById = async (req, res) => {
 
         // drop playerGameStats from gameOverview to reduce size
         delete gameOverview.playerGameStats;
+
+        // flatten home and away boxscores
+        gameOverview.home_boxscore = gameOverview.home_boxscore[0];
+        gameOverview.away_boxscore = gameOverview.away_boxscore[0];
 
         res.status(200).send({
             game: gameOverview,

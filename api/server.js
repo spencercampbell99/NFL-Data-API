@@ -33,6 +33,7 @@ nflDb.sequelize.sync();
 // load routes
 require('./app/routes/loaders.routes')(app);
 require('./app/routes/games.routes')(app);
+require('./app/routes/teams.routes')(app);
 require('./app/routes/modelPredictions.routes')(app);
 require('./app/routes/auth.routes')(app);
 require('./app/routes/users.routes')(app);
