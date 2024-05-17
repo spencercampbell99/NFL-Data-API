@@ -48,14 +48,21 @@ class TeamService {
     //   }
     // }
 
-    static async getHistoricalMatchups(team1: number, team2: number) {
-        try {
-          const response = await axios.get(`/teams/historical-matchups?team1=${team1}&team2=${team2}`);
-          return response.data;
-        } catch (error) {
-          console.error(error);
-        }
+    static async getHistoricalMatchups({ team1, team2, page = 1, startDate = "", endDate = "" }: { team1: number, team2: number, page?: number, startDate?: string, endDate?: string }) {
+      if (startDate != "" && endDate != "" && startDate > endDate) {
+        throw new Error('Start date must be before end date');
       }
+      if (startDate != "" && endDate == "" || startDate == "" && endDate != "") {
+        throw new Error('Both or neither of start date and end date must be provided');
+      }
+
+      try {
+        const response = await axios.get(`/teams/historical-matchups?team1=${team1}&team2=${team2}&page=${page}&start_date=${startDate}&end_date=${endDate}`);
+        return response.data;
+      } catch (error) {
+        console.error(error);
+      }
+  }
   }
   
   export default TeamService;

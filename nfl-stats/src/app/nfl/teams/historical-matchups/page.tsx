@@ -9,6 +9,7 @@ import TeamService from '@/services/Team.service'
 import RoundedButton from '@/components/roundedButton.component'
 import { BasicTeamCard } from '@/components/teams/teamDisplays.component'
 import GameHeader from '@/components/games/gameHeader.component'
+import { DateRangePicker } from '@/components/commonComponents'
 
 interface MatchupAtAGlance {
     team1Wins: number,
@@ -25,6 +26,9 @@ const HistoricalMatchup: React.FunctionComponent<{ game: Game, awayTeam: Team, h
     const [selectTeam2, setSelectTeam2] = React.useState<string>("-1");
     const [team1, setTeam1] = React.useState<Team | null>(null);
     const [team2, setTeam2] = React.useState<Team | null>(null);
+    const [pagesLoaded, setPagesLoaded] = React.useState<number>(0);
+    const [startDate, setStartDate] = React.useState<string>("");
+    const [endDate, setEndDate] = React.useState<string>("");
 
     const [currentGames, setCurrentGames] = React.useState<Game[]>([]);
     const [matchupAtAGlance, setMatchupAtAGlance] = React.useState<MatchupAtAGlance|null>(null);
@@ -90,6 +94,35 @@ const HistoricalMatchup: React.FunctionComponent<{ game: Game, awayTeam: Team, h
         }
     }, [currentGames]);
 
+    const loadGames = async (selectTeam1: string, selectTeam2: string, page: number, startDate: string, endDate: string) => {
+        if (!selectTeam1 || !selectTeam2 || selectTeam1 === selectTeam2 || selectTeam1 === "-1" || selectTeam2 === "-1") {
+            return;
+        }
+
+        TeamService.getHistoricalMatchups({ team1: parseInt(selectTeam1), team2: parseInt(selectTeam2), page: page, startDate: startDate, endDate: endDate }).then((data) => {
+            if (page === 1) {
+                setCurrentGames(data);
+            } else {
+                setCurrentGames([...currentGames, ...data]);
+            }
+            setPagesLoaded(page);
+        }).catch((error) => {
+            console.error(error);
+        })
+
+        // load team1 and team2 if not already loaded
+        if (selectTeam1 !== team1?.id?.toString()) {
+            await TeamService.getTeam(parseInt(selectTeam1)).then((data) => {
+                setTeam1(data);
+            });
+        }
+        if (selectTeam2 !== team2?.id?.toString()) {
+            await TeamService.getTeam(parseInt(selectTeam2)).then((data) => {
+                setTeam2(data);
+            });
+        }
+    }
+
     return (
         <div className="w-full">
             {teams? 
@@ -101,27 +134,10 @@ const HistoricalMatchup: React.FunctionComponent<{ game: Game, awayTeam: Team, h
                         <div className="ml-2"></div>
                         <RoundedButton 
                             onClick={async () => {
-                                if (!selectTeam1 || !selectTeam2 || selectTeam1 === selectTeam2 || selectTeam1 === "-1" || selectTeam2 === "-1") {
-                                    return;
-                                }
-
-                                if (selectTeam1 !== team1?.id?.toString()) {
-                                    await TeamService.getTeam(parseInt(selectTeam1)).then((data) => {
-                                        setTeam1(data);
-                                    });
-                                }
-                                if (selectTeam2 !== team2?.id?.toString()) {
-                                    await TeamService.getTeam(parseInt(selectTeam2)).then((data) => {
-                                        setTeam2(data);
-                                    });
-                                }
-
-                                TeamService.getHistoricalMatchups(parseInt(selectTeam1), parseInt(selectTeam2)).then((data) => {
-                                    setCurrentGames(data);
-                                });
+                                loadGames(selectTeam1, selectTeam2, 1, startDate, endDate);
                             }}
                             text="Get Historical Matchups"
-                            className='text-white bg-mediumGreen text-sm p-2 rounded-md hover:bg-darkGreen border-]2px] border-goldAccent'
+                            className='text-white bg-mediumGreen text-sm p-2 rounded-md hover:bg-darkGreen border-[2px] border-goldAccent'
                             overrideStyles={true}
                         />
                     </div>
@@ -129,10 +145,23 @@ const HistoricalMatchup: React.FunctionComponent<{ game: Game, awayTeam: Team, h
             : null}
             <div className="flex flex-col justify-center items-center mt-3">
                 {team1 && team2 ?
-                    <div className="flex flex-row justify-center items-center">
-                        <BasicTeamCard team={team1} />
-                        <div className="mx-4 text-black font-bold">VS</div>
-                        <BasicTeamCard team={team2} />
+                    <div className="flex flex-col justify-center items-center">
+                        <div className="flex flex-row justify-center items-center mb-3">
+                            <BasicTeamCard team={team1} />
+                            <div className="mx-4 text-black font-bold">VS</div>
+                            <BasicTeamCard team={team2} />
+                        </div>
+                        <div className="flex flex-row justify-center items-center mb-3">
+                            <DateRangePicker startDate={startDate} endDate={endDate} setStartDate={setStartDate} setEndDate={setEndDate} />
+                        </div>
+                        <RoundedButton
+                            onClick={async () => {
+                                loadGames(selectTeam1, selectTeam2, 1, startDate, endDate);
+                            }}
+                            text="Reload Games with Date Range"
+                            className='text-white bg-mediumGreen text-sm p-2 rounded-md hover:bg-darkGreen border-[2px] border-goldAccent ml-3'
+                            overrideStyles={true}
+                        />
                     </div>
                 : null}
             </div>
@@ -158,10 +187,22 @@ const HistoricalMatchup: React.FunctionComponent<{ game: Game, awayTeam: Team, h
                     </div>    
                 : null}
             </div>
-            <div className="mt-3">
-                {currentGames ? currentGames.map((game: Game) => (
-                    <GameHeader game={game} key={game.id} includeBoxscoreLink={true} />
-                )): null}
+            <div className="mt-3 flex flex-col">
+                {currentGames.length > 0 ? 
+                        currentGames.map((game: Game) => (
+                            <GameHeader game={game} key={game.id} includeBoxscoreLink={true} />
+                        ))
+                : null}
+                {currentGames.length > 0 && pagesLoaded > 0 ?
+                    <RoundedButton 
+                        onClick={async () => {
+                            loadGames(selectTeam1, selectTeam2, pagesLoaded + 1, startDate, endDate);
+                        }}
+                        text="Load more games"
+                        className='text-white bg-mediumGreen text-sm p-2 rounded-md hover:bg-darkGreen border-[2px] border-goldAccent mx-auto mt-3'
+                        overrideStyles={true}
+                    />
+                : null}
             </div>
         </div>
     )

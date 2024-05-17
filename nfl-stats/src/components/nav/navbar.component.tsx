@@ -45,6 +45,17 @@ const Navbar: FunctionComponent<{}> = () => {
             ),
             active: false
         },
+        teams: {
+            title: 'Teams',
+            links: (
+                <>
+                    <NavbarLink href="/nfl/teams/historical-matchups">
+                        Historical Matchups
+                    </NavbarLink>
+                </>
+            ),
+            active: false
+        }
     })
 
     // toggle the dropdown menu and disable all other dropdowns
@@ -99,6 +110,11 @@ const Navbar: FunctionComponent<{}> = () => {
                 <li>
                     <NavbarDropdown title={dropdowns.players.title} isActive={dropdowns.players.active} toggleActive={() => toggleActiveDropdown('players')}>
                         {dropdowns.players.links}
+                    </NavbarDropdown>
+                </li>
+                <li>
+                    <NavbarDropdown title={dropdowns.teams.title} isActive={dropdowns.teams.active} toggleActive={() => toggleActiveDropdown('teams')}>
+                        {dropdowns.teams.links}
                     </NavbarDropdown>
                 </li>
             </ul>

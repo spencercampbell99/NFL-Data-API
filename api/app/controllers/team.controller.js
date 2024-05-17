@@ -1,5 +1,6 @@
 const nflDb = require('../models').nfl;
 const Team = nflDb.teams;
+const { Op } = require("sequelize");
 
 // List teams
 exports.list = async (req, res) => {
@@ -39,13 +40,28 @@ exports.historicalMatchups = async (req, res) => {
             });
         }
 
+        const page = req.query.page || 1;
+        const startDate = req.query.start_date;
+        const endDate = req.query.end_date;
+
+        let whereClause = {
+            team_id: team1,
+            opponent_id: team2
+        };
+
+        console.log(startDate, endDate)
+
+        if (startDate && endDate && startDate < endDate) {
+            whereClause['$schedule.date$'] = {
+                [Op.between]: [startDate, endDate]
+            };
+        }
+
         // find last 10 boxscore where team_id = team1 and opponent_id = team2
         let team1VsTeam2 = await nflDb.boxscores.findAll({
-            where: {
-                team_id: team1,
-                opponent_id: team2
-            },
+            where: whereClause,
             limit: 10,
+            offset: (page - 1) * 10,
             attributes: ['team_id', 'opponent_id', 'points_scored', 'points_allowed', 'schedule_id', 'home_team', 'schedule_id'],
             include: [{
                 model: nflDb.schedules,
