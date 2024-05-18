@@ -57,7 +57,17 @@ exports.getGamesBySeasonAndWeek = async ({ week, season, idsOnly = true }) => {
  */
 exports.getGamesOverviewBySeasonAndWeek = async (req, res) => {
     try {
-        const { season, week } = req.params;
+        const season = req.params.season;
+        const week = req.params.week;
+
+        if (!season || !week) {
+            return res.status(400).send({
+                message: 'Season and week are required.',
+            });
+        }
+
+        const includeBetLines = req.query.includeBetLines === 'true';
+
         const games = await Schedule.findAll({
             where: {
                 week: week,
