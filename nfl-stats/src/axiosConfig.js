@@ -2,7 +2,7 @@ import axios from 'axios';
 // import { getCookie } from 'cookies-next';
 
 export default axios.create({
-  baseURL: "http://127.0.0.1:8000/api",
+  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL + "/api",
   headers: {
     "Content-Type": "application/json",
     // "Authorization": 'Bearer ' + getCookie('access_token'),

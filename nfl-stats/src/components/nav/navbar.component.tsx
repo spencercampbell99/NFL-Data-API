@@ -55,6 +55,17 @@ const Navbar: FunctionComponent<{}> = () => {
                 </>
             ),
             active: false
+        },
+        models: {
+            title: 'Models',
+            links: (
+                <>
+                    <NavbarLink href="/nfl/models/score/analysis">
+                        Model Analysis
+                    </NavbarLink>
+                </>
+            ),
+            active: false
         }
     })
 
@@ -115,6 +126,11 @@ const Navbar: FunctionComponent<{}> = () => {
                 <li>
                     <NavbarDropdown title={dropdowns.teams.title} isActive={dropdowns.teams.active} toggleActive={() => toggleActiveDropdown('teams')}>
                         {dropdowns.teams.links}
+                    </NavbarDropdown>
+                </li>
+                <li>
+                    <NavbarDropdown title={dropdowns.models.title} isActive={dropdowns.models.active} toggleActive={() => toggleActiveDropdown('models')}>
+                        {dropdowns.models.links}
                     </NavbarDropdown>
                 </li>
             </ul>

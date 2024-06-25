@@ -39,7 +39,7 @@ require('./app/routes/auth.routes')(app);
 require('./app/routes/users.routes')(app);
 
 app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to the NBA Stats API.' });
+  res.json({ message: 'Welcome to the NFL Stats API.' });
 });
 
 const PORT = process.env.PORT || 8000;

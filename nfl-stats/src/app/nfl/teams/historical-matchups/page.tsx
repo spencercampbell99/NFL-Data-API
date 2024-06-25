@@ -22,8 +22,8 @@ interface MatchupAtAGlance {
 
 const HistoricalMatchup: React.FunctionComponent<{ game: Game, awayTeam: Team, homeTeam: Team }> = ({ game, awayTeam, homeTeam }) => {
     const [teams, setTeams] = React.useState<Team[]>([]);
-    const [selectTeam1, setSelectTeam1] = React.useState<string>("-1");
-    const [selectTeam2, setSelectTeam2] = React.useState<string>("-1");
+    const [selectTeam1, setSelectTeam1] = React.useState<number>(-1);
+    const [selectTeam2, setSelectTeam2] = React.useState<number>(-1);
     const [team1, setTeam1] = React.useState<Team | null>(null);
     const [team2, setTeam2] = React.useState<Team | null>(null);
     const [pagesLoaded, setPagesLoaded] = React.useState<number>(0);
@@ -94,12 +94,12 @@ const HistoricalMatchup: React.FunctionComponent<{ game: Game, awayTeam: Team, h
         }
     }, [currentGames]);
 
-    const loadGames = async (selectTeam1: string, selectTeam2: string, page: number, startDate: string, endDate: string) => {
-        if (!selectTeam1 || !selectTeam2 || selectTeam1 === selectTeam2 || selectTeam1 === "-1" || selectTeam2 === "-1") {
+    const loadGames = async (selectTeam1: number, selectTeam2: number, page: number, startDate: string, endDate: string) => {
+        if (!selectTeam1 || !selectTeam2 || selectTeam1 === selectTeam2 || selectTeam1 === -1 || selectTeam2 === -1) {
             return;
         }
 
-        TeamService.getHistoricalMatchups({ team1: parseInt(selectTeam1), team2: parseInt(selectTeam2), page: page, startDate: startDate, endDate: endDate }).then((data) => {
+        TeamService.getHistoricalMatchups({ team1: selectTeam1, team2: selectTeam2, page: page, startDate: startDate, endDate: endDate }).then((data) => {
             if (page === 1) {
                 setCurrentGames(data);
             } else {
@@ -111,13 +111,13 @@ const HistoricalMatchup: React.FunctionComponent<{ game: Game, awayTeam: Team, h
         })
 
         // load team1 and team2 if not already loaded
-        if (selectTeam1 !== team1?.id?.toString()) {
-            await TeamService.getTeam(parseInt(selectTeam1)).then((data) => {
+        if (selectTeam1 !== team1?.id) {
+            await TeamService.getTeam(selectTeam1).then((data) => {
                 setTeam1(data);
             });
         }
-        if (selectTeam2 !== team2?.id?.toString()) {
-            await TeamService.getTeam(parseInt(selectTeam2)).then((data) => {
+        if (selectTeam2 !== team2?.id) {
+            await TeamService.getTeam(selectTeam2).then((data) => {
                 setTeam2(data);
             });
         }
@@ -128,9 +128,9 @@ const HistoricalMatchup: React.FunctionComponent<{ game: Game, awayTeam: Team, h
             {teams? 
                 <>
                     <div className="flex flex-row justify-center mt-3">
-                        <SelectTeamDropdown teams={teams} setTeam={setSelectTeam1} team={selectTeam1 ?? "-1"} />
+                        <SelectTeamDropdown teams={teams} setTeam={setSelectTeam1} team={selectTeam1 ?? -1} />
                         <div className="ml-2"></div>
-                        <SelectTeamDropdown teams={teams} setTeam={setSelectTeam2} team={selectTeam2 ?? "-1"} />
+                        <SelectTeamDropdown teams={teams} setTeam={setSelectTeam2} team={selectTeam2 ?? -1} />
                         <div className="ml-2"></div>
                         <RoundedButton 
                             onClick={async () => {
