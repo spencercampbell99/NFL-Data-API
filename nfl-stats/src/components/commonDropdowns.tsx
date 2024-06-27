@@ -120,10 +120,10 @@ interface SelectTeamDropdownProps {
 const SelectTeamDropdown: React.FunctionComponent<SelectTeamDropdownProps> = ({ teams, team, setTeam, multiSelect = false }) => {
     const options = teams.map((team) => ({ value: team.id, label: team.short_display_name }));
 
-    return <BaseDropdown options={options} selected={team} setSelected={setTeam} multiSelect={multiSelect} alternateDefaultText={multiSelect ? "Select Teams" : "Select a Team"} />;
+    return <BaseDropdown options={options} selected={team} setSelected={setTeam} multiSelect={multiSelect} alternateDefaultText={multiSelect ? (team ? team.toString() : "Select Teams") : "Select a Team"} />;
 }
 
-const BasicDropdown: React.FunctionComponent<{ options: number[], selected: number, setSelected: any, alternateDefaultText?: string, multiSelect?: boolean, provideSelectAllButton?: boolean }> = ({ options, selected, setSelected, alternateDefaultText = "Select a value", multiSelect = false, provideSelectAllButton = false }) => {
+const BasicDropdown: React.FunctionComponent<{ options: number[], selected: number | number[], setSelected: any, alternateDefaultText?: string, multiSelect?: boolean, provideSelectAllButton?: boolean }> = ({ options, selected, setSelected, alternateDefaultText = "Select a value", multiSelect = false, provideSelectAllButton = false }) => {
     const dropdownOptions = options.map((option) => ({ value: option, label: option.toString() }));
 
     return <BaseDropdown options={dropdownOptions} selected={selected} setSelected={setSelected} alternateDefaultText={alternateDefaultText} multiSelect={multiSelect} provideSelectAllButton={provideSelectAllButton} />;

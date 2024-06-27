@@ -60,3 +60,72 @@ exports.getModelPredictionsOverviewBySeasonAndWeek = async (req, res) => {
         return res.status(500).send({ message: err.message });
     }
 }
+
+/**
+ * Get model results for given season, and optionally weeks and teams.
+ * 
+ * @api {get} /api/model-predictions/analysis/:season Get model results for given season, and optionally weeks and teams
+ * @apiName GetModelPredictionsAnalysisBySeason
+ * @apiGroup ModelPrediction
+ * 
+ * @apiParam {number} season - The season.
+ * @apiParam {number[]} [weeks] - The week numbers.
+ * @apiParam {number[]} [teams] - The team ids.
+ * 
+ * @apiSuccess {object} data - The data object.
+ * 
+ * @returns {object}
+ * @throws {500} - Server error.
+ */
+exports.getModelPredictionsAnalysisBySeason = async (req, res) => {
+    try {
+        // read in SQL query from file
+        const fs = require('fs');
+        const path = require('path');
+        let sql = fs.readFileSync(path.join(__dirname, '../sql/models/ModelAnalysisBySeason.sql')).toString();
+
+        let { season } = req.params;
+        let { weeks, teams, min_spread } = req.query;
+
+        // if any params = "null", set to null
+        if (weeks.toLowerCase() === 'null') {
+            weeks = null;
+        } else {
+            // manually replace SQL for :weeks IS NULL OR with ''
+            sql = sql.replace(':weeks IS NULL OR', '');
+
+            weeks = weeks.split(',').map(Number);
+        }
+        
+        if (teams.toLowerCase() === 'null') {
+            teams = null;
+        } else {
+            // manually replace SQL for :teams IS NULL OR with ''
+            sql = sql.replace(/:teams IS NULL OR/g, '');
+
+            teams = teams.split(',').map(Number);
+        }
+        
+        if (min_spread.toLowerCase() === 'null') {
+            min_spread = null;
+        }
+
+        const params = {
+            season: season,
+            weeks: weeks,
+            teams: teams,
+            min_spread: min_spread,
+        };
+
+        const modelPredictions = await nflDb.sequelize.query(sql, {
+            replacements: params,
+            type: nflDb.Sequelize.QueryTypes.SELECT,
+            logging: true,
+        });
+
+        return res.status(200).send(modelPredictions);
+    } catch (err) {
+        console.log(err);
+        return res.status(500).send({ message: err.message });
+    }
+}
