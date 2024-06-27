@@ -115,12 +115,13 @@ interface SelectTeamDropdownProps {
     team: number | number[];
     setTeam: any;
     multiSelect?: boolean;
+    alternateDefaultText?: string|null;
 }
 
-const SelectTeamDropdown: React.FunctionComponent<SelectTeamDropdownProps> = ({ teams, team, setTeam, multiSelect = false }) => {
+const SelectTeamDropdown: React.FunctionComponent<SelectTeamDropdownProps> = ({ teams, team, setTeam, multiSelect = false, alternateDefaultText = null }) => {
     const options = teams.map((team) => ({ value: team.id, label: team.short_display_name }));
 
-    return <BaseDropdown options={options} selected={team} setSelected={setTeam} multiSelect={multiSelect} alternateDefaultText={multiSelect ? (team ? team.toString() : "Select Teams") : "Select a Team"} />;
+    return <BaseDropdown options={options} selected={team} setSelected={setTeam} multiSelect={multiSelect} alternateDefaultText={multiSelect ? (typeof team == 'object' && team.length > 0 ? team.toString() : (alternateDefaultText ?? "Select Teams")) : (alternateDefaultText ?? "Select a Team")} />;
 }
 
 const BasicDropdown: React.FunctionComponent<{ options: number[], selected: number | number[], setSelected: any, alternateDefaultText?: string, multiSelect?: boolean, provideSelectAllButton?: boolean }> = ({ options, selected, setSelected, alternateDefaultText = "Select a value", multiSelect = false, provideSelectAllButton = false }) => {

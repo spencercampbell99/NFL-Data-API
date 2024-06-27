@@ -117,11 +117,14 @@ exports.getModelPredictionsAnalysisBySeason = async (req, res) => {
             min_spread: min_spread,
         };
 
-        const modelPredictions = await nflDb.sequelize.query(sql, {
+        let modelPredictions = await nflDb.sequelize.query(sql, {
             replacements: params,
             type: nflDb.Sequelize.QueryTypes.SELECT,
-            logging: true,
+            logging: false,
         });
+
+        // limit to first row
+        modelPredictions = modelPredictions[0];
 
         return res.status(200).send(modelPredictions);
     } catch (err) {
