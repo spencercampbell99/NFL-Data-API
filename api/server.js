@@ -9,7 +9,8 @@ require('dotenv').config();
 const app = express();
 
 var corsOptions = {
-  origin: '*', // allow all for now
+  origin: 'http://localhost:3000',
+  credentials: true,
 };
 
 // middleware

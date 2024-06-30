@@ -133,6 +133,11 @@ const Navbar: FunctionComponent<{}> = () => {
                         {dropdowns.models.links}
                     </NavbarDropdown>
                 </li>
+                <li className="float-right">
+                    <NavbarLink href="/profile">
+                        Profile
+                    </NavbarLink>
+                </li>
             </ul>
         </nav>
     );

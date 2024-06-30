@@ -7,10 +7,18 @@ const db = {};
 let sequelize;
 
 // Set up sequelize to point to our MySQL db
-sequelize = new Sequelize(process.env.DB_DATABASE, 'root', process.env.DB_ROOT_PASSWORD, {
-    host: process.env.DB_HOST,
-    dialect: 'mysql',
-});
+if (process.env.ENVIRONMENT === 'staging') {
+    sequelize = new Sequelize(process.env.RDS_DB_DATABASE, process.env.RDS_DB_USERNAME, process.env.RDS_DB_PASSWORD, {
+        host: process.env.RDS_DB_HOST,
+        dialect: 'mysql',
+    });
+
+} else {
+    sequelize = new Sequelize(process.env.DB_DATABASE, 'root', process.env.DB_ROOT_PASSWORD, {
+        host: process.env.DB_HOST,
+        dialect: 'mysql',
+    });
+}
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;

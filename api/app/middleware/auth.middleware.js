@@ -18,6 +18,8 @@ exports.isAuthenticated = async (req, res, next) => {
             return res.status(401).send({ message: 'Unauthorized token' });
         }
 
+        console.log('sessionToken', sessionToken)
+
         const user = await findBySessionToken(sessionToken);
         if (!user) {
             return res.status(401).send({ message: 'Unauthorized user' });

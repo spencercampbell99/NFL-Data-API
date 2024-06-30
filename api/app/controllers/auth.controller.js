@@ -41,6 +41,10 @@ exports.register = async (req, res) => {
             last_name: req.body.last_name,
         });
 
+        // drop password and salt from response
+        user.password = undefined;
+        user.salt = undefined;
+
         return res.status(200).send({ message: 'User registered successfully!', user: user }).end();
     } catch (err) {
         console.log(err);
@@ -63,10 +67,10 @@ exports.login = async (req, res) => {
             return res.status(400).send({ message: 'Email and password are required.' });
         }
 
-        const user = await userController._findByEmail(req.body.email);
+        let user = await userController._findByEmail(req.body.email);
 
         if (!user) {
-            return res.status(400).send({ message: `User with email ${req.body.email} does not exist.` });
+            return res.status(404).send({ message: `User with email ${req.body.email} does not exist.` });
         }
 
         const encryptedPassword = authentication(user.salt, req.body.password);
@@ -85,8 +89,70 @@ exports.login = async (req, res) => {
             where: { id: user.id },
         });
 
+        // remove sensitive data from user object
+        user.password = undefined;
+        user.salt = undefined;
+        user.session_expiration = undefined
+        user.session_token = undefined
+
         res.cookie('SHHBETS-AUTH', sessionToken, { expires: sessionExpiration, httpOnly: true })
         return res.status(200).send({ message: 'User logged in successfully!', user: user }).end();
+    } catch (err) {
+        console.log(err);
+        return res.status(500).send({ message: err.message });
+    }
+}
+
+/**
+ * Logs out a user.
+ * 
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Object} The response object with a success message.
+ * @throws {Error} If there is an error during the logout process.
+ */
+exports.logout = async (req, res) => {
+    try {
+        if (!req.cookies['SHHBETS-AUTH']) {
+            return res.status(400).send({ message: 'No session token found.' });
+        }
+
+        // clear session token and expiration
+        await User.update({
+            session_token: null,
+            session_expiration: null,
+        }, {
+            where: { session_token: req.cookies['SHHBETS-AUTH'] },
+        });
+
+        res.clearCookie('SHHBETS-AUTH');
+
+        return res.status(200).send({ message: 'User logged out successfully!' }).end();
+    } catch (err) {
+        console.log(err);
+        return res.status(500).send({ message: err.message });
+    }
+}
+
+/**
+ * Gets the current user.
+ * 
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Object} The response object with the current user.
+ * @throws {Error} If there is an error during the process of getting the current user.
+ */
+exports.me = async (req, res) => {
+    try {
+        const user = await userController._findBySessionToken(req.cookies['SHHBETS-AUTH']);
+
+        if (!user) {
+            return res.sendStatus(403); // FORBIDDEN
+        }
+
+        console.log('made it here');
+
+        return res.status(200).send({ user: user }).end();
     } catch (err) {
         console.log(err);
         return res.status(500).send({ message: err.message });
