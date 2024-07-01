@@ -4,15 +4,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import axios from '@/axiosConfig';
 import { useRouter } from 'next/navigation';
 import { AxiosError } from 'axios';
-
-interface User {
-  id: string;
-  username: string;
-  password: string;
-  salt: string;
-  session_token: string;
-  session_expiration: string;
-}
+import User from '@/interfaces/user.interface';
 
 interface AuthContextType {
   user: User | null;
