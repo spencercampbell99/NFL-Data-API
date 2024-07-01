@@ -27,8 +27,8 @@ db.userPredictions = require('./userPrediction.model')(sequelize, Sequelize);
 
 // bets
 db.bets.belongsTo(db.users, { foreignKey: 'bettor_id', as: 'bettor' });
-db.bets.hasMany(db.betLegs, { foreignKey: 'bet_id' });
-db.betLegs.belongsTo(db.bets, { foreignKey: 'bet_id' });
+db.bets.hasMany(db.betLegs, { foreignKey: 'bet_id', as: 'legs' });
+db.betLegs.belongsTo(db.bets, { foreignKey: 'bet_id', as: 'bet' });
 db.betLegs.belongsTo(db.users, { foreignKey: 'bettor_id', as: 'bettor' });
 
 // user predictions

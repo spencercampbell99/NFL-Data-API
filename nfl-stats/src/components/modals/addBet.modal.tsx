@@ -4,6 +4,8 @@ import { FC, useState, FormEvent, useEffect } from 'react';
 import Modal from './base.modal';
 import Game from '@/interfaces/game.interface';
 import BetService from '@/services/Bet.service';
+import Bet from '@/interfaces/bet.interface';
+import BetLeg from '@/interfaces/betLeg.interface';
 
 interface CreateBetModalProps {
     isOpen: boolean;
@@ -19,6 +21,45 @@ const convertAmericanToDecimalOdds = (americanOdds: number): number => {
     }
 }
 
+const SelectTeam = ({ game, teamId, setTeamId }: { game: Game, teamId: string, setTeamId: (value: string) => void }) => {
+    return (
+        <div className="mb-4">
+            <label className="block mb-2">Select Team</label>
+            <select
+                className="w-full p-2 border rounded"
+                value={teamId}
+                onChange={(e) => setTeamId(e.target.value)}
+                required
+            >
+                <option value="">Select a team</option>
+                {game && (
+                    <>
+                        <option value={game.home_team_id}>{game.home_team_char_id}</option>
+                        <option value={game.away_team_id}>{game.away_team_char_id}</option>
+                    </>
+                )}
+            </select>
+        </div>
+    );
+}
+
+const OverOrUnderLineSelect = ({ overLine, setOverLine }: { overLine: boolean, setOverLine: (value: boolean) => void }) => {
+    return (
+        <div className="mb-4">
+            <label className="block mb-2">Select Over or Under</label>
+            <select
+                className="w-full p-2 border rounded"
+                value={overLine ? 'OVER' : 'UNDER'}
+                onChange={(e) => setOverLine(e.target.value === 'OVER')}
+                required
+            >
+                <option value="OVER">Over</option>
+                <option value="UNDER">Under</option>
+            </select>
+        </div>
+    );
+}
+
 const CreateBetModal: FC<CreateBetModalProps> = ({ isOpen, onClose, overrideGames }) => {
     const [game, setGame] = useState<Game | null>(null);
     const [wager, setWager] = useState(0);
@@ -28,6 +69,8 @@ const CreateBetModal: FC<CreateBetModalProps> = ({ isOpen, onClose, overrideGame
     const [games, setGames] = useState<Game[]>([]);
     const [seasonFilter, setSeasonFilter] = useState<number>(-1);
     const [weekFilter, setWeekFilter] = useState<number>(-1);
+    const [overLine, setOverLine] = useState(false);
+    const [chosenTeamId, setChosenTeamId] = useState<string | null>(null);
 
     useEffect(() => {
         if (!overrideGames) {
@@ -45,6 +88,25 @@ const CreateBetModal: FC<CreateBetModalProps> = ({ isOpen, onClose, overrideGame
         }
     }, [overrideGames]);
 
+    useEffect(() => {
+        // reset selections on game change
+        setLineValue('');
+        setChosenTeamId(null);
+        setOverLine(false);
+    }, [game]);
+
+    useEffect(() => {
+        if (game) {
+            if (lineType === 'MONEYLINE') {
+                //
+            } else if (lineType === 'OVER_UNDER') {
+                setLineValue(game.over_under.toString());
+            } else if (lineType === 'SPREAD') {
+                setLineValue(game.spread.toString());
+            }
+        }
+    }, [game, lineType]);
+
     const handleSelectGame = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const selectedGame = games.find((game) => game.id === parseInt(e.target.value));
         if (selectedGame) {
@@ -52,13 +114,37 @@ const CreateBetModal: FC<CreateBetModalProps> = ({ isOpen, onClose, overrideGame
         }
     };
 
-    const handleSubmit = (e: FormEvent) => {
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        if (wager > 0 && game?.id && lineValue) {
-            //   onCreateBet(gameId, wager, betType, lineType, lineValue);
-            onClose();
-        } else {
-            alert('Please enter a valid wager amount, select a game, and select a line.');
+
+        if (!game || wager == 0) {
+            alert('Please select a game and enter a valid wager amount.');
+            return;
+        }
+
+        // build the bet objects
+        // const bet: Bet = {
+        //     'bet_type': betType,
+        // };
+        const betLegs: BetLeg[] = [
+            {
+                'game_id': game.id || 0,
+                'line_type': lineType,
+                'line_value': lineValue ? parseFloat(lineValue) : undefined,
+                'team_id': chosenTeamId ? parseInt(chosenTeamId) : undefined,
+                'over_line': overLine ? true : false,
+                'wager': wager,
+            }
+        ];
+
+        try {
+            let res = await BetService.createBet({ bet: {}, bet_legs: betLegs });
+
+            if (res) {
+                onClose();
+            }
+        } catch (error) {
+            console.error('Error creating bet:', error);
         }
     };
 
@@ -170,52 +256,44 @@ const CreateBetModal: FC<CreateBetModalProps> = ({ isOpen, onClose, overrideGame
                     </select>
                 </div>
 
-                {lineType === 'MONEYLINE' && (
-                    <div className="mb-4">
-                        <label className="block mb-2">Select Team</label>
-                        <select
-                            className="w-full p-2 border rounded"
-                            value={lineValue}
-                            onChange={(e) => setLineValue(e.target.value)}
-                            required
-                        >
-                            <option value="">Select a team</option>
-                            {game && (
-                                <>
-                                    <option value={game.home_team_char_id}>{game.home_team_char_id}</option>
-                                    <option value={game.away_team_char_id}>{game.away_team_char_id}</option>
-                                </>
-                            )}
-                        </select>
-                    </div>
+                {lineType === 'MONEYLINE' && game && (
+                    <SelectTeam game={game} teamId={chosenTeamId || ''} setTeamId={setChosenTeamId} />
                 )}
 
                 {lineType === 'OVER_UNDER' && (
-                    <div className="mb-4">
-                        <label className="block mb-2">Total Points</label>
-                        <input
-                            type="number"
-                            className="w-full p-2 border rounded"
-                            value={game?.over_under}
-                            // onChange={(e) => setLineValue(e.target.value)}
-                            disabled={true}
-                            required
-                        />
-                    </div>
+                    <>
+                        <div className="mb-4">
+                            <label className="block mb-2">Total Points</label>
+                            <input
+                                type="number"
+                                className="w-full p-2 border rounded"
+                                value={game?.over_under}
+                                // onChange={(e) => setLineValue(e.target.value)}
+                                disabled={true}
+                                required
+                            />
+                        </div>
+                        <OverOrUnderLineSelect overLine={overLine} setOverLine={setOverLine} />
+                    </>
                 )}
 
-                {lineType === 'SPREAD' && (
-                    <div className="mb-4">
-                        <label className="block mb-2">Spread Value</label>
-                        <input
-                            type="number"
-                            className="w-full p-2 border rounded"
-                            value={game?.spread || 0}
-                            // onChange={(e) => setLineValue(e.target.value)}
-                            disabled={true}
-                            required
-                        />
-                    </div>
+                {lineType === 'SPREAD' && game && (
+                    <>
+                        <div className="mb-4">
+                            <label className="block mb-2">Spread Value</label>
+                            <select
+                                className="w-full p-2 border rounded"
+                                value={lineValue}
+                                onChange={(e) => setLineValue(e.target.value)}
+                                required
+                            >
+                                <option value="">Select a spread</option>
+                                <option value={game.spread}>{game.spread}</option>
+                                <option value={-game.spread}>-{game.spread}</option>
+                            </select>
+                        </div>
+                        <SelectTeam game={game} teamId={chosenTeamId || ''} setTeamId={setChosenTeamId} />
+                    </>
                 )}
 
                 {game && (
@@ -224,13 +302,9 @@ const CreateBetModal: FC<CreateBetModalProps> = ({ isOpen, onClose, overrideGame
                         <p><strong>Game:</strong> {game.away_team_char_id} @ {game.home_team_char_id}</p>
                         <p><strong>Wager:</strong> ${wager}</p>
                         <p><strong>Potential Return</strong> ${(wager * convertAmericanToDecimalOdds(
-                            lineType === 'MONEYLINE'
-                                ? lineValue === game.home_team_char_id
-                                    ? game.home_moneyline
-                                    : game.away_moneyline
-                                : lineType === 'OVER_UNDER'
-                                    ? -110
-                                    : -110
+                            lineType === 'MONEYLINE' ? (chosenTeamId === game.home_team_id.toString() ? game.home_moneyline : game.away_moneyline) :
+                            lineType === 'OVER_UNDER' ? game.over_under :
+                            lineType === 'SPREAD' ? parseFloat(lineValue) : 0
                         )).toFixed(2)}</p>
                     </div>
                 )}

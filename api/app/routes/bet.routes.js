@@ -10,5 +10,8 @@ module.exports = app => {
     // List games for bet selection
     router.get("/bets/list-games", authMiddleware.isAuthenticated, betController.gamesForBetSelection);
 
+    // Create a new bet
+    router.post("/bet", authMiddleware.isAuthenticated, betController.create);
+
     app.use('/api', router);
 }
