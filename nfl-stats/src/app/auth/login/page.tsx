@@ -6,14 +6,19 @@ import { useRouter } from 'next/navigation';
 import { AxiosError } from 'axios';
 
 const LoginComponent = () => {
-    const { login, user } = useAuth();
+    const { login, user, me } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const router = useRouter();
 
     React.useEffect(() => {
         if (user) {
-            router.push('/profile');
+            // recheck user auth
+            me().then(() => {
+                router.push('/profile');
+            }).catch((error: AxiosError) => {
+                console.error('Error fetching user:', error);
+            })
         }
     }, [user]);
 

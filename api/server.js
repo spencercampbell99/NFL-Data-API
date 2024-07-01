@@ -39,6 +39,7 @@ require('./app/routes/teams.routes')(app);
 require('./app/routes/modelPredictions.routes')(app);
 require('./app/routes/auth.routes')(app);
 require('./app/routes/users.routes')(app);
+require('./app/routes/bet.routes')(app);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to the NFL Stats API.' });

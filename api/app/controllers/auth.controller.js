@@ -95,7 +95,7 @@ exports.login = async (req, res) => {
         user.session_expiration = undefined
         user.session_token = undefined
 
-        res.cookie('SHHBETS-AUTH', sessionToken, { expires: sessionExpiration, httpOnly: true })
+        res.cookie('SHHBETS-AUTH', sessionToken, { httpOnly: true })
         return res.status(200).send({ message: 'User logged in successfully!', user: user }).end();
     } catch (err) {
         console.log(err);
@@ -147,10 +147,8 @@ exports.me = async (req, res) => {
         const user = await userController._findBySessionToken(req.cookies['SHHBETS-AUTH']);
 
         if (!user) {
-            return res.sendStatus(403); // FORBIDDEN
+            return res.sendStatus(401); // FORBIDDEN
         }
-
-        console.log('made it here');
 
         return res.status(200).send({ user: user }).end();
     } catch (err) {

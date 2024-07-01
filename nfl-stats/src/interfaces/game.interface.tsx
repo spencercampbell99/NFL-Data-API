@@ -5,6 +5,8 @@ import BoxScore from './boxScore.interface';
 export default interface Game {
     id: number;
     name: string;
+    season: number;
+    week: number;
     short_name: string;
     home_team_char_id: string;
     away_team_char_id: string;

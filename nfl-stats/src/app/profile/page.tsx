@@ -6,6 +6,9 @@ import { useRouter } from 'next/navigation'
 import LeftTabs from '@/components/nav/leftTabs.component'
 import User from '@/interfaces/user.interface'
 import Bet from '@/interfaces/bet.interface'
+import BetService from '@/services/Bet.service'
+import { AxiosError } from 'axios'
+import CreateBetModal from '@/components/modals/addBet.modal'
 
 const _tabs = ['General', 'Bet Tracking']
 
@@ -19,6 +22,8 @@ const BasicLabel = ({ label, value }: { label: string, value: string }) => {
 }
 
 const GeneralTab = ({ user }: { user: User }) => {
+    const { logout } = useAuth()
+
     return (
         <div>
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">General</h2>
@@ -28,13 +33,20 @@ const GeneralTab = ({ user }: { user: User }) => {
                 <BasicLabel label="First Name" value={user.first_name} />
                 <BasicLabel label="Last Name" value={user.last_name} />
             </div>
+            <button className="bg-red-500 text-white px-4 py-2 rounded mt-4" onClick={logout}>Logout</button>
         </div>
     )
 }
 
 const BetTrackingTab = () => {
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+
     return (
-        <h1>Bet Tracking</h1>
+        <div>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Bet Tracking</h2>
+            <button className="bg-blue-500 text-white px-4 py-2 rounded" onClick={() => setIsCreateModalOpen(true)}>Create New Bet</button>
+            <CreateBetModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
+        </div>
     )
 }
 
@@ -52,13 +64,12 @@ const ProfilePage = () => {
 
     React.useEffect(() => {
         const fetchBets = async () => {
-            try {
-                const response = await fetch('/api/bets')
-                const data = await response.json()
-                setBets(data.bets)
-            } catch (error) {
-                console.error('Error fetching bets:', error)
-            }
+            BetService.listMyBets().then((bets) => {
+                console.log(bets)
+                setBets(bets)
+            }).catch((error: AxiosError) => {
+                console.error(error)
+            })
         }
         if (selectedTab === 'Bet Tracking' && !bets.length) {
             fetchBets()

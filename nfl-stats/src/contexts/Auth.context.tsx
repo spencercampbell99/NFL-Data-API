@@ -11,6 +11,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<User>;
   register: (email: string, password: string, username: string, firstName: string) => Promise<User>;
   logout: () => void;
+  me: () => Promise<User>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -28,17 +29,20 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<User | null>(() => {
-    // Initialize state with session storage data if available
-    const userJson = sessionStorage.getItem('user');
-    return userJson ? JSON.parse(userJson) : null;
-  });
+  const [user, setUser] = useState<User | null>(null);
 
   const router = useRouter();
 
   useEffect(() => {
     const checkUser = async () => {
       if (!user) {
+        // check session storage
+        const sessionUser = sessionStorage.getItem('user');
+        if (sessionUser) {
+          setUser(JSON.parse(sessionUser));
+          return;
+        }
+
         try {
           axios.get('/auth/me').then((response) => {
             const userData = response.data.user;
@@ -105,8 +109,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const me = async () => {
+    try {
+      const response = await axios.get('/auth/me');
+      return response.data;
+    } catch (error) {
+      console.error('Me error:', error);
+      throw error;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, login, register, logout, me }}>
       {children}
     </AuthContext.Provider>
   );
