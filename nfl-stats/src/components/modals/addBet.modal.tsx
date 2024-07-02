@@ -99,7 +99,7 @@ const CreateBetModal: FC<CreateBetModalProps> = ({ isOpen, onClose, overrideGame
         if (game) {
             if (lineType === 'MONEYLINE') {
                 //
-            } else if (lineType === 'OVER_UNDER') {
+            } else if (lineType === 'TOTAL_SCORE') {
                 setLineValue(game.over_under.toString());
             } else if (lineType === 'SPREAD') {
                 setLineValue(game.spread.toString());
@@ -251,7 +251,7 @@ const CreateBetModal: FC<CreateBetModalProps> = ({ isOpen, onClose, overrideGame
                         required
                     >
                         <option value="MONEYLINE">Moneyline</option>
-                        <option value="OVER_UNDER">Over/Under</option>
+                        <option value="TOTAL_SCORE">Over/Under</option>
                         <option value="SPREAD">Spread</option>
                     </select>
                 </div>
@@ -260,7 +260,7 @@ const CreateBetModal: FC<CreateBetModalProps> = ({ isOpen, onClose, overrideGame
                     <SelectTeam game={game} teamId={chosenTeamId || ''} setTeamId={setChosenTeamId} />
                 )}
 
-                {lineType === 'OVER_UNDER' && (
+                {lineType === 'TOTAL_SCORE' && (
                     <>
                         <div className="mb-4">
                             <label className="block mb-2">Total Points</label>
@@ -303,7 +303,7 @@ const CreateBetModal: FC<CreateBetModalProps> = ({ isOpen, onClose, overrideGame
                         <p><strong>Wager:</strong> ${wager}</p>
                         <p><strong>Potential Return</strong> ${(wager * convertAmericanToDecimalOdds(
                             lineType === 'MONEYLINE' ? (chosenTeamId === game.home_team_id.toString() ? game.home_moneyline : game.away_moneyline) :
-                            lineType === 'OVER_UNDER' ? game.over_under :
+                            lineType === 'TOTAL_SCORE' ? game.over_under :
                             lineType === 'SPREAD' ? parseFloat(lineValue) : 0
                         )).toFixed(2)}</p>
                     </div>

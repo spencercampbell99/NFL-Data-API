@@ -30,6 +30,8 @@ db.bets.belongsTo(db.users, { foreignKey: 'bettor_id', as: 'bettor' });
 db.bets.hasMany(db.betLegs, { foreignKey: 'bet_id', as: 'legs' });
 db.betLegs.belongsTo(db.bets, { foreignKey: 'bet_id', as: 'bet' });
 db.betLegs.belongsTo(db.users, { foreignKey: 'bettor_id', as: 'bettor' });
+db.betLegs.belongsTo(db.nfl.schedules, { foreignKey: 'game_id', as: 'game' });
+db.betLegs.belongsTo(db.nfl.teams, { foreignKey: 'team_id', as: 'team' });
 
 // user predictions
 db.userPredictions.belongsTo(db.nfl.schedules, { foreignKey: 'schedule_id', as: 'schedule' });

@@ -30,7 +30,14 @@ exports.list = async (req, res) => {
                 {
                     model: BetLeg,
                     as: 'legs',
-                    attributes: ['id', 'game_id', 'line_type', 'line_value', 'odds', 'won', 'push', 'settled', 'settled_at'],
+                    attributes: ['id', 'game_id', 'line_type', 'wager', 'line_value', 'odds', 'won', 'over_line', 'push', 'settled', 'settled_at'],
+                    include: [
+                        {
+                            model: Schedule,
+                            as: 'game',
+                            attributes: ['home_team_char_id', 'away_team_char_id', 'home_team_id', 'away_team_id'],
+                        },
+                    ]
                 }
             ],
         });
@@ -131,9 +138,9 @@ exports.create = async (req, res) => {
             const game = games.find(game => game.id === betLeg.game_id);
 
             // handle type conversions
-            betLeg.wager = parseInt(betLeg.wager);
+            betLeg.wager = parseFloat(betLeg.wager);
             betLeg.line_value = parseFloat(betLeg.line_value);
-            betLeg.line_over = betLeg.line_over === 'true' ? true : false;
+            betLeg.over_line = betLeg.over_line === 'true' ? 1 : 0;
             betLeg.team_id = parseInt(betLeg.team_id);
 
             // get oods based on bet_leg type
@@ -170,6 +177,9 @@ exports.create = async (req, res) => {
                 game_id: betLeg.game_id,
                 line_type: betLeg.line_type,
                 line_value: betLeg.line_value || null,
+                team_id: betLeg.team_id || null,
+                over_line: betLeg.over_line,
+                wager: betLeg.wager,
                 odds: odds,
                 bettor_id: userId
             }
@@ -179,7 +189,7 @@ exports.create = async (req, res) => {
                     const betLegStatus = getBetLegStatus({
                         game,
                         lineType: betLeg.line_type,
-                        lineOver: betLeg.line_over ?? null,
+                        lineOver: betLeg.over_line ?? false,
                         teamId: betLeg.team_id ?? null,
                         lineValue: betLeg.line_value ?? null,
                     });
@@ -188,13 +198,15 @@ exports.create = async (req, res) => {
                         ..._betToInsert,
                         won: betLegStatus.won,
                         push: betLegStatus.push,
-                        settled: true,
+                        settled: betLegStatus.settled,
                         settled_at: new Date(),
                     };
     
                     // if bet leg is won, multiply oddsWon
                     if (betLegStatus.won && oddsWon !== 0) {
                         oddsWon *= odds;
+                    } else {
+                        oddsWon = 0;
                     }
     
                     if (!betLegStatus.settled) {
@@ -224,7 +236,7 @@ exports.create = async (req, res) => {
                 amount_lost: allSettled && oddsWon === 0 ? totalWager : 0,
                 settled: allSettled,
                 settled_at: allSettled ? new Date() : null,
-            });
+            }, { transaction: t });
 
             // add bet id to betLegs
             betLegsToInsert = betLegsToInsert.map(betLeg => {
