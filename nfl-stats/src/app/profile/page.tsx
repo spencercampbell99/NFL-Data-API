@@ -44,24 +44,23 @@ const BetTrackingTableColumnOrder = [
     'id',
     { key: ['created_at'], transformer: (created_at: string) => new Date(created_at).toLocaleDateString()},
     { key: ['wager'], transformer: (wager: number) => `$${wager}`},
-    { key: ['settled', 'won'], transformer: (settled: boolean, won: boolean) => settled ? (won ? 'Won' : 'Lost') : 'Pending' },
     { key: ['settled', 'amount_won', 'amount_lost'], transformer: (settled: boolean, amount_won: number, amount_lost: number) => settled ? (amount_won ? `$${amount_won}` : `-$${amount_lost}`) : 'Pending' },
+    { key: ['settled', 'amount_won'], transformer: (settled: boolean, won: boolean) => settled ? (won ? 'Won' : 'Lost') : 'Pending' },
 ]
 
 const BetTrackingTableLegsColumnOrder = [
     { key: ['game'], transformer: (game: any) => `${game.home_team_char_id} vs ${game.away_team_char_id}`},
     { key: ['wager'], transformer: (wager: number) => `$${wager}`},
-    'line_type',
+    { key: ['odds'], transformer: (odds: number) => BetService.decimalToAmericanOdds(odds) },
+    { key: ['line_type'], transformer: (line_type: string) => line_type.replace('_', ' ')},
     {
         key: ['game', 'line_type', 'line_value', 'over_line', 'team_id'],
         transformer: (game: Game, line_type: string, line_value: number|null, over_line: boolean, team_id: number|null) => {
-            console.log(game, line_type, line_value, over_line, team_id)
             if (line_type === 'SPREAD') {
                 return over_line ? `+${line_value}` : `-${line_value}`
             } else if (line_type === 'TOTAL_SCORE') {
                 return over_line ? `Over ${line_value}` : `Under ${line_value}`
             } else if (line_type === 'MONEYLINE') {
-                console.log(game)
                 if (team_id === game.home_team_id) {
                     return game.home_team_char_id
                 } else if (team_id === game.away_team_id) {
@@ -70,7 +69,7 @@ const BetTrackingTableLegsColumnOrder = [
             }
         }
     },
-    { key: ['settled'], transformer: (settled: boolean, won: boolean) => settled ? (won ? 'Won' : 'lost') : 'Pending' }
+    { key: ['settled', 'won'], transformer: (settled: boolean, won: boolean) => settled ? (won ? 'Won' : 'Lost') : 'Pending' }
 ]
 
 const BetTrackingTab: React.FC<{ bets: Bet[] }> = ({ bets }) => {
@@ -85,11 +84,11 @@ const BetTrackingTab: React.FC<{ bets: Bet[] }> = ({ bets }) => {
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">Bet Tracking</h2>
             <button className="bg-blue-500 text-white px-4 py-2 rounded" onClick={() => setIsCreateModalOpen(true)}>Create New Bet</button>
             <NestedTable
-                headers={['Bet ID', 'Bet Date', 'Bet Amount', 'Bet Status', 'Payout']}
+                headers={['Bet ID', 'Bet Date', 'Bet Amount', 'Payout', 'Bet Status']}
                 columnOrder={BetTrackingTableColumnOrder}
                 data={bets}
                 onRowClick={(row) => console.log(row)}
-                childHeaders={['Game', 'Wager', 'Line Type', 'Bet Info', 'Status']}
+                childHeaders={['Game', 'Wager', 'Odds', 'Line Type', 'Bet Info', 'Status']}
                 childColumnOrder={BetTrackingTableLegsColumnOrder}
                 childrenKey="legs"
             />

@@ -48,13 +48,27 @@ class BetService {
         }
     }
 
-    async listGamesForBetSelectoin() {
+    async listGamesForBetSelection() {
         try {
             const response = await axios.get('/bets/list-games');
             return response.data;
         } catch (error) {
             console.error('Error fetching games:', error);
         }
+    }
+
+    /**
+     * Converts decimal odds to American odds
+     * 
+     * @param number decimalOdds
+     * 
+     * @returns number
+     */
+    decimalToAmericanOdds(decimalOdds: number) {
+        if (decimalOdds < 2) {
+            return Math.round(-100 / (decimalOdds - 1));
+        }
+        return Math.round((decimalOdds - 1) * 100);
     }
 }
 

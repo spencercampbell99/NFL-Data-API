@@ -30,7 +30,7 @@ exports.list = async (req, res) => {
                 {
                     model: BetLeg,
                     as: 'legs',
-                    attributes: ['id', 'game_id', 'line_type', 'wager', 'line_value', 'odds', 'won', 'over_line', 'push', 'settled', 'settled_at'],
+                    attributes: ['id', 'game_id', 'line_type', 'wager', 'line_value', 'odds', 'won', 'over_line', 'push', 'team_id', 'settled', 'settled_at'],
                     include: [
                         {
                             model: Schedule,

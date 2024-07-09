@@ -75,7 +75,7 @@ const CreateBetModal: FC<CreateBetModalProps> = ({ isOpen, onClose, overrideGame
     useEffect(() => {
         if (!overrideGames) {
             const fetchGames = async () => {
-                BetService.listGamesForBetSelectoin().then((response) => {
+                BetService.listGamesForBetSelection().then((response) => {
                     setGames(response);
                 }).catch((error) => {
                     console.error('Error fetching games:', error);
