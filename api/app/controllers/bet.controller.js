@@ -274,6 +274,31 @@ exports.create = async (req, res) => {
 }
 
 /**
+ * Delete bets for authed user.
+ * 
+ * @param {*} req The request.
+ * @param {*} res The response.
+ * 
+ * @returns {Object} The response object.
+ */
+exports.deleteMyBets = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        if (!userId) {
+            return res.status(400).send({ message: 'Auth user is required.' });
+        }
+
+        await Bet.destroy({ where: { bettor_id: userId } });
+
+        return res.status(200).send({ message: 'Bets deleted.' });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).send({ message: err.message });
+    }
+}
+
+/**
  * Get bet leg status
  * 
  * @param {Game} game The game.

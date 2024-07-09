@@ -13,5 +13,8 @@ module.exports = app => {
     // Create a new bet
     router.post("/bet", authMiddleware.isAuthenticated, betController.create);
 
+    // Delete bets for authed user
+    router.delete("/my-bets", authMiddleware.isAuthenticated, betController.deleteMyBets);
+
     app.use('/api', router);
 }

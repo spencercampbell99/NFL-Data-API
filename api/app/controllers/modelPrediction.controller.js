@@ -132,3 +132,55 @@ exports.getModelPredictionsAnalysisBySeason = async (req, res) => {
         return res.status(500).send({ message: err.message });
     }
 }
+
+/**
+ * List all model predictions for given season, and optionally week and team
+ * 
+ * @param {object} req - The request object.
+ * @param {object} res - The response object.
+ * 
+ * @api {get} /api/model-predictions/:season List all model predictions for given season, and optionally week and team
+ * @apiName ListModelPredictionsBySeason
+ * @apiGroup ModelPrediction
+ * 
+ * @apiParam {number} season - The season.
+ * @apiParam {number[]} [week] - The week numbers
+ * @apiParam {number[]} [team] - The team ids
+ * @apiSuccess {object} data - The data object.
+ * 
+ * @returns {object}
+ */
+exports.listModelPredictionsBySeason = async (req, res) => {
+    try {
+        const { season } = req.params;
+        let { week, team } = req.query;
+
+        let gameWhere = {
+            season: season,
+        };
+
+        if (week) {
+            gameWhere.week = week;
+        }
+
+        if (team) {
+            gameWhere.team_id = team;
+        }
+
+        const modelPredictions = await ModelPrediction.findAll({
+            include: [
+                {
+                    model: nflDb.schedules,
+                    as: 'schedule',
+                    where: gameWhere,
+                    attributes: ['season', 'week', 'home_team_id', 'away_team_id', 'home_score', 'away_score'],
+                },
+            ]
+        });
+
+        return res.status(200).send({ modelPredictions });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).send({ message: err.message });
+    }
+}

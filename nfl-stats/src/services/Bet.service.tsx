@@ -57,6 +57,15 @@ class BetService {
         }
     }
 
+    async removeAllBetsForAuthUser() {
+        try {
+            const response = await axios.delete('/my-bets');
+            return response.data;
+        } catch (error) {
+            console.error('Error deleting bets:', error);
+        }
+    }
+
     /**
      * Converts decimal odds to American odds
      * 

@@ -8,5 +8,8 @@ module.exports = app => {
     // get model analysis results for season
     router.get("/model-predictions/analysis/:season", modelPredictionController.getModelPredictionsAnalysisBySeason);
 
+    // list model predictions for given season
+    router.get("/model-predictions/:season", modelPredictionController.listModelPredictionsBySeason);
+
     app.use('/api', router);
 }
