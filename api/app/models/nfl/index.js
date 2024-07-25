@@ -48,6 +48,7 @@ db.schedules.hasMany(db.boxscores, { foreignKey: 'schedule_id', scope: { 'home_t
 db.schedules.hasMany(db.boxscores, { foreignKey: 'schedule_id', scope: { 'home_team': false }, as: 'away_boxscore' });
 db.schedules.hasMany(db.playerGameStats, { foreignKey: 'game_id' });
 db.schedules.hasMany(db.fantasyPlayerPerformances, { foreignKey: 'schedule_id' });
+db.schedules.hasMany(db.modelPredictions, { foreignKey: 'schedule_id', as: 'model_predictions' });
 
 // boxscores
 db.boxscores.belongsTo(db.teams, { foreignKey: 'team_id', as: 'team' });

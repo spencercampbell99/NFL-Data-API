@@ -41,7 +41,7 @@ full_features.append('over_under')
 # full_features.remove('opp_critical_situation_percentage')
 # full_features.remove('team_penalty_yards_against')
 
-data = get_data_for_points_scored_model(2015, 2022)
+data = get_data_for_points_scored_model(2015, 2023)
 
 # create test split
 X_train, X_test, y_train, y_test = train_test_split(data[full_features], data['points_scored'], test_size=0.1, random_state=42)

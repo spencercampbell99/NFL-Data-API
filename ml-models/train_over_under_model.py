@@ -6,7 +6,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import MinMaxScaler
 from data_getters import get_over_under_data
 
-data = get_over_under_data(2019, 2022)
+data = get_over_under_data(2019, 2023)
 
 # drop data with nas
 data = data.dropna()
@@ -95,7 +95,7 @@ score2 = accuracy_score(y_test, y_pred2)
 print(f'Accuracy (XGBoost): {score2}')
 
 # get games from 2023
-df = get_over_under_data(2023, 2023)
+df = get_over_under_data(2024, 2024)
 
 df = df.dropna()
 
@@ -110,12 +110,12 @@ y_pred = model.predict(X)
 
 # get accuracy
 score = accuracy_score(y, y_pred)
-print(f'Accuracy 2023: {score}')
+print(f'Accuracy 2024: {score}')
 
 # model 2
 y_pred2 = model2.predict(X)
 score2 = accuracy_score(y, y_pred2)
-print(f'Accuracy 2023 (XGBoost): {score2}')
+print(f'Accuracy 2024 (XGBoost): {score2}')
 
 # save the one with higher score
 # save model with joblib

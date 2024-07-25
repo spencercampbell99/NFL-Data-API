@@ -63,6 +63,9 @@ const Navbar: FunctionComponent<{}> = () => {
                     <NavbarLink href="/nfl/models/score/analysis">
                         Model Analysis
                     </NavbarLink>
+                    <NavbarLink href="/nfl/models/score/week-predictions">
+                        Predictions By Week
+                    </NavbarLink>
                 </>
             ),
             active: false

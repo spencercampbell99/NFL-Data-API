@@ -22,17 +22,30 @@ exports.find = async (id) => {
  * @param {number} week - The week number.
  * @param {number} season - The season.
  * @param {boolean} idsOnly - Whether to return just the ids or the full game objects.
+ * @param {boolean} withModelPredictions - Whether to include model predictions.
  * @returns {[Schedule]}
  */
-exports.getGamesBySeasonAndWeek = async ({ week, season, idsOnly = true }) => {
+exports.getGamesBySeasonAndWeek = async ({ week, season, idsOnly = true, withModelPredictions = false }) => {
     try {
-        const games = await Schedule.findAll({
+        let query = {
             where: {
                 week: week,
                 season: season,
             },
             attributes: idsOnly ? ['id', 'espn_id'] : undefined
-        });
+        }
+
+        if (withModelPredictions) {
+            query.include = [
+                {
+                    model: nflDb.modelPredictions,
+                    as: 'model_predictions',
+                    attributes: ['home_team_score', 'away_team_score', 'total_score', 'over_under'],
+                }
+            ]
+        }
+
+        const games = await Schedule.findAll(query);
         return games;
     } catch (err) {
         console.log(err);

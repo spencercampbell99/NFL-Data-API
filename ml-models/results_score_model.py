@@ -24,22 +24,22 @@ scaler = joblib.load(f'models/{model_name}_scaler.joblib')
 matchup_predictions = pd.DataFrame(columns=['schedule_id', 'matchup', 'home_team', 'away_team', 'predicted_home_score', 'predicted_away_score', 'actual_home_score', 'actual_away_score', 'actual_total', 'correct_winner', 'predicted_total', 'over_under', 'predicted_over_under_result', 'actual_over_under_result', 'spread', 'correct_spread', 'predicted_underdog_win', 'actual_underdog_win'])
 matchup_predictions.set_index('matchup', inplace=True)
 
-for week in range(1, 19):
-    # data = get_data_for_points_scored_model_with_averages(week=week, season=2023, connection=conn, weeks_back=10)
+for week in range(1, 2):
+    # data = get_data_for_points_scored_model_with_averages(week=week, season=2024, connection=conn, weeks_back=10)
     
     # make the index 0 -> length
     # data.reset_index(inplace=True)
     
     # games for week
-    games_for_week = get_games_for_week(week, 2023, connection=conn)
+    games_for_week = get_games_for_week(week, 2024, connection=conn)
 
     data = None
     
     for index, game in games_for_week.iterrows():
-        home_team_off_stats = calculate_offense_stat_averages(game['home_team_id'], 2023, week, weeks_back=6, conn=conn)
-        away_team_def_stats = calculate_defense_stat_averages(game['away_team_id'], 2023, week, weeks_back=6, conn=conn)
-        home_team_def_stats = calculate_defense_stat_averages(game['home_team_id'], 2023, week, weeks_back=6, conn=conn)
-        away_team_off_stats = calculate_offense_stat_averages(game['away_team_id'], 2023, week, weeks_back=6, conn=conn)
+        home_team_off_stats = calculate_offense_stat_averages(game['home_team_id'], 2024, week, weeks_back=6, conn=conn)
+        away_team_def_stats = calculate_defense_stat_averages(game['away_team_id'], 2024, week, weeks_back=6, conn=conn)
+        home_team_def_stats = calculate_defense_stat_averages(game['home_team_id'], 2024, week, weeks_back=6, conn=conn)
+        away_team_off_stats = calculate_offense_stat_averages(game['away_team_id'], 2024, week, weeks_back=6, conn=conn)
         
         # calculate the expected stats for the home team by taking the average of the home team's offensive stats and the away team's defensive stats
         home_team_general_expected_stats = (home_team_off_stats + away_team_def_stats) / 2
@@ -208,27 +208,43 @@ should_update_db = input('Update database? (y/n): ')
 if should_update_db == 'y':
     for index, matchup in matchup_predictions.iterrows():
         if matchup['actual_total'] == 0:
-            continue
-        
-        # try update, if it fails, insert
-        try:
-            res = conn.connection.execute(prediction_update_query, {
-                'home_score': matchup['predicted_home_score'],
-                'away_score': matchup['predicted_away_score'],
+            data = {
+                'schedule_id': matchup['schedule_id'],
+                'home_team_score': matchup['predicted_home_score'],
+                'away_team_score': matchup['predicted_away_score'],
                 'total_score': matchup['predicted_total'],
-                # 'over_under': 'OVER' if matchup['predicted_total'] > matchup['over_under'] else 'UNDER',
+                
+                # rest are null for non completed game
+                'cover_spread': None,
+                'home_win': None,
+                'underdog_win': None,
+                'correct_winner': None,
+                'correct_spread': None,
+                'correct_underdog_win': None,
+                'home_team_error': None,
+                'away_team_error': None,
+                'total_error': None
+            }
+        else:
+            data = {
+                'schedule_id': matchup['schedule_id'],
+                'home_team_score': matchup['predicted_home_score'],
+                'away_team_score': matchup['predicted_away_score'],
+                'total_score': matchup['predicted_total'],
                 'cover_spread': matchup['spread'],
                 'home_win': matchup['predicted_home_score'] > matchup['predicted_away_score'],
                 'underdog_win': matchup['predicted_underdog_win'],
                 'correct_winner': matchup['correct_winner'],
-                # 'correct_over_under': matchup['predicted_over_under_result'],
                 'correct_spread': matchup['correct_spread'],
                 'correct_underdog_win': matchup['predicted_underdog_win'] and matchup['actual_underdog_win'] if matchup['predicted_underdog_win'] else None,
-                'home_error': matchup['predicted_home_score'] - matchup['actual_home_score'],
-                'away_error': matchup['predicted_away_score'] - matchup['actual_away_score'],
-                'total_error': matchup['predicted_total'] - matchup['actual_total'],
-                'schedule_id': matchup['schedule_id']
-            })
+                'home_team_error': matchup['predicted_home_score'] - matchup['actual_home_score'],
+                'away_team_error': matchup['predicted_away_score'] - matchup['actual_away_score'],
+                'total_error': matchup['predicted_total'] - matchup['actual_total']
+            }
+        
+        # try update, if it fails, insert
+        try:
+            res = conn.connection.execute(prediction_update_query, data)
             
             # see if update failed
             if res.rowcount == 0:
@@ -236,28 +252,11 @@ if should_update_db == 'y':
             
             print(f'Updated {matchup["schedule_id"]}')
         except:
-            conn.connection.execute(prediction_insert_query, {
-                'schedule_id': matchup['schedule_id'],
-                'home_team_score': matchup['predicted_home_score'],
-                'away_team_score': matchup['predicted_away_score'],
-                'total_score': matchup['predicted_total'],
-                # 'over_under': 'OVER' if matchup['predicted_total'] > matchup['over_under'] else 'UNDER',
-                'cover_spread': matchup['spread'],
-                'home_win': matchup['predicted_home_score'] > matchup['predicted_away_score'],
-                'underdog_win': matchup['predicted_underdog_win'],
-                'correct_winner': matchup['correct_winner'],
-                # 'correct_over_under': matchup['predicted_over_under_result'],
-                'correct_spread': matchup['correct_spread'],
-                'correct_underdog_win': matchup['predicted_underdog_win'] and matchup['actual_underdog_win'] if matchup['predicted_underdog_win'] else None,
-                'home_team_error': matchup['predicted_home_score'] - matchup['actual_home_score'],
-                'away_team_error': matchup['predicted_away_score'] - matchup['actual_away_score'],
-                'total_error': matchup['predicted_total'] - matchup['actual_total']
-            })
+            conn.connection.execute(prediction_insert_query, data)
             print(f'Inserted {matchup["schedule_id"]}')
     
     print('Done updating database')
     conn.connection.commit()
-            
 
 # print(matchup_predictions[['predicted_home_score', 'predicted_away_score', 'actual_home_score', 'actual_away_score', 'correct_winner', 'spread', 'correct_spread']])
 print(matchup_predictions)

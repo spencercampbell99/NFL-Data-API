@@ -9,7 +9,7 @@ db_name <- "nfldb"
 
 # get the data from nflreadr
 library(nflreadr)
-games <- load_schedules(seq(2023, 2023))
+games <- load_schedules(seq(2023, 2024))
 
 # take espn, total_line, spread_line, home_money_line, away_money_line from games
 games <- games[, c("espn", "total_line", "spread_line", "home_moneyline", "away_moneyline")]

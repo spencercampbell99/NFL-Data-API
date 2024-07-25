@@ -1,6 +1,7 @@
 import Team from './team.interface';
 import {BoxScorePlayerStats as PlayerStats} from './boxScorePlayerStats.interface';
 import BoxScore from './boxScore.interface';
+import ScoreModelPrediction from './scoreModelPrediction.interface';
 
 export default interface Game {
     id: number;
@@ -17,6 +18,8 @@ export default interface Game {
     over_under: number;
     spread: number;
     date: string;
+    weekday: string;
+    time: string;
     home_moneyline: number;
     away_moneyline: number;
     homeFavorite: boolean;
@@ -29,4 +32,5 @@ export default interface Game {
     home_boxscore: BoxScore;
     away_boxscore: BoxScore;
     espn_id: number;
+    model_predictions: ScoreModelPrediction;
 }

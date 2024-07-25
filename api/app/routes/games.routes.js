@@ -1,3 +1,5 @@
+const { query } = require("express");
+
 module.exports = app => {
     const gameController = require("../controllers/game.controller.js");
 
@@ -27,14 +29,19 @@ module.exports = app => {
         const queryParams = req.query;
 
         var idsOnly = false;
+        var withModelPredictions = false;
         if (queryParams) {
-            if (queryParams.idsOnly) {
+            console.log(queryParams);
+            if (queryParams.ids_only == 'true' || queryParams.ids_only == '1') {
                 idsOnly = true;
+            }
+            if (queryParams.with_model_predictions == 'true' || queryParams.with_model_predictions == '1') {
+                withModelPredictions = true;
             }
         }
 
         try {
-            const games = await gameController.getGamesBySeasonAndWeek({ week: req.params.week, season: req.params.season, idsOnly: idsOnly });
+            const games = await gameController.getGamesBySeasonAndWeek({ week: req.params.week, season: req.params.season, idsOnly: idsOnly, withModelPredictions: withModelPredictions });
             if (!games) {
                 res.status(404).send({
                     message: `Games for week ${req.params.week} of season ${req.params.season} were not found.`
