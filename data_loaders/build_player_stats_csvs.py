@@ -18,7 +18,7 @@ def update_only_this_year():
         else:
             return False
 
-this_season = 2023
+this_season = 2024
 # Ensure that the user wants to continue. If not, exit the program
 if not confirm():
     exit()

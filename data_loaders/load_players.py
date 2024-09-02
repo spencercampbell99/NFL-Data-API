@@ -2,7 +2,7 @@ import pandas as pd
 import nfl_data_py as nfl
 
 # Load the players data
-years = list(range(2010, 2024))
+years = list(range(2010, 2025))
 players = nfl.import_seasonal_rosters(years)
 
 # keep only the latest season entry for each player
