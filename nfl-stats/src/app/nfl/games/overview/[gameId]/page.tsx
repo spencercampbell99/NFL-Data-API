@@ -4,6 +4,7 @@ import axios from '@/axiosConfig';
 import GameHeader from '@/components/games/gameHeader.component';
 import Game from '@/interfaces/game.interface';
 import TeamStatsAtAGlance from '@/components/games/atAGlance.component';
+import GameService from '@/services/Game.service';
 
 interface Params {
     gameId: string
@@ -237,7 +238,8 @@ const PlayerGamePage: React.FunctionComponent<{ params: Params }> = ({ params })
     // fetch games
     React.useEffect(() => {
         const fetchGames = async () => {
-            const response = await axios.get(`/game/overview/${params.gameId}`);
+            const response = await GameService.gameOverview(params.gameId);
+            console.log(response)
             setGame(response.data.game);
 
             console.log(response.data.game);

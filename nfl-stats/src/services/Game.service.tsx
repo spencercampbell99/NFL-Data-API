@@ -60,6 +60,15 @@ class GameService {
             console.error('Error deleting game:', error);
         }
     }
+
+    async gameOverview(id: string) {
+        try {
+            const response = await axios.get(`/game/${id}/overview`);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching game overview:', error);
+        }
+    }
 }
 
 export default new GameService();

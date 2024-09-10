@@ -2,7 +2,7 @@ import pandas as pd
 import nfl_data_py as nfl
 
 # load weekly data
-years = list(range(2010, 2025))
+years = list(range(2024, 2025))
 data = nfl.import_weekly_data(years)
 
 # cols to keep

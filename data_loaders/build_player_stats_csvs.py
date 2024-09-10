@@ -53,5 +53,5 @@ def_data = pd.read_csv('https://github.com/nflverse/nflverse-data/releases/downl
 kicking_data = pd.read_csv('https://github.com/nflverse/nflverse-data/releases/download/player_stats/player_stats_kicking_' + str(this_season) + '.csv')
 
 # save to csv
-def_data.to_csv('data_csvs/defense_2023.csv', index=False)
-kicking_data.to_csv('data_csvs/special_teams_2023.csv', index=False)
+def_data.to_csv('data_csvs/defense_' + str(this_season) + '.csv', index=False)
+kicking_data.to_csv('data_csvs/special_teams_' + str(this_season) + '.csv', index=False)

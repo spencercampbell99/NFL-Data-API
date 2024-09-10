@@ -188,8 +188,8 @@ prediction_insert_query = text(f"""
 """)
 prediction_update_query = text(f"""
     UPDATE model_predictions
-    SET home_team_score = :home_score,
-        away_team_score = :away_score,
+    SET home_team_score = :home_team_score,
+        away_team_score = :away_team_score,
         total_score = :total_score,
         cover_spread = :cover_spread,
         home_win = :home_win,
@@ -197,8 +197,8 @@ prediction_update_query = text(f"""
         correct_winner = :correct_winner,
         correct_spread = :correct_spread,
         correct_underdog_win = :correct_underdog_win,
-        home_team_error = :home_error,
-        away_team_error = :away_error,
+        home_team_error = :home_team_error,
+        away_team_error = :away_team_error,
         total_error = :total_error
     WHERE schedule_id = :schedule_id
 """)
@@ -242,18 +242,21 @@ if should_update_db == 'y':
                 'total_error': matchup['predicted_total'] - matchup['actual_total']
             }
         
-        # try update, if it fails, insert
-        try:
+        # see if entry with that schedule id exists
+        exists = conn.connection.execute(text('SELECT * FROM model_predictions WHERE schedule_id = :schedule_id'), {'schedule_id': matchup['schedule_id']}).fetchone()
+        
+        if exists:
             res = conn.connection.execute(prediction_update_query, data)
-            
-            # see if update failed
-            if res.rowcount == 0:
-                raise Exception('Update failed')
-            
-            print(f'Updated {matchup["schedule_id"]}')
-        except:
-            conn.connection.execute(prediction_insert_query, data)
-            print(f'Inserted {matchup["schedule_id"]}')
+            if res.rowcount != 1:
+                print(f'Error updating {matchup["schedule_id"]}')
+            else:
+                print(f'Updated {matchup["schedule_id"]}')
+        else:
+            res = conn.connection.execute(prediction_insert_query, data)
+            if res.rowcount != 1:
+                print(f'Error inserting {matchup["schedule_id"]}')
+            else:
+                print(f'Inserted {matchup["schedule_id"]}')
     
     print('Done updating database')
     conn.connection.commit()

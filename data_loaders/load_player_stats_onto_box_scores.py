@@ -5,7 +5,7 @@ from sqlalchemy import text
 # Create a connection to the database
 conn = MySQLConnection()
 
-years = list(range(2010, 2025))
+years = list(range(2024, 2025))
 
 find_boxscore_query = text(f"""
     SELECT id FROM box_scores WHERE schedule_id = :schedule_id AND team_id = :team_id
@@ -75,9 +75,11 @@ for year in years:
         boxscore = conn.connection.execute(find_boxscore_query, {'schedule_id': player_stat['game_id'], 'team_id': player_stat['team_id']}).fetchone()
         
         if boxscore is None:
-            # print(f"Boxscore not found for team {player_stat['team_id']} in game {player_stat['game_id']}")
+            print(f"Boxscore not found for team {player_stat['team_id']} in game {player_stat['game_id']}")
             completed += 1
             continue
+        
+        print(f"Updating boxscore for team {player_stat['team_id']} in game {player_stat['game_id']}")
         
         # update the boxscore
         conn.connection.execute(update_box_score_statement, player_stat.to_dict())

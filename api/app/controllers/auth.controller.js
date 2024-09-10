@@ -93,7 +93,7 @@ exports.login = async (req, res) => {
         user.password = undefined;
         user.salt = undefined;
         user.session_expiration = undefined
-        user.session_token = undefined
+        // user.session_token = undefined
 
         res.cookie('SHHBETS-AUTH', sessionToken, { httpOnly: true })
         return res.status(200).send({ message: 'User logged in successfully!', user: user }).end();

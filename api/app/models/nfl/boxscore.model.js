@@ -24,62 +24,62 @@ module.exports = (sequelize, Sequelize) => {
     home_team: { type: DataTypes.BOOLEAN, allowNull: false },
 
     // scoring stats
-    points_scored: { type: DataTypes.TINYINT, allowNull: false },
-    points_allowed: { type: DataTypes.TINYINT, allowNull: false },
+    points_scored: { type: DataTypes.TINYINT, allowNull: true },
+    points_allowed: { type: DataTypes.TINYINT, allowNull: true },
 
     // downs and conversions
-    first_downs: { type: DataTypes.TINYINT, allowNull: false },
-    passing_first_downs: { type: DataTypes.TINYINT, allowNull: false },
-    rushing_first_downs: { type: DataTypes.TINYINT, allowNull: false },
-    penalty_first_downs: { type: DataTypes.TINYINT, allowNull: false },
-    third_down_conversions: { type: DataTypes.TINYINT, allowNull: false },
-    third_down_attempts: { type: DataTypes.TINYINT, allowNull: false },
-    fourth_down_conversions: { type: DataTypes.TINYINT, allowNull: false },
-    fourth_down_attempts: { type: DataTypes.TINYINT, allowNull: false },
-    red_zone_attempts: { type: DataTypes.TINYINT, allowNull: false },
-    red_zone_scores: { type: DataTypes.TINYINT, allowNull: false },
+    first_downs: { type: DataTypes.TINYINT, allowNull: true },
+    passing_first_downs: { type: DataTypes.TINYINT, allowNull: true },
+    rushing_first_downs: { type: DataTypes.TINYINT, allowNull: true },
+    penalty_first_downs: { type: DataTypes.TINYINT, allowNull: true },
+    third_down_conversions: { type: DataTypes.TINYINT, allowNull: true },
+    third_down_attempts: { type: DataTypes.TINYINT, allowNull: true },
+    fourth_down_conversions: { type: DataTypes.TINYINT, allowNull: true },
+    fourth_down_attempts: { type: DataTypes.TINYINT, allowNull: true },
+    red_zone_attempts: { type: DataTypes.TINYINT, allowNull: true },
+    red_zone_scores: { type: DataTypes.TINYINT, allowNull: true },
 
     // total yards and plays
-    total_drives: { type: DataTypes.TINYINT, allowNull: false },
-    total_offensive_plays: { type: DataTypes.TINYINT, allowNull: false },
-    total_offensive_yards: { type: DataTypes.SMALLINT, allowNull: false },
-    yards_per_play: { type: DataTypes.DECIMAL(4, 2), allowNull: false },
+    total_drives: { type: DataTypes.TINYINT, allowNull: true },
+    total_offensive_plays: { type: DataTypes.TINYINT, allowNull: true },
+    total_offensive_yards: { type: DataTypes.SMALLINT, allowNull: true },
+    yards_per_play: { type: DataTypes.DECIMAL(4, 2), allowNull: true },
 
     // passing
-    passing_yards: { type: DataTypes.SMALLINT, allowNull: false },
-    passing_attempts: { type: DataTypes.TINYINT, allowNull: false },
-    passing_completions: { type: DataTypes.TINYINT, allowNull: false },
-    yards_per_pass_attempt: { type: DataTypes.DECIMAL(4, 2), allowNull: false },
-    yards_per_pass_completion: { type: DataTypes.DECIMAL(4, 2), allowNull: false },
-    interceptions_thrown: { type: DataTypes.TINYINT, allowNull: false },
+    passing_yards: { type: DataTypes.SMALLINT, allowNull: true },
+    passing_attempts: { type: DataTypes.TINYINT, allowNull: true },
+    passing_completions: { type: DataTypes.TINYINT, allowNull: true },
+    yards_per_pass_attempt: { type: DataTypes.DECIMAL(4, 2), allowNull: true },
+    yards_per_pass_completion: { type: DataTypes.DECIMAL(4, 2), allowNull: true },
+    interceptions_thrown: { type: DataTypes.TINYINT, allowNull: true },
     passing_epa: { type: DataTypes.DECIMAL(4, 2), allowNull: true },
 
     // o line/qb
-    sacks_allowed: { type: DataTypes.TINYINT, allowNull: false },
-    sack_yards_lost: { type: DataTypes.SMALLINT, allowNull: false },
+    sacks_allowed: { type: DataTypes.TINYINT, allowNull: true },
+    sack_yards_lost: { type: DataTypes.SMALLINT, allowNull: true },
 
     // rushing
-    rushing_yards: { type: DataTypes.SMALLINT, allowNull: false },
-    rushing_attempts: { type: DataTypes.TINYINT, allowNull: false },
-    yards_per_rush: { type: DataTypes.DECIMAL(4, 2), allowNull: false },
+    rushing_yards: { type: DataTypes.SMALLINT, allowNull: true },
+    rushing_attempts: { type: DataTypes.TINYINT, allowNull: true },
+    yards_per_rush: { type: DataTypes.DECIMAL(4, 2), allowNull: true },
     rushing_epa: { type: DataTypes.DECIMAL(4, 2), allowNull: true },
 
     receiving_epa: { type: DataTypes.DECIMAL(4, 2), allowNull: true },
     total_epa: { type: DataTypes.DECIMAL(4, 2), allowNull: true },
 
     // penalties
-    team_total_penalties: { type: DataTypes.TINYINT, allowNull: false },
-    penalty_yards_against: { type: DataTypes.SMALLINT, allowNull: false },
+    team_total_penalties: { type: DataTypes.TINYINT, allowNull: true },
+    penalty_yards_against: { type: DataTypes.SMALLINT, allowNull: true },
 
     // offensive errors
-    turnovers: { type: DataTypes.TINYINT, allowNull: false },
-    fumbles_lost: { type: DataTypes.TINYINT, allowNull: false },
+    turnovers: { type: DataTypes.TINYINT, allowNull: true },
+    fumbles_lost: { type: DataTypes.TINYINT, allowNull: true },
 
     /**
      * DEFENSE AND SPECIAL TEAMS
      */
     // defense + special teams scoring
-    defense_special_teams_tds: { type: DataTypes.TINYINT, allowNull: false },
+    defense_special_teams_tds: { type: DataTypes.TINYINT, allowNull: true },
 
     // defense stats
     defense_interceptions: { type: DataTypes.TINYINT, allowNull: true },
@@ -105,7 +105,7 @@ module.exports = (sequelize, Sequelize) => {
     punts_inside_20: { type: DataTypes.TINYINT, allowNull: true },
 
     // other metadata
-    time_of_possession: { type: DataTypes.STRING(6), allowNull: false },
+    time_of_possession: { type: DataTypes.STRING(6), allowNull: true },
   }, {
     sequelize,
     modelName: 'boxscore',

@@ -43,7 +43,7 @@ update_statement = text(f"""
 """)
 
 find_game_query = text(f"""
-    SELECT game_uid
+    SELECT game_uid, id
     FROM schedules
     WHERE game_uid = :game_id
 """)
@@ -90,8 +90,8 @@ for index, row in schedule.iterrows():
 
     # check if game already exists
     game_id = row['game_id']
-    result = conn.connection.execute(find_game_query, {'game_id': game_id} )
-    if result.fetchone() is None:
+    game = conn.connection.execute(find_game_query, {'game_id': game_id} ).fetchone()
+    if game is None:
         row['away_team_id'] = away_team_id[0]
         row['home_team_id'] = home_team_id[0]
         conn.connection.execute(insert_statement, row.to_dict())

@@ -57,7 +57,7 @@ module.exports = app => {
     });
 
     // get overview for game
-    router.get("/game/overview/:id", gameController.getGameOverviewById);
+    router.get("/game/:id/overview", gameController.getGameOverviewById);
 
     // get games overview by week and season
     router.get('/games/overview/:season/:week', gameController.getGamesOverviewBySeasonAndWeek);

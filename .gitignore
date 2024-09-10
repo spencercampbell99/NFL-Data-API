@@ -4,3 +4,4 @@
 .Ruserdata
 api/app/db/password.txt
 .vscode/settings.json
+data_loaders/api_pass.txt
