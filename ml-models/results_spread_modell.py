@@ -22,11 +22,11 @@ total_games = 0
 results = pd.DataFrame(columns=['schedule_id', 'matchup', 'predicted_spread_result', 'spread_result', 'correct', 'line'])
 results.set_index('matchup', inplace=True)
 
-for week in range(5, 17):
-    games_for_week = get_games_for_week(week=week, season=2023, connection=conn)
+for week in range(1, 3):
+    games_for_week = get_games_for_week(week=week, season=2024, connection=conn)
     games_for_week.set_index('short_name', inplace=True)
     
-    data = get_spread_model_data_for_week(week=week, season=2023, connection=conn)
+    data = get_spread_model_data_for_week(week=week, season=2024, connection=conn)
     data.reset_index(inplace=True)
     
     X = data[model_features]

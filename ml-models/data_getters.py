@@ -682,7 +682,7 @@ def get_spread_model_data_for_week(week, season, connection):
         )
         SELECT
             {', '.join(spread_model_columns_home_favorite)},
-            short_name as matchup,
+            CONCAT(schedules.away_team_char_id, ' @ ', schedules.home_team_char_id) as matchup,
             schedules.home_team_char_id as home_team,
             schedules.away_team_char_id as away_team,
             over_under,
@@ -713,7 +713,7 @@ def get_spread_model_data_for_week(week, season, connection):
         )
         SELECT
             {', '.join(spread_model_columns_away_favorite)},
-            short_name as matchup,
+            CONCAT(schedules.away_team_char_id, ' @ ', schedules.home_team_char_id) as matchup,
             schedules.home_team_char_id as home_team,
             schedules.away_team_char_id as away_team,
             over_under,

@@ -6,7 +6,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import MinMaxScaler
 from data_getters import get_spread_model_data
 
-data = get_spread_model_data(2017, 2022)
+data = get_spread_model_data(2017, 2023)
 
 # drop data with nas
 data = data.dropna()
@@ -88,7 +88,7 @@ joblib.dump(full_features, 'models/spread_model_features.joblib')
 joblib.dump(scaler, 'models/spread_model_scaler.joblib')
 
 # get games from 2023
-df = get_spread_model_data(2023, 2023)
+df = get_spread_model_data(2024, 2024)
 
 df = df.dropna()
 
@@ -103,4 +103,4 @@ y_pred = model.predict(X)
 
 # get accuracy
 score = accuracy_score(y, y_pred)
-print(f'Accuracy 2023: {score}')
+print(f'Accuracy 2024: {score}')
