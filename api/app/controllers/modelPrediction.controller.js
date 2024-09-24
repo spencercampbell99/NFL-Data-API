@@ -184,3 +184,85 @@ exports.listModelPredictionsBySeason = async (req, res) => {
         return res.status(500).send({ message: err.message });
     }
 }
+
+/**
+ * Update model predictions for given week to reflect actual results
+ * 
+ * @param {object} req - The request object.
+ * @param {object} res - The response object.
+ * 
+ * @api {get} /api/model-predictions/settle-predictions/:season/:week Update model predictions for given week to reflect actual results
+ * @apiName SettleModelPredictionsBySeasonAndWeek
+ * @apiGroup ModelPrediction
+ * 
+ * @apiParam {number} season - The season.
+ * @apiParam {number} week - The week number.
+ * 
+ * @apiSuccess {object} data - The data object.
+ */
+exports.settleModelPredictionsBySeasonAndWeek = async (req, res) => {
+    try {
+        const { season, week } = req.params;
+
+        // Get the actual results from the database
+        const actualResults = await nflDb.schedules.findAll({
+            attributes: ['id', 'home_score', 'away_score', 'over_under', 'home_moneyline', 'away_moneyline'],
+            where: {
+                season: season,
+                week: week,
+                home_score: {
+                    [nflDb.Sequelize.Op.not]: null
+                }
+            },
+        });
+
+        // get all model predictions for ids of actual results
+        const modelPredictions = await ModelPrediction.findAll({
+            where: {
+                schedule_id: actualResults.map(result => result.id),
+            },
+        });
+
+        // update model predictions with actual results
+        await Promise.all(modelPredictions.map(async (modelPrediction) => {
+            const actualResult = actualResults.find(result => result.id === modelPrediction.schedule_id);
+            if (actualResult) {
+                // calculate correct_winner, correct_spread, correcT_over_under, correct_underdog_win, home_team_error, away_team_error, total_error
+                let correctWinner = (actualResult.home_score > actualResult.away_score) === (modelPrediction.home_team_score > modelPrediction.away_team_score);
+                const newData = {
+                    correct_winner: correctWinner,
+                    correct_spread: _actualSpreadCovered(actualResult.home_score, actualResult.away_score, modelPrediction.spread) == modelPrediction.cover_spread,
+                    correct_over_under: (actualResult.home_score + actualResult.away_score) > actualResult.over_under === (modelPrediction.over_under === 'OVER'),
+                    correct_underdog_win: correctWinner ? (actualResult.home_score > actualResult.away_score) === (actualResult.home_moneyline > actualResult.away_moneyline) : false,
+                    home_team_error: actualResult.home_score - modelPrediction.home_team_score,
+                    away_team_error: actualResult.away_score - modelPrediction.away_team_score,
+                    total_error: (actualResult.home_score + actualResult.away_score) - modelPrediction.total_score,
+                };
+
+                await modelPrediction.update(newData);
+            }
+        }));
+
+        return res.status(200).send({ message: 'Model predictions settled successfully.' });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).send({ message: err.message });
+    }
+}
+
+/**
+ * Calculate covered actual spread given home score, away score, and spread
+ * 
+ * @param {number} homeScore - The home score.
+ * @param {number} awayScore - The away score.
+ * @param {number} spread - The spread.
+ * 
+ * @returns {boolean} - The correct spread.
+ */
+function _actualSpreadCovered(homeScore, awayScore, spread) {
+    if (spread > 0) {
+        return homeScore - awayScore - spread > 0;
+    } else {
+        return awayScore - homeScore - spread > 0;
+    }
+}

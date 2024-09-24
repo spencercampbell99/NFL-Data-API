@@ -67,6 +67,19 @@ class ScoreModelService {
 
         return response.data;
     }
+
+    /**
+     * Settle model predictions for given season and week
+     * 
+     * @param season
+     * @param week
+     * 
+     * @returns
+     */
+    static async settleModelPredictions(season: number, week: number): Promise<any> {
+        const response = await axios.get(`/model-predictions/settle-predictions/${season}/${week}`);
+        return response.data;
+    }
 }
 
 export default ScoreModelService;

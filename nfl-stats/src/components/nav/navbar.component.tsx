@@ -21,10 +21,10 @@ const Navbar: FunctionComponent<{}> = () => {
             title: 'Games',
             links: (
                 <>
-                    <NavbarLink href="/nfl/games/2023/15">
+                    <NavbarLink href="/nfl/games/2024/1">
                         Week Breakdowns
                     </NavbarLink>
-                    <NavbarLink href="/nfl/games/2023/15/model_performance">
+                    <NavbarLink href="/nfl/games/2024/1/model_performance">
                         Weekly Model Performance
                     </NavbarLink>
                 </>

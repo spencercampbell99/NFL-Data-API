@@ -467,6 +467,8 @@ async function populateBoxscoresForTeams (boxscore, scheduleId) {
             stats[stat.name] = stat.displayValue;
         }
 
+        var passingAttCompDelim = stats.completionAttempts.indexOf('-') > -1 ? '-' : '/';
+
         // create boxscore
         await Boxscore.create({
                 team_id: isHomeTeam ? dbHomeTeam.id : dbAwayTeam.id,
@@ -491,10 +493,10 @@ async function populateBoxscoresForTeams (boxscore, scheduleId) {
                 total_offensive_yards: stats.totalYards,
                 yards_per_play: stats.yardsPerPlay,
                 passing_yards: stats.netPassingYards,
-                passing_attempts: stats.completionAttempts.length > 1 ? stats.completionAttempts.split('-')[1] : 0,
-                passing_completions: stats.completionAttempts.length > 0 ? stats.completionAttempts.split('-')[0] : 0,
+                passing_attempts: stats.completionAttempts.length > 1 ? stats.completionAttempts.split(passingAttCompDelim)[1] : 0,
+                passing_completions: stats.completionAttempts.length > 0 ? stats.completionAttempts.split(passingAttCompDelim)[0] : 0,
                 yards_per_pass_attempt: stats.yardsPerPass,
-                yards_per_pass_completion: stats.completionAttempts.length > 0 ? stats.netPassingYards / stats.completionAttempts.split('-')[0] : 0,
+                yards_per_pass_completion: stats.completionAttempts.length > 0 ? stats.netPassingYards / stats.completionAttempts.split(passingAttCompDelim)[0] : 0,
                 interceptions_thrown: stats.interceptions,
                 sacks_allowed: stats.sacksYardsLost.length > 0 ? stats.sacksYardsLost.split('-')[0] : 0,
                 sack_yards_lost: stats.sacksYardsLost.length > 0 ? stats.sacksYardsLost.split('-')[1] : 0,

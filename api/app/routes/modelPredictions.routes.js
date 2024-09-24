@@ -11,5 +11,8 @@ module.exports = app => {
     // list model predictions for given season
     router.get("/model-predictions/:season", modelPredictionController.listModelPredictionsBySeason);
 
+    // settle model predictions for given week
+    router.get("/model-predictions/settle-predictions/:season/:week", modelPredictionController.settleModelPredictionsBySeasonAndWeek);
+
     app.use('/api', router);
 }

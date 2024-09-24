@@ -3,6 +3,7 @@
 import axios from '@/axiosConfig';
 import RoundedButton from '@/components/roundedButton.component';
 import React from 'react'
+import ScoreModelService from '@/services/ScoreModel.service';
 
 // import Table from '@/components/table/table.component';
 
@@ -231,6 +232,15 @@ export default function WeekOverview({ params }: { params: { season: number, wee
         setWeekSummary(weekSummary)
     }
 
+    // Settle model predictions for week
+    const settleModelPredictions = async () => {
+        ScoreModelService.settleModelPredictions(params.season, params.week).then(() => {
+            getWeekOverview();
+        }).catch((error) => {
+            console.error('Error settling model predictions:', error);
+        });
+    }
+
     // load overview for week on page load (only once)
     React.useEffect(() => {
         getWeekOverview()
@@ -247,7 +257,14 @@ export default function WeekOverview({ params }: { params: { season: number, wee
                     const nextWeek = Number(params.week) + 1;
                     window.location.href = `/nfl/games/${params.season}/${nextWeek}/model_performance`;
                 }} className="absolute mt-1 right-1" />
-                <h1 className="text-2xl font-bold text-center leading-[45px]">{`Week ${params.week} Overview`}</h1>
+                <div>
+                    <h1 className="text-2xl font-bold text-center leading-[45px]">{`Week ${params.week} Overview`}</h1>
+                    <RoundedButton
+                        text="Settle Model Predictions"
+                        onClick={() => settleModelPredictions()}
+                        className="mx-auto block mb-2"
+                    />
+                </div>
                 <div className="w-full">
                     <h2 className="text-center text-xl font-medium">{`Season ${params.season} Week ${params.week}`}</h2>
                     <h3 className="ml-5">Hypothetical bet: $1</h3>

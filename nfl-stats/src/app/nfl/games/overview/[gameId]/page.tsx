@@ -240,9 +240,9 @@ const PlayerGamePage: React.FunctionComponent<{ params: Params }> = ({ params })
         const fetchGames = async () => {
             const response = await GameService.gameOverview(params.gameId);
             console.log(response)
-            setGame(response.data.game);
+            setGame(response.game);
 
-            console.log(response.data.game);
+            console.log(response.game);
         }
         fetchGames();
     }, []);

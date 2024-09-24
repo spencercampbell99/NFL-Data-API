@@ -60,6 +60,9 @@ team_conversion = {
 
 # Insert the data into the database
 for index, row in schedule.iterrows():
+    if row['week'] < 4:
+        continue
+    
     # print % progress every 100 rows
     if completed % 100 == 0:
         print(f'{completed}/{total} ({completed/total*100:.2f}%)')

@@ -24,7 +24,7 @@ scaler = joblib.load(f'models/{model_name}_scaler.joblib')
 matchup_predictions = pd.DataFrame(columns=['schedule_id', 'matchup', 'home_team', 'away_team', 'predicted_home_score', 'predicted_away_score', 'actual_home_score', 'actual_away_score', 'actual_total', 'correct_winner', 'predicted_total', 'over_under', 'predicted_over_under_result', 'actual_over_under_result', 'spread', 'correct_spread', 'predicted_underdog_win', 'actual_underdog_win'])
 matchup_predictions.set_index('matchup', inplace=True)
 
-for week in range(2, 3):
+for week in range(4, 5):
     # data = get_data_for_points_scored_model_with_averages(week=week, season=2024, connection=conn, weeks_back=10)
     
     # make the index 0 -> length
@@ -162,11 +162,9 @@ prediction_insert_query = text(f"""
         home_team_score, 
         away_team_score, 
         total_score,
-        cover_spread,
         home_win,
         underdog_win,
         correct_winner,
-        correct_spread,
         correct_underdog_win,
         home_team_error,
         away_team_error,
@@ -176,11 +174,9 @@ prediction_insert_query = text(f"""
         :home_team_score, 
         :away_team_score, 
         :total_score,
-        :cover_spread,
         :home_win,
         :underdog_win,
         :correct_winner,
-        :correct_spread,
         :correct_underdog_win,
         :home_team_error,
         :away_team_error,
@@ -188,14 +184,13 @@ prediction_insert_query = text(f"""
 """)
 prediction_update_query = text(f"""
     UPDATE model_predictions
-    SET home_team_score = :home_team_score,
-        away_team_score = :away_team_score,
-        total_score = :total_score,
-        cover_spread = :cover_spread,
-        home_win = :home_win,
-        underdog_win = :underdog_win,
+    SET 
+        -- home_team_score = home_team_score,
+        -- away_team_score = away_team_score,
+        -- total_score = total_score,
+        -- home_win = home_win,
+        -- underdog_win = underdog_win,
         correct_winner = :correct_winner,
-        correct_spread = :correct_spread,
         correct_underdog_win = :correct_underdog_win,
         home_team_error = :home_team_error,
         away_team_error = :away_team_error,
@@ -219,7 +214,6 @@ if should_update_db == 'y':
                 'home_win': None,
                 'underdog_win': None,
                 'correct_winner': None,
-                'correct_spread': None,
                 'correct_underdog_win': None,
                 'home_team_error': None,
                 'away_team_error': None,
@@ -231,11 +225,9 @@ if should_update_db == 'y':
                 'home_team_score': matchup['predicted_home_score'],
                 'away_team_score': matchup['predicted_away_score'],
                 'total_score': matchup['predicted_total'],
-                'cover_spread': matchup['spread'],
                 'home_win': matchup['predicted_home_score'] > matchup['predicted_away_score'],
                 'underdog_win': matchup['predicted_underdog_win'],
                 'correct_winner': matchup['correct_winner'],
-                'correct_spread': matchup['correct_spread'],
                 'correct_underdog_win': matchup['predicted_underdog_win'] and matchup['actual_underdog_win'] if matchup['predicted_underdog_win'] else None,
                 'home_team_error': matchup['predicted_home_score'] - matchup['actual_home_score'],
                 'away_team_error': matchup['predicted_away_score'] - matchup['actual_away_score'],
@@ -246,7 +238,15 @@ if should_update_db == 'y':
         exists = conn.connection.execute(text('SELECT * FROM model_predictions WHERE schedule_id = :schedule_id'), {'schedule_id': matchup['schedule_id']}).fetchone()
         
         if exists:
-            res = conn.connection.execute(prediction_update_query, data)
+            update_data = {
+                'schedule_id': matchup['schedule_id'],
+                'correct_winner': matchup['correct_winner'],
+                'correct_underdog_win': matchup['predicted_underdog_win'] and matchup['actual_underdog_win'] if matchup['predicted_underdog_win'] else None,
+                'home_team_error': matchup['predicted_home_score'] - matchup['actual_home_score'],
+                'away_team_error': matchup['predicted_away_score'] - matchup['actual_away_score'],
+                'total_error': matchup['predicted_total'] - matchup['actual_total']
+            }
+            res = conn.connection.execute(prediction_update_query, update_data)
             if res.rowcount != 1:
                 print(f'Error updating {matchup["schedule_id"]}')
             else:
