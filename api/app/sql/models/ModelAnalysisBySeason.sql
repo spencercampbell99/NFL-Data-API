@@ -37,6 +37,7 @@ WITH GameData AS (
     WHERE
         sch.season = :season
         AND sch.game_type = 'REG'
+        AND sch.home_score IS NOT NULL
         AND (:weeks IS NULL OR sch.week IN (:weeks))
         AND ABS(mp.away_team_score - mp.home_team_score) >= :min_spread
         AND (:teams IS NULL OR sch.home_team_id IN (:teams) OR sch.away_team_id IN (:teams))

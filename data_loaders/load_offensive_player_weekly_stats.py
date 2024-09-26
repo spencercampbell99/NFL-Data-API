@@ -57,8 +57,10 @@ check_query = text(f"""
 
 # find schedule query
 find_schedule_query = text(f"""
-    SELECT id FROM schedules WHERE season = :season AND week = :week AND (home_team_char_id = :team OR away_team_char_id = :team)
+    SELECT id, espn_id FROM schedules WHERE season = :season AND week = :week AND (home_team_char_id = :team OR away_team_char_id = :team)
 """)
+
+espn_game_ids = []
 
 completed = 0
 total = len(data)
@@ -87,6 +89,8 @@ for index, row in data.iterrows():
         completed += 1
         print(f"Schedule not found for {row['recent_team']} in week {row['week']} of {row['season']}")
         continue
+    
+    espn_game_ids.append(schedule_id[1])
     
     row['game_id'] = schedule_id[0]
 
@@ -121,3 +125,26 @@ for index, row in data.iterrows():
 
 conn.connection.commit()
 conn.close()
+
+# ask to update extra player stats from api
+if input("Update extra player stats? (y/n): ") != 'y':
+    conn.connection.commit()
+    conn.close()
+    exit()
+
+# initaite the api connection
+from data_api import LocalhostAPI
+api = LocalhostAPI()
+
+# make espn game ids unique
+espn_game_ids = list(set(espn_game_ids))
+
+count = len(espn_game_ids)
+completed = 0
+
+for game_id in espn_game_ids:
+    if completed % 100 == 0:
+        print(f"{completed} / {count} ({completed / count * 100}%)")
+    
+    api.get(f'/api/loaders/playerStats/{game_id}')
+    completed += 1

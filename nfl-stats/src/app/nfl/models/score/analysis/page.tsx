@@ -86,7 +86,7 @@ const StatsContainer: React.FC<StatsContainerProps> = (props) => {
         { label: 'Overall Correct Winner Rate', value: `${Number(props.overall_correct_winner_rate).toFixed(2)}%`, helpText: 'Percentage of games where the correct winner was predicted' },
         { label: 'Home Correct Winner Rate', value: `${Number(props.home_correct_winner_rate).toFixed(2)}%`, helpText: 'Percentage of games where the correct winner was predicted for the home team' },
         { label: 'Away Correct Winner Rate', value: `${Number(props.away_correct_winner_rate).toFixed(2)}%`, helpText: 'Percentage of games where the correct winner was predicted for the away team' },
-        { label: 'Total Return Rate Moneyline', value: props.total_return_rate_moneyline > 0 ? `+${Number(props.total_return_rate_moneyline).toFixed(2)}%` : `${Number(props.total_return_rate_moneyline).toFixed(2)}%`, helpText: 'ROI for moneyline bets assuming static bet size betting with model every time.' },
+        { label: 'Straight Return Rate Moneyline', value: props.total_return_rate_moneyline > 0 ? `+${Number(props.total_return_rate_moneyline).toFixed(2)}%` : `${Number(props.total_return_rate_moneyline).toFixed(2)}%`, helpText: 'ROI for moneyline bets assuming static bet size betting with model every time.' },
         { label: 'Total Return Over/Under', value: props.total_return_over_under > 0 ? `+${Number(props.total_return_over_under).toFixed(2)}%` : `${Number(props.total_return_over_under).toFixed(2)}%`, helpText: 'ROI for over/under bets assuming static bet size betting with model every time.' },
         { label: 'Total Return Spread', value: props.total_return_spread > 0 ? `+${Number(props.total_return_spread).toFixed(2)}%` : `${Number(props.total_return_spread).toFixed(2)}%`, helpText: 'ROI for spread bets assuming static bet size betting with model every time.' },
         { label: 'Cumulative ROI Moneyline', value: cumulativeRoi.moneyline > 0 ? `+${Number(cumulativeRoi.moneyline).toFixed(2)}%` : `${Number(cumulativeRoi.moneyline).toFixed(2)}%`, helpText: 'Cumulative ROI for moneyline bets assuming reinvestment of winnings each week.' },
@@ -113,7 +113,7 @@ const StatsContainer: React.FC<StatsContainerProps> = (props) => {
 }
 
 // seasons
-const seasons = [2023];
+const seasons = [2023, 2024];
 const weeksToShow = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 
 export default function ScoreModelAnalysis() {

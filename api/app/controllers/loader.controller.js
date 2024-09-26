@@ -174,6 +174,7 @@ async function getBoxScore (id) {
             "Origin": "http://localhost",
         }
     });
+
     const boxscore = res.data.gamepackageJSON.boxscore;
     boxscore.id = res.data.gameId;
 
@@ -217,6 +218,30 @@ async function findOrCreatePlayer (playerObject, team_id) {
     return player;
 }
 
+const statNameToPosGroup = {
+    'passing': 'Offense',
+    'rushing': 'Offense',
+    'receiving': 'Offense',
+    'defensive': 'Defense',
+    'interceptions': 'Defense',
+    'kickReturns': 'Special Teams',
+    'kicking': 'Special Teams',
+    'punting': 'Special Teams',
+    'puntReturns': 'Special Teams',
+}
+
+const statNameToPos = {
+    'passing': 'QB',
+    'rushing': 'RB',
+    'receiving': 'WR',
+    'defensive': 'LB',
+    'interceptions': 'DB',
+    'kickReturns': 'KR',
+    'kicking': 'K',
+    'punting': 'P',
+    'puntReturns': 'PR',
+}
+
 /**
  * Populate game stats for a player
  * 
@@ -224,14 +249,21 @@ async function findOrCreatePlayer (playerObject, team_id) {
  * @param {array} statKeys
  * @param {string} statName
  * @param {number} team_id
- * @param {number} game_id
+ * @param {Schedule} game
+ * @param {number} boxscore_id
  * @param {boolean} verbose
  * 
  * @returns {boolean}
  */
-async function populateGameStatsForPlayer ({ playerObject, statKeys, statName, team_id, game_id, verbose = false }) {
+async function populateGameStatsForPlayer ({ playerObject, statKeys, statName, team_id, game, boxscore_id, verbose = false }) {
+    if (statName === 'defensive' || statName === 'interceptions' || statName === 'kicking') {
+        return true; // not handled here
+    }
+
+    const game_id = game.id;
+
     // find or create player
-    // const player = await findOrCreatePlayer(playerObject.athlete, team_id);
+    let player = await findOrCreatePlayer(playerObject.athlete, team_id);
 
     const espn_id = parseInt(playerObject.athlete.id, 10);
     if (!espn_id) {
@@ -240,15 +272,15 @@ async function populateGameStatsForPlayer ({ playerObject, statKeys, statName, t
     }
 
     // find player or fail
-    const player = await Player.findOne({
-        where: {
-            [Op.or]: [
-                {espn_id: espn_id},
-                {full_name: playerObject.athlete.displayName},
-            ]
-        },
-        logging: verbose,
-    });
+    // const player = await Player.findOne({
+    //     where: {
+    //         [Op.or]: [
+    //             {espn_id: espn_id},
+    //             {full_name: playerObject.athlete.displayName},
+    //         ]
+    //     },
+    //     logging: verbose,
+    // });
 
     if (!player) {
         console.log(`Player ${playerObject.athlete.displayName} does not exist. Skipping.`);
@@ -270,8 +302,31 @@ async function populateGameStatsForPlayer ({ playerObject, statKeys, statName, t
         },
         logging: verbose,
     });
+
+    const colsToCheck = [
+        'position', 'position_group', 'season', 'week', 'boxscore_id'
+    ];
+
     if (!playerGameStats) {
-        return false; // skip
+        // create new player game stats
+        playerGameStats = await PlayerGameStat.create({
+            player_id: player.id,
+            game_id: game_id,
+            team_id: team_id,
+            boxscore_id: boxscore_id,
+            position: statNameToPos[statName] ?? null,
+            position_group: statNameToPosGroup[statName] ?? null,
+            season: game.season,
+            week: game.week,
+        }, {
+            logging: verbose,
+        });
+    } else if (colsToCheck.some(col => !playerGameStats[col])) {
+        playerGameStats.boxscore_id = boxscore_id;
+        playerGameStats.position = statNameToPos[statName] ?? playerGameStats.position;
+        playerGameStats.position_group = statNameToPosGroup[statName] ?? playerGameStats.position_group;
+        playerGameStats.season = game.season;
+        playerGameStats.week = game.week;
     }
 
     // convert statistics array to object
@@ -354,13 +409,11 @@ async function populateGameStatsForPlayer ({ playerObject, statKeys, statName, t
             // playerGameStats.defensive_touchdowns = stats.defensiveTouchdowns;
             // playerGameStats.passes_defended = stats.passesDefended;
             return true;
-            break;
         case 'interceptions':
             // playerGameStats.interceptions = stats.interceptions;
             // playerGameStats.interception_yards = stats.interceptionYards;
             // playerGameStats.interception_touchdowns = stats.interceptionTouchdowns;
             return true;
-            break;
         case 'kickReturns':
             playerGameStats.kick_returns = stats.kickReturns;
             playerGameStats.kick_return_yards = stats.kickReturnYards;
@@ -394,7 +447,6 @@ async function populateGameStatsForPlayer ({ playerObject, statKeys, statName, t
             // playerGameStats.extra_point_attempts = extraPointsAttempted;
             // playerGameStats.extra_point_percentage = extraPointsAttempted > 0 ? extraPointsMade / extraPointsAttempted : 0;
             return true;
-            break;
         case 'punting':
             playerGameStats.punts = stats.punts;
             playerGameStats.punt_yards = stats.puntYards;
@@ -580,7 +632,7 @@ exports.loadPlayerStatsForGame = async (gameId, verbose = false) => {
             where: {
                 espn_id: gameId,
             },
-            attributes: ['id'],
+            attributes: ['id', 'season', 'week'],
             logging: verbose,
         });
         if (!game) {
@@ -594,17 +646,36 @@ exports.loadPlayerStatsForGame = async (gameId, verbose = false) => {
         }
         const game_id = game.id;
 
+        // find box score
+        const boxScore = await Boxscore.findOne({
+            where: {
+                team_id: team_id,
+                schedule_id: game_id,
+            },
+            attributes: ['id'],
+            logging: verbose,
+        });
+        if (!boxScore) {
+            const message = `Boxscore for team ${team_id} and game ${game_id} does not exist. Skipping.`;
+            console.log(message);
+            boxScoreResults.push({
+                team_id: team.id,
+                message: message,
+            });
+            continue;
+        }
+
         for (const statistic of teamPlayerStats.statistics) {
             const statKeys = statistic.keys;
             const statName = statistic.name;
-
             for (const athlete of statistic.athletes) {
                 const result = await populateGameStatsForPlayer({
                     playerObject: athlete,
                     statKeys: statKeys,
                     statName: statName,
                     team_id: team_id,
-                    game_id: game_id,
+                    game: game,
+                    boxscore_id: boxScore.id,
                     verbose: verbose,
                 });
                 if (result) {
