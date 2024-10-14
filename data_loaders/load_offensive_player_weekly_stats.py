@@ -143,7 +143,7 @@ count = len(espn_game_ids)
 completed = 0
 
 for game_id in espn_game_ids:
-    if completed % 100 == 0:
+    if completed % 10 == 0:
         print(f"{completed} / {count} ({completed / count * 100}%)")
     
     api.get(f'/api/loaders/playerStats/{game_id}')

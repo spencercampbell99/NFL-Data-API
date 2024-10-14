@@ -858,7 +858,7 @@ def get_over_under_data_for_week(week, season, connection):
     
     return data
 
-def build_expected_results_for_score_moden_training(start_year, end_year, conn=None, weeks_back=6):
+def build_expected_results_for_score_moden_training(start_year, end_year, conn=None, weeks_back=6, just_home_team=False):
     
     
     should_close_connection = False
@@ -919,6 +919,7 @@ def build_expected_results_for_score_moden_training(start_year, end_year, conn=N
                 home_team_general_expected_stats['team_id'] = game['home_team_id']
                 home_team_general_expected_stats['team_char_id'] = game['home_team_char_id']
                 home_team_general_expected_stats['points_scored'] = game['home_points_scored']
+                home_team_general_expected_stats['home_win'] = 1 if game['home_points_scored'] > game['away_points_scored'] else 0
 
                 away_team_general_expected_stats['spread'] = game['spread'] * -1
                 away_team_general_expected_stats['over_under'] = game['over_under']
@@ -926,6 +927,7 @@ def build_expected_results_for_score_moden_training(start_year, end_year, conn=N
                 away_team_general_expected_stats['team_id'] = game['away_team_id']
                 away_team_general_expected_stats['team_char_id'] = game['away_team_char_id']
                 away_team_general_expected_stats['points_scored'] = game['away_points_scored']
+                away_team_general_expected_stats['home_win'] = 1 if game['home_points_scored'] > game['away_points_scored'] else 0
 
                 # concatenate dataframes
                 if data is None:
@@ -933,11 +935,39 @@ def build_expected_results_for_score_moden_training(start_year, end_year, conn=N
                 else:
                     data = pd.concat([data, home_team_general_expected_stats])
                 
-                data = pd.concat([data, away_team_general_expected_stats])
+                if not just_home_team:
+                    data = pd.concat([data, away_team_general_expected_stats])
         
     if should_close_connection:
         conn.close()
         
     data.dropna(inplace=True)
+    
+    return data
+
+def get_winner_model_data(start_year, end_year, weeks_back=6):
+    """
+    Retrieves the winner model data for NFL games within a specified range of years.
+
+    Parameters:
+    start_year (int): The starting year of the range.
+    end_year (int): The ending year of the range.
+    weeks_back (int): The number of weeks back to get the average
+
+    Returns:
+    pandas.DataFrame: A DataFrame containing the winner model data for the specified range of years.
+    """
+    
+    # load sql query at sql_queries/Averaged Team Performance Over Recent Games Query.sql
+    query = open('sql_queries/Averaged Team Performance Over Recent Games Query.sql', 'r').read()
+    
+    # replace params :start_season, :end_season, :weeks_back
+    query = query.replace(':start_season', str(start_year)).replace(':end_season', str(end_year)).replace(':weeks_back', str(weeks_back))
+    
+    connection = MySQLConnection()
+    data = pd.read_sql(query, con=connection.connection)
+    connection.close()
+    
+    data = data.dropna()
     
     return data

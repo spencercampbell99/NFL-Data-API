@@ -8,7 +8,7 @@ import Game from '@/interfaces/game.interface';
 const Page: FunctionComponent<{}> = () => {
     const [games, setGames] = React.useState<Game[]>([]);
     const [season, setSeason] = React.useState<number>(2024);
-    const [week, setWeek] = React.useState<number>(4);
+    const [week, setWeek] = React.useState<number>(6);
 
     React.useEffect(() => {
         const fetchGames = async () => {
