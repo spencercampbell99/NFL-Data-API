@@ -18,8 +18,11 @@ interface StatsContainerProps {
     avg_total_error: number;
     avg_total_score: number;
     overall_correct_winner_rate: number;
+    overall_correct_winner_rate_by_score: number;
     home_correct_winner_rate: number;
+    home_correct_winner_rate_by_score: number;
     away_correct_winner_rate: number;
+    away_correct_winner_rate_by_score: number;
     total_return_rate_moneyline: number;
     total_return_rate_moneyline_by_score: number;
     total_return_over_under: number;
@@ -100,9 +103,9 @@ const StatsContainer: React.FC<StatsContainerProps> = (props) => {
         { label: 'Total Error Sum', value: props.total_error_sum, helpText: 'Sum of the absolute value of the error between predicted total score and actual total score' },
         { label: 'Avg Total Error', value: props.avg_total_error, helpText: 'Average error between predicted total score and actual total score' },
         { label: 'Avg Total Score', value: props.avg_total_score, helpText: 'Average total score of all games' },
-        { label: 'Overall Correct Winner Rate', value: `${Number(props.overall_correct_winner_rate).toFixed(2)}%`, helpText: 'Percentage of games where the correct winner was predicted' },
-        { label: 'Home Correct Winner Rate', value: `${Number(props.home_correct_winner_rate).toFixed(2)}%`, helpText: 'Percentage of games where the correct winner was predicted for the home team' },
-        { label: 'Away Correct Winner Rate', value: `${Number(props.away_correct_winner_rate).toFixed(2)}%`, helpText: 'Percentage of games where the correct winner was predicted for the away team' },
+        { label: 'Overall Correct Winner Rate', value: `${Number(props.overall_correct_winner_rate_by_score).toFixed(2)}%`, helpText: 'Percentage of games where the correct winner was predicted' },
+        { label: 'Home Correct Winner Rate', value: `${Number(props.home_correct_winner_rate_by_score).toFixed(2)}%`, helpText: 'Percentage of games where the correct winner was predicted for the home team' },
+        { label: 'Away Correct Winner Rate', value: `${Number(props.away_correct_winner_rate_by_score).toFixed(2)}%`, helpText: 'Percentage of games where the correct winner was predicted for the away team' },
         { label: 'Straight Return Rate Moneyline', value: props.total_return_rate_moneyline_by_score > 0 ? `+${Number(props.total_return_rate_moneyline_by_score).toFixed(2)}%` : `${Number(props.total_return_rate_moneyline_by_score).toFixed(2)}%`, helpText: 'ROI for moneyline bets assuming static bet size betting with model every time.' },
         { label: 'Total Return Over/Under', value: props.total_return_over_under > 0 ? `+${Number(props.total_return_over_under).toFixed(2)}%` : `${Number(props.total_return_over_under).toFixed(2)}%`, helpText: 'ROI for over/under bets assuming static bet size betting with model every time.' },
         { label: 'Total Return Spread', value: props.total_return_spread > 0 ? `+${Number(props.total_return_spread).toFixed(2)}%` : `${Number(props.total_return_spread).toFixed(2)}%`, helpText: 'ROI for spread bets assuming static bet size betting with model every time.' },
@@ -195,8 +198,11 @@ export default function ScoreModelAnalysis() {
                     avg_total_error={stats.avg_total_error}
                     avg_total_score={stats.avg_total_score}
                     overall_correct_winner_rate={stats.overall_correct_winner_rate}
+                    overall_correct_winner_rate_by_score={stats.overall_correct_winner_rate_by_score}
                     home_correct_winner_rate={stats.home_correct_winner_rate}
+                    home_correct_winner_rate_by_score={stats.home_correct_winner_rate_by_score}
                     away_correct_winner_rate={stats.away_correct_winner_rate}
+                    away_correct_winner_rate_by_score={stats.away_correct_winner_rate_by_score}
                     total_return_rate_moneyline={stats.total_return_rate_moneyline}
                     total_return_rate_moneyline_by_score={stats.total_return_rate_moneyline_by_score}
                     total_return_over_under={stats.total_return_over_under}
