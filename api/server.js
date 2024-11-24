@@ -30,7 +30,7 @@ cfbDb.sequelize.sync();
 
 // nfl db
 const nflDb = require('./app/models/nfl');
-nflDb.sequelize.sync();
+nflDb.sequelize.sync(); // add {alter: true} to alter tables without removing data
 
 // load routes
 require('./app/routes/loaders.routes')(app);

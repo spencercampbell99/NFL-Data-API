@@ -21,9 +21,12 @@ interface StatsContainerProps {
     home_correct_winner_rate: number;
     away_correct_winner_rate: number;
     total_return_rate_moneyline: number;
+    total_return_rate_moneyline_by_score: number;
     total_return_over_under: number;
     total_return_spread: number;
     roi_per_week_moneyline: number[];
+    roi_per_week_moneyline_by_score: number[];
+    roi_per_week_moneyline_with_kelly: number[];
     roi_per_week_over_under: number[];
     roi_per_week_spread: number[];
 }
@@ -44,8 +47,10 @@ const InfoTooltip: React.FC<{ helpText: string }> = ({ helpText }) => {
 }
 
 const StatsContainer: React.FC<StatsContainerProps> = (props) => {
-    const [cumulativeRoi, setCumulativeRoi] = React.useState<{ moneyline: number, overUnder: number, spread: number }>({
+    const [cumulativeRoi, setCumulativeRoi] = React.useState<{ moneyline: number, moneyline_by_score: number, moneyline_with_kelly: number, overUnder: number, spread: number }>({
         moneyline: 0,
+        moneyline_by_score: 0,
+        moneyline_with_kelly: 0,
         overUnder: 0,
         spread: 0
     });
@@ -53,6 +58,8 @@ const StatsContainer: React.FC<StatsContainerProps> = (props) => {
     React.useEffect(() => {
         // calculate cumulative ROI based on weekly ROI which is an array containing ROI for each week in order
         let moneylineCapital = 1;
+        let moneylineByScoreCapital = 1;
+        let moneylineWithKellyCapital = 1;
         let overUnderCapital = 1;
         let spreadCapital = 1;
 
@@ -68,8 +75,18 @@ const StatsContainer: React.FC<StatsContainerProps> = (props) => {
             spreadCapital *= 1 + roi / 100;
         });
 
+        props.roi_per_week_moneyline_by_score.forEach((roi) => {
+            moneylineByScoreCapital *= 1 + roi / 100;
+        });
+
+        props.roi_per_week_moneyline_with_kelly.forEach((roi) => {
+            moneylineWithKellyCapital *= 1 + roi / 100;
+        });
+
         setCumulativeRoi({
             moneyline: (moneylineCapital - 1) * 100,
+            moneyline_by_score: (moneylineByScoreCapital - 1) * 100,
+            moneyline_with_kelly: (moneylineWithKellyCapital - 1) * 100,
             overUnder: (overUnderCapital - 1) * 100,
             spread: (spreadCapital - 1) * 100
         });
@@ -86,10 +103,12 @@ const StatsContainer: React.FC<StatsContainerProps> = (props) => {
         { label: 'Overall Correct Winner Rate', value: `${Number(props.overall_correct_winner_rate).toFixed(2)}%`, helpText: 'Percentage of games where the correct winner was predicted' },
         { label: 'Home Correct Winner Rate', value: `${Number(props.home_correct_winner_rate).toFixed(2)}%`, helpText: 'Percentage of games where the correct winner was predicted for the home team' },
         { label: 'Away Correct Winner Rate', value: `${Number(props.away_correct_winner_rate).toFixed(2)}%`, helpText: 'Percentage of games where the correct winner was predicted for the away team' },
-        { label: 'Straight Return Rate Moneyline', value: props.total_return_rate_moneyline > 0 ? `+${Number(props.total_return_rate_moneyline).toFixed(2)}%` : `${Number(props.total_return_rate_moneyline).toFixed(2)}%`, helpText: 'ROI for moneyline bets assuming static bet size betting with model every time.' },
+        { label: 'Straight Return Rate Moneyline', value: props.total_return_rate_moneyline_by_score > 0 ? `+${Number(props.total_return_rate_moneyline_by_score).toFixed(2)}%` : `${Number(props.total_return_rate_moneyline_by_score).toFixed(2)}%`, helpText: 'ROI for moneyline bets assuming static bet size betting with model every time.' },
         { label: 'Total Return Over/Under', value: props.total_return_over_under > 0 ? `+${Number(props.total_return_over_under).toFixed(2)}%` : `${Number(props.total_return_over_under).toFixed(2)}%`, helpText: 'ROI for over/under bets assuming static bet size betting with model every time.' },
         { label: 'Total Return Spread', value: props.total_return_spread > 0 ? `+${Number(props.total_return_spread).toFixed(2)}%` : `${Number(props.total_return_spread).toFixed(2)}%`, helpText: 'ROI for spread bets assuming static bet size betting with model every time.' },
-        { label: 'Cumulative ROI Moneyline', value: cumulativeRoi.moneyline > 0 ? `+${Number(cumulativeRoi.moneyline).toFixed(2)}%` : `${Number(cumulativeRoi.moneyline).toFixed(2)}%`, helpText: 'Cumulative ROI for moneyline bets assuming reinvestment of winnings each week.' },
+        // { label: 'Cumulative ROI Moneyline', value: cumulativeRoi.moneyline > 0 ? `+${Number(cumulativeRoi.moneyline).toFixed(2)}%` : `${Number(cumulativeRoi.moneyline).toFixed(2)}%`, helpText: 'Cumulative ROI for moneyline bets assuming reinvestment of winnings each week.' },
+        { label: 'Cumulative ROI Moneyline by Score', value: cumulativeRoi.moneyline_by_score > 0 ? `+${Number(cumulativeRoi.moneyline_by_score).toFixed(2)}%` : `${Number(cumulativeRoi.moneyline_by_score).toFixed(2)}%`, helpText: 'Cumulative ROI for moneyline bets assuming reinvestment of winnings each week.' },
+        // { label: 'Cumulative ROI Moneyline with Kelly', value: cumulativeRoi.moneyline_with_kelly > 0 ? `+${Number(cumulativeRoi.moneyline_with_kelly).toFixed(2)}%` : `${Number(cumulativeRoi.moneyline_with_kelly).toFixed(2)}%`, helpText: 'Cumulative ROI for moneyline bets assuming reinvestment of winnings each week.' },
         { label: 'Cumulative ROI Over/Under', value: cumulativeRoi.overUnder > 0 ? `+${Number(cumulativeRoi.overUnder).toFixed(2)}%` : `${Number(cumulativeRoi.overUnder).toFixed(2)}%`, helpText: 'Cumulative ROI for over/under bets assuming reinvestment of winnings each week.' },
         { label: 'Cumulative ROI Spread', value: cumulativeRoi.spread > 0 ? `+${Number(cumulativeRoi.spread).toFixed(2)}%` : `${Number(cumulativeRoi.spread).toFixed(2)}%`, helpText: 'Cumulative ROI for spread bets assuming reinvestment of winnings each week.' }
     ];
@@ -179,9 +198,12 @@ export default function ScoreModelAnalysis() {
                     home_correct_winner_rate={stats.home_correct_winner_rate}
                     away_correct_winner_rate={stats.away_correct_winner_rate}
                     total_return_rate_moneyline={stats.total_return_rate_moneyline}
+                    total_return_rate_moneyline_by_score={stats.total_return_rate_moneyline_by_score}
                     total_return_over_under={stats.total_return_over_under}
                     total_return_spread={stats.total_return_spread}
                     roi_per_week_moneyline={stats.roi_per_week_moneyline.split(',').map(Number)}
+                    roi_per_week_moneyline_by_score={stats.roi_per_week_moneyline_by_score.split(',').map(Number)}
+                    roi_per_week_moneyline_with_kelly={stats.roi_per_week_kelly.split(',').map(Number)}
                     roi_per_week_over_under={stats.roi_per_week_over_under.split(',').map(Number)}
                     roi_per_week_spread={stats.roi_per_week_spread.split(',').map(Number)}
                 />

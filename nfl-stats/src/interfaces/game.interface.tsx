@@ -32,5 +32,5 @@ export default interface Game {
     home_boxscore: BoxScore;
     away_boxscore: BoxScore;
     espn_id: number;
-    model_predictions: ScoreModelPrediction;
+    model_predictions: ScoreModelPrediction[];
 }

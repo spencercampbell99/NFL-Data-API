@@ -13,9 +13,12 @@ import ScoreModelService from '@/services/ScoreModel.service';
 interface Game {
     away_team_error: number
     away_team_score: number
+    suggested_moneyline_percent_bet: number
+    decimal_odds: number
     correct_over_under: boolean
     correct_spread: boolean
     correct_winner: boolean
+    correct_winner_by_score: boolean
     correct_underdog_win: boolean | null | undefined
     cover_spread: boolean
     home_team_error: number
@@ -30,11 +33,8 @@ interface Game {
         name: string
         away_team_char_id: string
         away_moneyline: number
-        boxscores: {
-            away_score: number
-            home_score: number
-            id: number
-        }[]
+        home_score: number|null,
+        away_score: number|null,
         date: string
         home_team_char_id: string
         home_moneyline: number
@@ -58,6 +58,8 @@ interface WeekSummary {
     moneyWon: number
     moneyLineMoneyWagered: number
     moneyLineMoneyWon: number
+    moneyLineMoneyWageredKelly: number
+    moneyLineMoneyWonKelly: number
     spreadMoneyWagered: number
     spreadMoneyWon: number
     overUnderMoneyWagered: number
@@ -68,12 +70,13 @@ interface WeekSummary {
  * Renders a game card component.
  * @param {Object} props - The component props.
  * @param {Game} props.game - The game object.
+ * @param {number} props.numGames - The total number of games in the week.
  * @returns {JSX.Element} The rendered game card component.
  */
-const GameCard: React.FunctionComponent<{ game: Game }> = ({ game }) => {
+const GameCard: React.FunctionComponent<{ game: Game, numGames?: number }> = ({ game, numGames = 1 }) => {
     return (
         <>
-            <div className={`flex flex-col justify-center items-center${!game.correct_winner ? ' bg-red-100' : ' bg-green-200'}`}>
+            <div className={`flex flex-col justify-center items-center${!game.correct_winner_by_score ? ' bg-red-100' : ' bg-green-200'}`}>
                 <h1 className="w-full text-center text-xl font-medium">{game.schedule.name}</h1>
                 <table className="w-full table-auto">
                     <thead className="border-black border-b-[1px]">
@@ -83,22 +86,25 @@ const GameCard: React.FunctionComponent<{ game: Game }> = ({ game }) => {
                             <th>Moneyline</th>
                             <th>Spread</th>
                             <th>Total Line (Actual)</th>
+                            <th>Suggested Bet/Return</th>
                         </tr>
                     </thead>
                     <tbody className="text-center">
                         <tr>
                             <td>{game.schedule.away_team_char_id}</td>
-                            <td>{game.away_team_score} ({game.schedule.boxscores[0].away_score})</td>
+                            <td>{game.away_team_score} ({game.schedule.away_score})</td>
                             <td>{game.schedule.away_moneyline}</td>
                             <td>{game.schedule.spread}</td>
-                            <td>{game.schedule.over_under} ({game.schedule.boxscores[0].away_score + game.schedule.boxscores[0].home_score})</td>
+                            <td>{game.schedule.over_under} ({game.schedule.away_score && game.schedule.home_score? game.schedule.away_score + game.schedule.home_score : null})</td>
+                            <td>{(game.suggested_moneyline_percent_bet * 100).toFixed(2)}% of wallet</td>
                         </tr>
                         <tr>
                             <td>{game.schedule.home_team_char_id}</td>
-                            <td>{game.home_team_score} ({game.schedule.boxscores[0].home_score})</td>
+                            <td>{game.home_team_score} ({game.schedule.home_score})</td>
                             <td>{game.schedule.home_moneyline}</td>
                             <td>{game.schedule.spread * -1}</td>
-                            <td className={`${game.correct_over_under ? 'font-bold' : ''}`}>{game.over_under.toLowerCase()} ({(game.schedule.boxscores[0].away_score + game.schedule.boxscores[0].home_score) > game.schedule.over_under ? 'Over' : 'Under'})</td>
+                            <td className={`${game.correct_over_under ? 'font-bold' : ''}`}>{game.over_under.toLowerCase()} ({(game.schedule.away_score && game.schedule.home_score ? game.schedule.away_score + game.schedule.home_score : 0) > game.schedule.over_under ? 'Over' : 'Under'})</td>
+                            <td>${(game.correct_winner ? game.suggested_moneyline_percent_bet * game.decimal_odds * 100 : -1 * game.suggested_moneyline_percent_bet * 100).toFixed(2)}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -119,7 +125,7 @@ const CardGrid: React.FunctionComponent<{ weekOverview: Game[] }> = ({ weekOverv
         <>
             <div className="w-full grid grid-cols-2 gap-2 p-2">
                 {weekOverview.map((game: Game, index: number) => (
-                    <GameCard key={index} game={game} />
+                    <GameCard key={index} game={game} numGames={weekOverview.length}/>
                 ))}
             </div>
         </>
@@ -129,6 +135,7 @@ const CardGrid: React.FunctionComponent<{ weekOverview: Game[] }> = ({ weekOverv
 export default function WeekOverview({ params }: { params: { season: number, week: number } }) {
     const [weekOverview, setWeekOverview] = React.useState<Game[]>([])
     const [weekSummary, setWeekSummary] = React.useState<WeekSummary>()
+    const [hypotheticalBet, setHypotheticalBet] = React.useState(0)
 
     const getWeekOverview = async () => {
         const response = await axios.get(`/model-predictions/overview/${params.season}/${params.week}`)
@@ -149,15 +156,24 @@ export default function WeekOverview({ params }: { params: { season: number, wee
         let moneyWon = 0
         let moneyLineMoneyWagered = 0
         let moneyLineMoneyWon = 0
+        let moneyLineMoneyWageredKelly = 0
+        let moneyLineMoneyWonKelly = 0
         let spreadMoneyWagered = 0
         let spreadMoneyWon = 0
         let overUnderMoneyWagered = 0
         let overUnderMoneyWon = 0
         let decimalOdds = 0
 
-        const hypotheticalBet = 1
+        let hypotheticalBet = 100 / response.data.modelPredictions.length
+
+        // non tie games predicted
+        const nonTieGames = response.data.modelPredictions.filter((game: Game) => game.home_team_score !== game.away_team_score)
+        let hypotheticalBetScore = 100 / nonTieGames.length
+        setHypotheticalBet(hypotheticalBet)
+
+        const numGames = response.data.modelPredictions.length
         
-        response.data.modelPredictions.forEach((game: Game) => {
+        response.data.modelPredictions.forEach((game: Game, index: number) => {
             if (game.correct_winner) {
                 correctWinner++
             }
@@ -178,7 +194,11 @@ export default function WeekOverview({ params }: { params: { season: number, wee
             totalScore += game.total_score
             totalGames++
 
-            const homeWinner = game.home_team_score > game.away_team_score
+            const homeWinner = game.schedule.away_score && game.schedule.home_score ? game.schedule.home_score > game.schedule.away_score : null
+
+            if (homeWinner === null) {
+                return
+            }
             
             // calculate decimal odds for winner
             if (homeWinner && game.schedule.home_moneyline < 0) {
@@ -191,15 +211,28 @@ export default function WeekOverview({ params }: { params: { season: number, wee
                 decimalOdds = game.schedule.away_moneyline / 100 + 1
             }
 
+            // kelly decimal odds
+            const kellyMoneyline = game.home_win ? game.schedule.home_moneyline : game.schedule.away_moneyline
+            const kellyDecimalOdds = kellyMoneyline < 0 ? 100 / Math.abs(kellyMoneyline) + 1 : kellyMoneyline / 100 + 1
+
+            // update decimal odds on game object
+            response.data.modelPredictions[index].decimal_odds = decimalOdds
+
             // calculate money won/lost
-            moneyWagered += hypotheticalBet * 3
-            moneyLineMoneyWagered += hypotheticalBet
+            moneyWagered += hypotheticalBet * 2 + hypotheticalBetScore
+            moneyLineMoneyWageredKelly += hypotheticalBet * numGames * game.suggested_moneyline_percent_bet
+            if (game.home_team_score != game.away_team_score)
+                moneyLineMoneyWagered += hypotheticalBetScore
             spreadMoneyWagered += hypotheticalBet
             overUnderMoneyWagered += hypotheticalBet
 
             if (game.correct_winner) {
-                moneyWon += hypotheticalBet * decimalOdds
-                moneyLineMoneyWon += hypotheticalBet * decimalOdds
+                let kellyMoneyWon = hypotheticalBet * game.suggested_moneyline_percent_bet * numGames * kellyDecimalOdds
+                moneyLineMoneyWonKelly += kellyMoneyWon
+            }
+            if (game.correct_winner_by_score) {
+                moneyWon += hypotheticalBetScore * decimalOdds
+                moneyLineMoneyWon += hypotheticalBetScore * decimalOdds
             }
             if (game.correct_spread) {
                 moneyWon += hypotheticalBet * 1.91 // assuming -110 odds
@@ -223,6 +256,8 @@ export default function WeekOverview({ params }: { params: { season: number, wee
             moneyWon: moneyWon,
             moneyLineMoneyWagered: moneyLineMoneyWagered,
             moneyLineMoneyWon: moneyLineMoneyWon,
+            moneyLineMoneyWageredKelly: moneyLineMoneyWageredKelly,
+            moneyLineMoneyWonKelly: moneyLineMoneyWonKelly,
             spreadMoneyWagered: spreadMoneyWagered,
             spreadMoneyWon: spreadMoneyWon,
             overUnderMoneyWagered: overUnderMoneyWagered,
@@ -267,10 +302,12 @@ export default function WeekOverview({ params }: { params: { season: number, wee
                 </div>
                 <div className="w-full">
                     <h2 className="text-center text-xl font-medium">{`Season ${params.season} Week ${params.week}`}</h2>
-                    <h3 className="ml-5">Hypothetical bet: $1</h3>
+                    <h3 className="ml-5">Hypothetical bet: ${hypotheticalBet} (Total: $100)</h3>
                     {weekSummary ? (
                         <p className="ml-5">
                             Total Money Wagered (Won) (% return): ${weekSummary.moneyWagered.toFixed(2)} (${weekSummary.moneyWon.toFixed(2)}) ({((weekSummary.moneyWon - weekSummary.moneyWagered) / weekSummary.moneyWagered * 100).toFixed(2)}%)
+                            <br />
+                            Moneyline Money  Wagered Kelly (Won) (% return): ${weekSummary.moneyLineMoneyWageredKelly.toFixed(2)} (${weekSummary.moneyLineMoneyWonKelly.toFixed(2)}) ({((weekSummary.moneyLineMoneyWonKelly - weekSummary.moneyLineMoneyWageredKelly) / weekSummary.moneyLineMoneyWageredKelly * 100).toFixed(2)}%)
                             <br />
                             Moneyline Money Wagered (Won) (% return): ${weekSummary.moneyLineMoneyWagered.toFixed(2)} (${weekSummary.moneyLineMoneyWon.toFixed(2)}) ({((weekSummary.moneyLineMoneyWon - weekSummary.moneyLineMoneyWagered) / weekSummary.moneyLineMoneyWagered * 100).toFixed(2)}%)
                             <br />

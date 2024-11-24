@@ -876,6 +876,7 @@ def build_expected_results_for_score_moden_training(start_year, end_year, conn=N
         # 'defense_passes_defended',
         # 'defense_sacks',
         # 'penalty_yards_against',
+        'win_rate',
     ]
     
     non_exempt_cols = None
@@ -900,9 +901,14 @@ def build_expected_results_for_score_moden_training(start_year, end_year, conn=N
 
                 # Add back the exempt columns without averaging
                 for col in excempt_cols:
-                    # each one should be subtracted (home - away)
-                    home_team_general_expected_stats[col] = home_team_off_stats[col] - away_team_def_stats[col]
-                    away_team_general_expected_stats[col] = away_team_off_stats[col] - home_team_def_stats[col]
+                    # if col not present in both, just set to value on home/away respetively
+                    if col not in home_team_off_stats.columns or col not in away_team_def_stats.columns:
+                        home_team_general_expected_stats[col] = home_team_off_stats[col]
+                        away_team_general_expected_stats[col] = away_team_off_stats[col]
+                    else:
+                        # each one should be subtracted (home - away)
+                        home_team_general_expected_stats[col] = home_team_off_stats[col] - away_team_def_stats[col]
+                        away_team_general_expected_stats[col] = away_team_off_stats[col] - home_team_def_stats[col]
 
                 # rename columns (columns that don't contain _allowed, append team_ to the start, otherwise append opp_ and drop _allowed)
                 home_team_general_expected_stats.rename(columns=lambda x: 'team_' + x if '_allowed' not in x else 'opp_' + x.replace('_allowed', ''), inplace=True)
@@ -945,7 +951,7 @@ def build_expected_results_for_score_moden_training(start_year, end_year, conn=N
     
     return data
 
-def get_winner_model_data(start_year, end_year, weeks_back=6):
+def get_winner_model_data(start_year, end_year, weeks_back=6, keep_expected_columns=False, keep_avg_columns=True, skip_drop_na=False):
     """
     Retrieves the winner model data for NFL games within a specified range of years.
 
@@ -953,6 +959,9 @@ def get_winner_model_data(start_year, end_year, weeks_back=6):
     start_year (int): The starting year of the range.
     end_year (int): The ending year of the range.
     weeks_back (int): The number of weeks back to get the average
+    keep_expected_columns (bool): Whether to keep the expected columns.
+    keep_avg_columns (bool): Whether to keep the average columns.
+    skip_drop_na (bool): Whether to skip dropping rows with NA values.
 
     Returns:
     pandas.DataFrame: A DataFrame containing the winner model data for the specified range of years.
@@ -968,6 +977,15 @@ def get_winner_model_data(start_year, end_year, weeks_back=6):
     data = pd.read_sql(query, con=connection.connection)
     connection.close()
     
-    data = data.dropna()
+    # if not keeping expected columns, drop them where has home_expected or away_expected
+    if not keep_expected_columns:
+        data = data.drop(columns=[col for col in data.columns if 'expected' in col])
+    
+    # if not keeping average columns, drop them where has home_average or away_average
+    if not keep_avg_columns:
+        data = data.drop(columns=[col for col in data.columns if 'avg' in col])
+    
+    if not skip_drop_na:
+        data = data.dropna()
     
     return data

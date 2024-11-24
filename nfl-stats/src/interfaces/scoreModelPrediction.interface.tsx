@@ -1,5 +1,6 @@
 export default interface ScoreModelPrediction {
     schedule_id: number;
+    suggested_moneyline_percent_bet: number|null;
     home_team_score: number;
     away_team_score: number;
     total_score: number;

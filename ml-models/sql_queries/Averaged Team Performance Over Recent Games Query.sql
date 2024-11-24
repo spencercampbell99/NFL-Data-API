@@ -16,7 +16,8 @@ WITH season_weeks AS (
 ),
 games AS (
 	SELECT
-		game.id as game_id, home_score, away_score, home_team_id, away_team_id, over_under, spread, home_moneyline, away_moneyline, season, week,
+		game.id as game_id, home_score, away_score, home_team_id, away_team_id, over_under, spread, home_moneyline, away_moneyline, season, week, home_team_char_id, away_team_char_id,
+        CONCAT(home_team_char_id, '@', away_team_char_id) AS short_name,
 		CASE WHEN home_moneyline < away_moneyline THEN 1 ELSE 0 END as home_favorite,
 		(SELECT COALESCE(SUM(sw.max_week), 0) FROM season_weeks sw WHERE sw.season < game.season) + game.week AS overall_week
 	FROM
@@ -33,7 +34,7 @@ all_boxscores as (
 		ROW_NUMBER() OVER (PARTITION BY bs.team_id ORDER BY g.season, g.week) AS game_rank
 	FROM
 		box_scores bs
-	JOIN games g on g.game_id = schedule_id
+	LEFT JOIN games g on g.game_id = schedule_id
 ),
 home_boxscores as (
 	SELECT
@@ -58,6 +59,9 @@ averaged_recent_stats as (
         curr.week,
         curr.schedule_id AS game_id,
         
+        SUM(CASE WHEN prev.points_scored > prev.points_allowed THEN 1 ELSE 0 END) AS wins,
+        COUNT(prev.points_scored) AS games_played,
+
         -- Team's own stats (offensive performance)
         AVG(prev.points_scored) AS avg_points_scored,
         
@@ -113,6 +117,12 @@ averaged_recent_stats as (
         -- Defense and special teams
         AVG(prev.defense_special_teams_tds) AS avg_defense_special_teams_tds,
 
+        -- Defensive stats
+        AVG(prev.defense_tackles_for_loss) AS avg_defense_tackles_for_loss,
+        AVG(prev.defense_tackles) AS avg_defense_tackles,
+        AVG(prev.defense_qb_hits) AS avg_defense_qb_hits_forced,
+        AVG(prev.defense_passes_defended) AS avg_defense_pass_defended_forced,
+
         -- Kicking stats
         AVG(prev.field_goals_made) AS avg_field_goals_made,
         AVG(prev.field_goals_attempted) AS avg_field_goals_attempted,
@@ -128,7 +138,13 @@ averaged_recent_stats as (
         AVG(
 		    (CONVERT(LEFT(prev.time_of_possession, 2), UNSIGNED INTEGER) * 60)  -- Extract minutes and convert to seconds
 		    + CONVERT(RIGHT(prev.time_of_possession, 2), UNSIGNED INTEGER)      -- Extract seconds
-		) AS avg_time_of_possession_in_seconds
+		) AS avg_time_of_possession_in_seconds,
+
+        -- Other
+        AVG(prev.qb_hits_allowed) AS avg_qb_hits_allowed,
+        AVG(prev.pass_defended_allowed) AS avg_pass_defended_allowed,
+        AVG(curr.rolling_offense_power_score) AS avg_rolling_offense_power_score,
+        AVG(curr.rolling_defense_power_score) AS avg_rolling_defense_power_score
     FROM
         all_boxscores curr
     JOIN
@@ -137,7 +153,7 @@ averaged_recent_stats as (
             AND prev.game_rank < curr.game_rank
             AND prev.game_rank >= curr.game_rank - :weeks_back 
     WHERE
-        curr.season = :start_season
+        curr.season >= :start_season
     GROUP BY
         curr.team_id, curr.season, curr.week, curr.schedule_id
 ),
@@ -177,12 +193,20 @@ averaged_recent_defensive_stats as (
         SUM(opp.passing_yards) / SUM(opp.passing_completions) AS avg_yards_per_pass_completion_allowed,
         AVG(opp.interceptions_thrown) AS avg_interceptions_forced,
         AVG(opp.passing_epa) AS avg_passing_epa_allowed,
+        AVG(opp.sacks_allowed) AS avg_sacks_forced,
+        AVG(opp.sack_yards_lost) AS avg_sack_yards_lost_forced,
 
         -- Opponent rushing
         AVG(opp.rushing_yards) AS avg_rushing_yards_allowed,
         AVG(opp.rushing_attempts) AS avg_rushing_attempts_allowed,
         SUM(opp.rushing_yards) / SUM(opp.rushing_attempts) AS avg_yards_per_rush_allowed,
         AVG(opp.rushing_epa) AS avg_rushing_epa_allowed,
+
+        AVG(opp.total_epa) AS avg_total_epa_allowed,
+
+        -- Turnovers
+        AVG(opp.turnovers) AS avg_turnovers_forced,
+        AVG(opp.fumbles_lost) AS avg_fumbles_forced,
 
         -- Penalties
         AVG(opp.team_total_penalties) AS avg_penalties_forced,
@@ -192,7 +216,11 @@ averaged_recent_defensive_stats as (
         AVG(opp.field_goals_made) AS avg_field_goals_allowed,
         AVG(opp.field_goals_attempted) AS avg_field_goals_attempted_against,
         AVG(opp.punts) AS avg_punts_forced,
-        AVG(opp.punt_yards) AS avg_punt_yards_forced
+        AVG(opp.punt_yards) AS avg_punt_yards_forced,
+
+        -- Other
+        AVG(opp.defense_qb_hits) AS avg_defense_qb_hits_forced,
+        AVG(opp.defense_passes_defended) AS avg_defense_pass_defended_forced
     FROM
         all_boxscores curr
     JOIN
@@ -200,7 +228,7 @@ averaged_recent_defensive_stats as (
         ON curr.team_id = opp.opponent_id -- Link the opponent's box score
         AND opp.schedule_id IN (SELECT distinct schedule_id FROM all_boxscores abxs WHERE abxs.game_rank < curr.game_rank AND abxs.game_rank >= curr.game_rank - :weeks_back)
     WHERE
-        curr.season = :start_season
+        curr.season >= :start_season
     GROUP BY
         curr.team_id, curr.season, curr.week, curr.schedule_id
 )
@@ -211,6 +239,8 @@ SELECT
     g.away_team_id,
     g.home_score,
     g.away_score,
+    g.home_score - g.away_score as actual_spread,
+    g.home_score > g.away_score as home_win,
     g.over_under,
     g.spread,
     g.home_moneyline,
@@ -219,8 +249,23 @@ SELECT
     g.week,
     g.overall_week,
     g.home_favorite,
+    g.short_name,
+    g.home_team_char_id,
+    g.away_team_char_id,
     CASE WHEN home_favorite = 1 THEN g.home_moneyline ELSE g.away_moneyline END as favorite_moneyline,
+    CASE WHEN home_favorite = 1 THEN g.away_moneyline ELSE g.home_moneyline END as underdog_moneyline,
     CASE WHEN g.home_favorite = 1 THEN CASE WHEN g.home_score > g.away_score THEN 1 ELSE 0 END ELSE CASE WHEN g.away_score > g.home_score THEN 1 ELSE 0 END END as favorite_win,
+
+    -- Other Betting Stats
+    CASE WHEN g.spread > 0 THEN CASE WHEN g.home_score - g.away_score > g.spread THEN 1 ELSE 0 END ELSE CASE WHEN g.away_score - g.home_score > -g.spread THEN 1 ELSE 0 END END as spread_win,
+
+    -- Win rates over last :weeks_back weeks
+    ars_home.wins AS home_wins_recent,
+    ars_home.games_played AS home_games_played_recent,
+    ars_away.wins AS away_wins_recent,
+    ars_away.games_played AS away_games_played_recent,
+    CASE WHEN ars_home.games_played > 0 THEN ars_home.wins / ars_home.games_played ELSE 0 END AS home_win_rate_recent,
+    CASE WHEN ars_away.games_played > 0 THEN ars_away.wins / ars_away.games_played ELSE 0 END AS away_win_rate_recent,
 
     -- Home team offensive averaged recent stats
     ars_home.avg_points_scored AS home_avg_points_scored,
@@ -251,7 +296,7 @@ SELECT
     ars_home.avg_rushing_attempts AS home_avg_rushing_attempts,
     ars_home.avg_yards_per_rush AS home_avg_yards_per_rush,
     ars_home.avg_rushing_epa AS home_avg_rushing_epa,
-    ars_home.avg_receiving_epa AS home_avg_receiving_epa,
+    -- ars_home.avg_receiving_epa AS home_avg_receiving_epa,
     ars_home.avg_total_epa AS home_avg_total_epa,
     ars_home.avg_team_total_penalties AS home_avg_team_total_penalties,
     ars_home.avg_penalty_yards_against AS home_avg_penalty_yards_against,
@@ -268,8 +313,13 @@ SELECT
     ars_home.avg_touchbacks AS home_avg_touchbacks,
     ars_home.avg_punts_inside_20 AS home_avg_punts_inside_20,
     ars_home.avg_time_of_possession_in_seconds AS home_avg_time_of_possession_in_seconds,
+    ars_home.avg_qb_hits_allowed AS home_avg_qb_hits_allowed,
+    ars_home.avg_pass_defended_allowed AS home_avg_pass_defended_allowed,
+    ars_home.avg_rolling_offense_power_score AS home_avg_rolling_offense_power_score,
 
     -- Home team defensive averaged recent stats
+    ars_home.avg_defense_tackles_for_loss AS home_avg_tackles_for_loss_forced,
+    ars_home.avg_defense_tackles AS home_avg_tackles_forced,
     ards_home.avg_points_allowed AS home_avg_points_allowed,
     ards_home.avg_first_downs_allowed AS home_avg_first_downs_allowed,
     ards_home.avg_passing_first_downs_allowed AS home_avg_passing_first_downs_allowed,
@@ -302,6 +352,12 @@ SELECT
     ards_home.avg_field_goals_attempted_against AS home_avg_field_goals_attempted_against,
     ards_home.avg_punts_forced AS home_avg_punts_forced,
     ards_home.avg_punt_yards_forced AS home_avg_punt_yards_forced,
+    ards_home.avg_fumbles_forced AS home_avg_fumbles_forced,
+    ards_home.avg_sack_yards_lost_forced AS home_avg_sack_yards_lost_forced,
+    ards_home.avg_turnovers_forced AS home_avg_turnovers_forced,
+    ards_home.avg_defense_qb_hits_forced AS home_avg_defense_qb_hits_forced,
+    ards_home.avg_defense_pass_defended_forced AS home_avg_defense_pass_defended_forced,
+    ars_home.avg_rolling_defense_power_score AS home_avg_rolling_defense_power_score,
 
     -- Away team offensive averaged recent stats
     ars_away.avg_points_scored AS away_avg_points_scored,
@@ -332,7 +388,7 @@ SELECT
     ars_away.avg_rushing_attempts AS away_avg_rushing_attempts,
     ars_away.avg_yards_per_rush AS away_avg_yards_per_rush,
     ars_away.avg_rushing_epa AS away_avg_rushing_epa,
-    ars_away.avg_receiving_epa AS away_avg_receiving_epa,
+    -- ars_away.avg_receiving_epa AS away_avg_receiving_epa,
     ars_away.avg_total_epa AS away_avg_total_epa,
     ars_away.avg_team_total_penalties AS away_avg_team_total_penalties,
     ars_away.avg_penalty_yards_against AS away_avg_penalty_yards_against,
@@ -349,8 +405,13 @@ SELECT
     ars_away.avg_touchbacks AS away_avg_touchbacks,
     ars_away.avg_punts_inside_20 AS away_avg_punts_inside_20,
     ars_away.avg_time_of_possession_in_seconds AS away_avg_time_of_possession_in_seconds,
+    ars_away.avg_qb_hits_allowed AS away_avg_qb_hits_allowed,
+    ars_away.avg_pass_defended_allowed AS away_avg_pass_defended_allowed,
+    ars_away.avg_rolling_offense_power_score AS away_avg_rolling_offense_power_score,
 
     -- Away team defensive averaged recent stats
+    ars_away.avg_defense_tackles_for_loss AS away_avg_tackles_for_loss_forced,
+    ars_away.avg_defense_tackles AS away_avg_tackles_forced,
     ards_away.avg_points_allowed AS away_avg_points_allowed,
     ards_away.avg_first_downs_allowed AS away_avg_first_downs_allowed,
     ards_away.avg_passing_first_downs_allowed AS away_avg_passing_first_downs_allowed,
@@ -382,7 +443,121 @@ SELECT
     ards_away.avg_field_goals_allowed AS away_avg_field_goals_allowed,
     ards_away.avg_field_goals_attempted_against AS away_avg_field_goals_attempted_against,
     ards_away.avg_punts_forced AS away_avg_punts_forced,
-    ards_away.avg_punt_yards_forced AS away_avg_punt_yards_forced
+    ards_away.avg_punt_yards_forced AS away_avg_punt_yards_forced,
+    ards_away.avg_fumbles_forced AS away_avg_fumbles_forced,
+    ards_away.avg_sack_yards_lost_forced AS away_avg_sack_yards_lost_forced,
+    ards_away.avg_turnovers_forced AS away_avg_turnovers_forced,
+    ards_away.avg_defense_qb_hits_forced AS away_avg_defense_qb_hits_forced,
+    ards_away.avg_defense_pass_defended_forced AS away_avg_defense_pass_defended_forced,
+    ars_away.avg_rolling_defense_power_score AS away_avg_rolling_defense_power_score,
+
+    -- Home team expected offensive stats
+    (ars_home.avg_points_scored + ards_away.avg_points_allowed) / 2 AS home_expected_points_scored,
+    (ars_home.avg_first_downs + ards_away.avg_first_downs_allowed) / 2 AS home_expected_first_downs,
+    (ars_home.avg_passing_first_downs + ards_away.avg_passing_first_downs_allowed) / 2 AS home_expected_passing_first_downs,
+    (ars_home.avg_rushing_first_downs + ards_away.avg_rushing_first_downs_allowed) / 2 AS home_expected_rushing_first_downs,
+    (ars_home.avg_penalty_first_downs + ards_away.avg_penalty_first_downs_allowed) / 2 AS home_expected_penalty_first_downs,
+    (ars_home.avg_third_down_conversions + ards_away.avg_third_down_conversions_allowed) / 2 AS home_expected_third_down_conversions,
+    (ars_home.avg_third_down_attempts + ards_away.avg_third_down_attempts_allowed) / 2 AS home_expected_third_down_attempts,
+    CASE WHEN ars_home.avg_third_down_attempts + ards_away.avg_third_down_attempts_allowed = 0 THEN 0 ELSE (ars_home.avg_third_down_conversions + ards_away.avg_third_down_conversions_allowed) / (ars_home.avg_third_down_attempts + ards_away.avg_third_down_attempts_allowed) END AS home_expected_third_down_conversion_percentage,
+    (ars_home.avg_fourth_down_conversions + ards_away.avg_fourth_down_conversions_allowed) / 2 AS home_expected_fourth_down_conversions,
+    (ars_home.avg_fourth_down_attempts + ards_away.avg_fourth_down_attempts_allowed) / 2 AS home_expected_fourth_down_attempts,
+    CASE WHEN ars_home.avg_fourth_down_attempts + ards_away.avg_fourth_down_attempts_allowed = 0 THEN 0 ELSE (ars_home.avg_fourth_down_conversions + ards_away.avg_fourth_down_conversions_allowed) / (ars_home.avg_fourth_down_attempts + ards_away.avg_fourth_down_attempts_allowed) END AS home_expected_fourth_down_conversion_percentage,
+    (ars_home.avg_red_zone_attempts + ards_away.avg_red_zone_attempts_allowed) / 2 AS home_expected_red_zone_attempts,
+    (ars_home.avg_red_zone_scores + ards_away.avg_red_zone_scores_allowed) / 2 AS home_expected_red_zone_scores,
+    CASE WHEN ars_home.avg_red_zone_attempts + ards_away.avg_red_zone_attempts_allowed = 0 THEN 0 ELSE (ars_home.avg_red_zone_scores + ards_away.avg_red_zone_scores_allowed) / (ars_home.avg_red_zone_attempts + ards_away.avg_red_zone_attempts_allowed) END AS home_expected_red_zone_conversion_percentage,
+    (ars_home.avg_total_drives + ards_away.avg_total_drives_allowed) / 2 AS home_expected_total_drives,
+    (ars_home.avg_total_offensive_plays + ards_away.avg_total_offensive_plays_allowed) / 2 AS home_expected_total_offensive_plays,
+    (ars_home.avg_total_offensive_yards + ards_away.avg_total_offensive_yards_allowed) / 2 AS home_expected_total_offensive_yards,
+    (ars_home.avg_yards_per_play + ards_away.avg_yards_per_play_allowed) / 2 AS home_expected_yards_per_play,
+    (ars_home.avg_passing_yards + ards_away.avg_passing_yards_allowed) / 2 AS home_expected_passing_yards,
+    (ars_home.avg_passing_attempts + ards_away.avg_passing_attempts_allowed) / 2 AS home_expected_passing_attempts,
+    (ars_home.avg_passing_completions + ards_away.avg_passing_completions_allowed) / 2 AS home_expected_passing_completions,
+    (ars_home.avg_yards_per_pass_attempt + ards_away.avg_yards_per_pass_attempt_allowed) / 2 AS home_expected_yards_per_pass_attempt,
+    (ars_home.avg_yards_per_pass_completion + ards_away.avg_yards_per_pass_completion_allowed) / 2 AS home_expected_yards_per_pass_completion,
+    (ars_home.avg_interceptions_thrown + ards_away.avg_interceptions_forced) / 2 AS home_expected_interceptions_thrown,
+    (ars_home.avg_passing_epa + ards_away.avg_passing_epa_allowed) / 2 AS home_expected_passing_epa,
+    (ars_home.avg_sacks_allowed + ards_away.avg_sacks_forced) / 2 AS home_expected_sacks_allowed,
+    -- (ars_home.avg_sack_yards_lost + ards_away.avg_sack_yards_forced) / 2 AS home_expected_sack_yards_lost,
+    (ars_home.avg_rushing_yards + ards_away.avg_rushing_yards_allowed) / 2 AS home_expected_rushing_yards,
+    (ars_home.avg_rushing_attempts + ards_away.avg_rushing_attempts_allowed) / 2 AS home_expected_rushing_attempts,
+    (ars_home.avg_yards_per_rush + ards_away.avg_yards_per_rush_allowed) / 2 AS home_expected_yards_per_rush,
+    (ars_home.avg_rushing_epa + ards_away.avg_rushing_epa_allowed) / 2 AS home_expected_rushing_epa,
+    -- (ars_home.avg_receiving_epa + ards_away.avg_receiving_epa_allowed) / 2 AS home_expected_receiving_epa,
+    (ars_home.avg_total_epa + ards_away.avg_total_epa_allowed) / 2 AS home_expected_total_epa,
+    (ars_home.avg_team_total_penalties + ards_away.avg_penalties_forced) / 2 AS home_expected_team_total_penalties,
+    (ars_home.avg_penalty_yards_against + ards_away.avg_penalty_yards_forced) / 2 AS home_expected_penalty_yards_against,
+    (ars_home.avg_turnovers + ards_away.avg_turnovers_forced) / 2 AS home_expected_turnovers,
+    (ars_home.avg_fumbles_lost + ards_away.avg_fumbles_forced) / 2 AS home_expected_fumbles_lost,
+    (ars_home.avg_defense_special_teams_tds + ars_away.avg_defense_special_teams_tds) / 2 AS home_expected_defense_special_teams_tds,
+    (ars_home.avg_field_goals_made + ards_away.avg_field_goals_allowed) / 2 AS home_expected_field_goals_made,
+    (ars_home.avg_field_goals_attempted + ards_away.avg_field_goals_attempted_against) / 2 AS home_expected_field_goals_attempted,
+    (ars_home.avg_extra_points_made + ars_away.avg_extra_points_made) / 2 AS home_expected_extra_points_made,
+    (ars_home.avg_extra_points_attempted + ars_away.avg_extra_points_attempted) / 2 AS home_expected_extra_points_attempted,
+    (ars_home.avg_punts + ards_away.avg_punts_forced) / 2 AS home_expected_punts,
+    (ars_home.avg_punt_yards + ards_away.avg_punt_yards_forced) / 2 AS home_expected_punt_yards,
+    (ars_home.avg_yards_per_punt + ars_away.avg_yards_per_punt) / 2 AS home_expected_yards_per_punt,
+    (ars_home.avg_touchbacks + ars_away.avg_touchbacks) / 2 AS home_expected_touchbacks,
+    (ars_home.avg_punts_inside_20 + ars_away.avg_punts_inside_20) / 2 AS home_expected_punts_inside_20,
+    (ars_home.avg_time_of_possession_in_seconds + ars_away.avg_time_of_possession_in_seconds) / 2 AS home_expected_time_of_possession_in_seconds,
+    (ars_home.avg_qb_hits_allowed + ars_away.avg_defense_qb_hits_forced) / 2 AS home_expected_qb_hits_allowed,
+    (ars_home.avg_pass_defended_allowed + ars_away.avg_defense_pass_defended_forced) / 2 AS home_expected_pass_defended_allowed,
+    (ars_home.avg_rolling_offense_power_score - ars_away.avg_rolling_defense_power_score) / 2 AS home_expected_rolling_offense_power_score,
+    (ars_home.avg_rolling_defense_power_score - ars_away.avg_rolling_offense_power_score) / 2 AS home_expected_rolling_defense_power_score,
+
+    -- Away team expected offensive stats
+    (ars_away.avg_points_scored + ards_home.avg_points_allowed) / 2 AS away_expected_points_scored,
+    (ars_away.avg_first_downs + ards_home.avg_first_downs_allowed) / 2 AS away_expected_first_downs,
+    (ars_away.avg_passing_first_downs + ards_home.avg_passing_first_downs_allowed) / 2 AS away_expected_passing_first_downs,
+    (ars_away.avg_rushing_first_downs + ards_home.avg_rushing_first_downs_allowed) / 2 AS away_expected_rushing_first_downs,
+    (ars_away.avg_penalty_first_downs + ards_home.avg_penalty_first_downs_allowed) / 2 AS away_expected_penalty_first_downs,
+    (ars_away.avg_third_down_conversions + ards_home.avg_third_down_conversions_allowed) / 2 AS away_expected_third_down_conversions,
+    (ars_away.avg_third_down_attempts + ards_home.avg_third_down_attempts_allowed) / 2 AS away_expected_third_down_attempts,
+    CASE WHEN ars_away.avg_third_down_attempts + ards_home.avg_third_down_attempts_allowed = 0 THEN 0 ELSE (ars_away.avg_third_down_conversions + ards_home.avg_third_down_conversions_allowed) / (ars_away.avg_third_down_attempts + ards_home.avg_third_down_attempts_allowed) END AS away_expected_third_down_conversion_percentage,
+    (ars_away.avg_fourth_down_conversions + ards_home.avg_fourth_down_conversions_allowed) / 2 AS away_expected_fourth_down_conversions,
+    (ars_away.avg_fourth_down_attempts + ards_home.avg_fourth_down_attempts_allowed) / 2 AS away_expected_fourth_down_attempts,
+    CASE WHEN ars_away.avg_fourth_down_attempts + ards_home.avg_fourth_down_attempts_allowed = 0 THEN 0 ELSE (ars_away.avg_fourth_down_conversions + ards_home.avg_fourth_down_conversions_allowed) / (ars_away.avg_fourth_down_attempts + ards_home.avg_fourth_down_attempts_allowed) END AS away_expected_fourth_down_conversion_percentage,
+    (ars_away.avg_red_zone_attempts + ards_home.avg_red_zone_attempts_allowed) / 2 AS away_expected_red_zone_attempts,
+    (ars_away.avg_red_zone_scores + ards_home.avg_red_zone_scores_allowed) / 2 AS away_expected_red_zone_scores,
+    CASE WHEN ars_away.avg_red_zone_attempts + ards_home.avg_red_zone_attempts_allowed = 0 THEN 0 ELSE (ars_away.avg_red_zone_scores + ards_home.avg_red_zone_scores_allowed) / (ars_away.avg_red_zone_attempts + ards_home.avg_red_zone_attempts_allowed) END AS away_expected_red_zone_conversion_percentage,
+    (ars_away.avg_total_drives + ards_home.avg_total_drives_allowed) / 2 AS away_expected_total_drives,
+    (ars_away.avg_total_offensive_plays + ards_home.avg_total_offensive_plays_allowed) / 2 AS away_expected_total_offensive_plays,
+    (ars_away.avg_total_offensive_yards + ards_home.avg_total_offensive_yards_allowed) / 2 AS away_expected_total_offensive_yards,
+    (ars_away.avg_yards_per_play + ards_home.avg_yards_per_play_allowed) / 2 AS away_expected_yards_per_play,
+    (ars_away.avg_passing_yards + ards_home.avg_passing_yards_allowed) / 2 AS away_expected_passing_yards,
+    (ars_away.avg_passing_attempts + ards_home.avg_passing_attempts_allowed) / 2 AS away_expected_passing_attempts,
+    (ars_away.avg_passing_completions + ards_home.avg_passing_completions_allowed) / 2 AS away_expected_passing_completions,
+    (ars_away.avg_yards_per_pass_attempt + ards_home.avg_yards_per_pass_attempt_allowed) / 2 AS away_expected_yards_per_pass_attempt,
+    (ars_away.avg_yards_per_pass_completion + ards_home.avg_yards_per_pass_completion_allowed) / 2 AS away_expected_yards_per_pass_completion,
+    (ars_away.avg_interceptions_thrown + ards_home.avg_interceptions_forced) / 2 AS away_expected_interceptions_thrown,
+    (ars_away.avg_passing_epa + ards_home.avg_passing_epa_allowed) / 2 AS away_expected_passing_epa,
+    (ars_away.avg_sacks_allowed + ards_home.avg_sacks_forced) / 2 AS away_expected_sacks_allowed,
+    -- (ars_away.avg_sack_yards_lost + ards_home.avg_sack_yards_forced) / 2 AS away_expected_sack_yards_lost,
+    (ars_away.avg_rushing_yards + ards_home.avg_rushing_yards_allowed) / 2 AS away_expected_rushing_yards,
+    (ars_away.avg_rushing_attempts + ards_home.avg_rushing_attempts_allowed) / 2 AS away_expected_rushing_attempts,
+    (ars_away.avg_yards_per_rush + ards_home.avg_yards_per_rush_allowed) / 2 AS away_expected_yards_per_rush,
+    (ars_away.avg_rushing_epa + ards_home.avg_rushing_epa_allowed) / 2 AS away_expected_rushing_epa,
+    -- (ars_away.avg_receiving_epa + ards_home.avg_receiving_epa_allowed) / 2 AS away_expected_receiving_epa,
+    (ars_away.avg_total_epa + ards_home.avg_total_epa_allowed) / 2 AS away_expected_total_epa,
+    (ars_away.avg_team_total_penalties + ards_home.avg_penalties_forced) / 2 AS away_expected_team_total_penalties,
+    (ars_away.avg_penalty_yards_against + ards_home.avg_penalty_yards_forced) / 2 AS away_expected_penalty_yards_against,
+    (ars_away.avg_turnovers + ards_home.avg_turnovers_forced) / 2 AS away_expected_turnovers,
+    (ars_away.avg_fumbles_lost + ards_home.avg_fumbles_forced) / 2 AS away_expected_fumbles_lost,
+    (ars_away.avg_defense_special_teams_tds + ars_home.avg_defense_special_teams_tds) / 2 AS away_expected_defense_special_teams_tds,
+    (ars_away.avg_field_goals_made + ards_home.avg_field_goals_allowed) / 2 AS away_expected_field_goals_made,
+    (ars_away.avg_field_goals_attempted + ards_home.avg_field_goals_attempted_against) / 2 AS away_expected_field_goals_attempted,
+    (ars_away.avg_extra_points_made + ars_home.avg_extra_points_made) / 2 AS away_expected_extra_points_made,
+    (ars_away.avg_extra_points_attempted + ars_home.avg_extra_points_attempted) / 2 AS away_expected_extra_points_attempted,
+    (ars_away.avg_punts + ards_home.avg_punts_forced) / 2 AS away_expected_punts,
+    (ars_away.avg_punt_yards + ards_home.avg_punt_yards_forced) / 2 AS away_expected_punt_yards,
+    (ars_away.avg_yards_per_punt + ars_home.avg_yards_per_punt) / 2 AS away_expected_yards_per_punt,
+    (ars_away.avg_touchbacks + ars_home.avg_touchbacks) / 2 AS away_expected_touchbacks,
+    (ars_away.avg_punts_inside_20 + ars_home.avg_punts_inside_20) / 2 AS away_expected_punts_inside_20,
+    (ars_away.avg_time_of_possession_in_seconds + ars_home.avg_time_of_possession_in_seconds) / 2 AS away_expected_time_of_possession_in_seconds,
+    (ars_away.avg_qb_hits_allowed + ars_home.avg_defense_qb_hits_forced) / 2 AS away_expected_qb_hits_allowed,
+    (ars_away.avg_pass_defended_allowed + ars_home.avg_defense_pass_defended_forced) / 2 AS away_expected_pass_defended_allowed,
+    (ars_away.avg_rolling_offense_power_score - ars_home.avg_rolling_defense_power_score) / 2 AS away_expected_rolling_offense_power_score,
+    (ars_away.avg_rolling_defense_power_score - ars_home.avg_rolling_offense_power_score) / 2 AS away_expected_rolling_defense_power_score
 FROM
 	games g
 JOIN averaged_recent_stats ars_home ON ars_home.game_id = g.game_id AND ars_home.team_id = g.home_team_id
@@ -390,5 +565,5 @@ JOIN averaged_recent_defensive_stats ards_home ON ards_home.game_id = g.game_id 
 JOIN averaged_recent_stats ars_away ON ars_away.game_id = g.game_id AND ars_away.team_id = g.away_team_id
 JOIN averaged_recent_defensive_stats ards_away ON ards_away.game_id = g.game_id AND ards_away.team_id = g.away_team_id
 WHERE
-	g.season = :start_season
+	g.season >= :start_season
 ORDER BY g.season ASC, g.week ASC

@@ -42,6 +42,7 @@ def calculate_offense_stat_averages(team_id, season, week, conn, weeks_back=5):
         f"""
             WITH RankedGames AS (
                 SELECT
+                    CASE WHEN team.points_scored > team.points_allowed THEN 1 ELSE 0 END as win,
                     team.passing_first_downs as team_passing_first_downs,
                     team.rushing_first_downs AS team_rushing_first_downs,
                     team.third_down_conversions AS team_third_down_conversions,
@@ -78,7 +79,8 @@ def calculate_offense_stat_averages(team_id, season, week, conn, weeks_back=5):
                     (season < {season} OR (season = {season} AND week < {week})) AND team.team_id = {team_id} and game_type = 'REG'
                 LIMIT {weeks_back}
             )
-            SELECT 
+            SELECT
+                SUM(win) / COUNT(*) AS win_rate,
                 AVG(team_passing_first_downs) AS passing_first_downs,
                 AVG(team_rushing_first_downs) AS rushing_first_downs,
                 AVG(team_third_down_conversions) AS third_down_conversions,

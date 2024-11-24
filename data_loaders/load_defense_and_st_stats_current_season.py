@@ -93,6 +93,11 @@ if not skip_def:
         if completed % 100 == 0:
             print(f"{completed} / {total} ({completed / total * 100}%)")
         
+        # if week < 7, skip
+        if row['week'] < 10:
+            completed += 1
+            continue
+        
         # replace NAN with None
         row = row.where(pd.notnull(row), None)
         

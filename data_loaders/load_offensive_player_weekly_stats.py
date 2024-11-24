@@ -67,6 +67,11 @@ total = len(data)
 
 # insert/update the data into the database
 for index, row in data.iterrows():
+    # if row week less than 6 then skip
+    if row['week'] < 6:
+        completed += 1
+        continue
+    
     # print percent completion if divisible by 100
     if completed % 100 == 0:
         print(f"{completed} / {total} ({completed / total * 100}%)")

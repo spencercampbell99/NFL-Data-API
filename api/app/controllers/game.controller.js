@@ -40,7 +40,7 @@ exports.getGamesBySeasonAndWeek = async ({ week, season, idsOnly = true, withMod
                 {
                     model: nflDb.modelPredictions,
                     as: 'model_predictions',
-                    attributes: ['home_team_score', 'away_team_score', 'total_score', 'over_under', 'cover_spread'],
+                    attributes: ['home_team_score', 'away_team_score', 'total_score', 'over_under', 'cover_spread', 'home_win', 'underdog_win', 'suggested_moneyline_percent_bet', 'correct_winner'],
                 }
             ]
         }

@@ -57,6 +57,7 @@ module.exports = (sequelize, Sequelize) => {
     // o line/qb
     sacks_allowed: { type: DataTypes.TINYINT, allowNull: true },
     sack_yards_lost: { type: DataTypes.SMALLINT, allowNull: true },
+    qb_hits_allowed: { type: DataTypes.TINYINT, allowNull: true },
 
     // rushing
     rushing_yards: { type: DataTypes.SMALLINT, allowNull: true },
@@ -92,6 +93,7 @@ module.exports = (sequelize, Sequelize) => {
     defense_tackles: { type: DataTypes.TINYINT, allowNull: true },
     defense_assists: { type: DataTypes.TINYINT, allowNull: true },
     defense_safeties: { type: DataTypes.TINYINT, allowNull: true },
+    pass_defended_allowed: { type: DataTypes.TINYINT, allowNull: true },
 
     // kicking stats
     field_goals_made: { type: DataTypes.TINYINT, allowNull: true },
@@ -106,6 +108,10 @@ module.exports = (sequelize, Sequelize) => {
 
     // other metadata
     time_of_possession: { type: DataTypes.STRING(6), allowNull: true },
+
+    // power scores
+    rolling_offense_power_score: { type: DataTypes.DECIMAL(4, 2), allowNull: true },
+    rolling_defense_power_score: { type: DataTypes.DECIMAL(4, 2), allowNull: true },
   }, {
     sequelize,
     modelName: 'boxscore',

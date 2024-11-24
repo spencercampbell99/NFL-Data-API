@@ -30,17 +30,7 @@ exports.getModelPredictionsOverviewBySeasonAndWeek = async (req, res) => {
                         week: week,
                         game_type: 'REG',
                     },
-                    attributes: ['season', 'week', 'over_under', 'spread', 'date', 'home_moneyline', 'away_moneyline', 'home_team_char_id', 'away_team_char_id'],
-                    include: [
-                        {
-                            model: nflDb.boxscores,
-                            as: 'boxscores',
-                            where: {
-                                home_team: true,
-                            },
-                            attributes: [['points_scored', 'home_score'], ['points_allowed', 'away_score']],
-                        },
-                    ],
+                    attributes: ['season', 'week', 'over_under', 'spread', 'date', 'home_moneyline', 'away_moneyline', 'home_team_char_id', 'away_team_char_id','home_score', 'away_score'],
                 },
             ],
         });
@@ -228,12 +218,15 @@ exports.settleModelPredictionsBySeasonAndWeek = async (req, res) => {
             const actualResult = actualResults.find(result => result.id === modelPrediction.schedule_id);
             if (actualResult) {
                 // calculate correct_winner, correct_spread, correcT_over_under, correct_underdog_win, home_team_error, away_team_error, total_error
-                let correctWinner = (actualResult.home_score > actualResult.away_score) === (modelPrediction.home_team_score > modelPrediction.away_team_score);
+                let correctWinnerByScore = (actualResult.home_score > actualResult.away_score) === (modelPrediction.home_team_score > modelPrediction.away_team_score);
+                let correctWinner = (actualResult.home_score > actualResult.away_score) == modelPrediction.home_win
                 const newData = {
                     correct_winner: correctWinner,
+                    correct_winner_by_score: correctWinnerByScore,
                     correct_spread: _actualSpreadCovered(actualResult.home_score, actualResult.away_score, modelPrediction.spread) == modelPrediction.cover_spread,
                     correct_over_under: (actualResult.home_score + actualResult.away_score) > actualResult.over_under === (modelPrediction.over_under === 'OVER'),
-                    correct_underdog_win: correctWinner ? (actualResult.home_score > actualResult.away_score) === (actualResult.home_moneyline > actualResult.away_moneyline) : false,
+                    correct_underdog_win: modelPrediction.underdog_win && correctWinner,
+                    correct_underdog_win_by_score: correctWinnerByScore ? (actualResult.home_score > actualResult.away_score) === (actualResult.home_moneyline > actualResult.away_moneyline) : false,
                     home_team_error: actualResult.home_score - modelPrediction.home_team_score,
                     away_team_error: actualResult.away_score - modelPrediction.away_team_score,
                     total_error: (actualResult.home_score + actualResult.away_score) - modelPrediction.total_score,

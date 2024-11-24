@@ -22,7 +22,7 @@ total_games = 0
 results = pd.DataFrame(columns=['schedule_id', 'matchup', 'predicted_over_under_result', 'over_under_result', 'correct', 'line'])
 results.set_index('matchup', inplace=True)
 
-for week in range(5, 7):
+for week in range(1, 13):
     games_for_week = get_games_for_week(week=week, season=2024, connection=conn)
     games_for_week.set_index('short_name', inplace=True)
     

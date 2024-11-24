@@ -5,6 +5,7 @@ from data_getters import get_data_for_points_scored_model_with_averages, get_gam
 from simulation_testing import calculate_offense_stat_averages, calculate_defense_stat_averages
 import joblib
 from sqlalchemy import text
+from kelly_functions import calculate_edge, calculate_kelly_criterion, normalize_kelly, american_to_decimal
 
 from MysqlConnection import MySQLConnection
 import signal
@@ -13,6 +14,8 @@ conn = MySQLConnection()
 # load model from joblibn
 # model_name = 'points_scored_model'
 model_name = 'points_scored_averages_model'
+model_version = 'v2024.0'
+# model_name = f'{model_name}_{model_version}'
 print(f'Loading {model_name}...')
 model = joblib.load(f'models/{model_name}.joblib')
 model_features = joblib.load(f'models/{model_name}_features.joblib')
@@ -21,10 +24,10 @@ model_features = joblib.load(f'models/{model_name}_features.joblib')
 scaler = joblib.load(f'models/{model_name}_scaler.joblib')
 
 # matchups df with predictions
-matchup_predictions = pd.DataFrame(columns=['schedule_id', 'matchup', 'home_team', 'away_team', 'predicted_home_score', 'predicted_away_score', 'actual_home_score', 'actual_away_score', 'actual_total', 'correct_winner', 'predicted_total', 'over_under', 'predicted_over_under_result', 'actual_over_under_result', 'spread', 'correct_spread', 'predicted_underdog_win', 'actual_underdog_win'])
+matchup_predictions = pd.DataFrame(columns=['schedule_id', 'week', 'matchup', 'home_team', 'away_team', 'predicted_home_score', 'predicted_away_score', 'actual_home_score', 'actual_away_score', 'actual_total', 'correct_winner', 'predicted_total', 'over_under', 'predicted_over_under_result', 'actual_over_under_result', 'predicted_cover_spread', 'spread', 'correct_spread', 'predicted_underdog_win', 'actual_underdog_win', 'suggested_bet', 'home_moneyline', 'away_moneyline'])
 matchup_predictions.set_index('matchup', inplace=True)
 
-for week in range(6, 7):
+for week in range(1, 13):
     # data = get_data_for_points_scored_model_with_averages(week=week, season=2024, connection=conn, weeks_back=10)
     
     # make the index 0 -> length
@@ -95,23 +98,25 @@ for week in range(6, 7):
             schedule_game = games_for_week[games_for_week['away_team_id'] == game['team_id']]
             matchup = f"{week}: " + schedule_game['short_name'].values[0]
         
-        if schedule_game['home_points_scored'].isna().values[0]:
+        if schedule_game['home_score'].isna().values[0]:
             total_points_scored = 0
         else:
-            total_points_scored = schedule_game['home_points_scored'].values[0] + schedule_game['away_points_scored'].values[0]
+            total_points_scored = schedule_game['home_score'].values[0] + schedule_game['away_score'].values[0]
         
         # append or update matchup_predictions
         if matchup not in matchup_predictions.index:
             matchup_predictions.loc[matchup] = {
                 'schedule_id': schedule_game['id'].values[0],
+                'week': week,
                 'home_team': schedule_game['home_team_char_id'].values[0],
                 'away_team': schedule_game['away_team_char_id'].values[0],
                 'predicted_home_score': y_pred if game['is_home_team'] else 0,
                 'predicted_away_score': 0 if game['is_home_team'] else y_pred,
-                'actual_home_score': schedule_game['home_points_scored'].values[0],
-                'actual_away_score': schedule_game['away_points_scored'].values[0],
+                'actual_home_score': schedule_game['home_score'].values[0],
+                'actual_away_score': schedule_game['away_score'].values[0],
                 'actual_total': total_points_scored,
                 'correct_winner': None, # calculated later
+                'predicted_cover_spread': None, # calculated later
                 'spread': schedule_game['spread'].values[0],
                 'correct_spread': None, # calculated later
                 'predicted_total': y_pred,
@@ -119,7 +124,10 @@ for week in range(6, 7):
                 'predicted_over_under_result': None, # calculated later
                 'actual_over_under_result': total_points_scored > schedule_game['over_under'].values[0],
                 'predicted_underdog_win': None, # calculated later
-                'actual_underdog_win': None # calculated later
+                'actual_underdog_win': None, # calculated later
+                'suggested_bet': None, # calculated later
+                'home_moneyline': schedule_game['home_moneyline'].values[0],
+                'away_moneyline': schedule_game['away_moneyline'].values[0]
             }
         else:
             if game['is_home_team']:
@@ -130,6 +138,22 @@ for week in range(6, 7):
         
 # loop through matchup_predictions and calculate correct_winner and predicted_over_under_result
 for index, matchup in matchup_predictions.iterrows():
+    spread = matchup['spread']
+    predicted_spread = matchup['predicted_home_score'] - matchup['predicted_away_score']
+
+    if predicted_spread < 0:
+        # assume 65% win probability for chosen team
+        edge = calculate_edge(0.65, matchup['away_moneyline'], convert_to_decimal=True)
+        kelly = calculate_kelly_criterion(edge, matchup['away_moneyline'], convert_to_decimal=True)
+        matchup_predictions.loc[index, 'suggested_bet'] = kelly
+    else:
+        edge = calculate_edge(0.65, matchup['home_moneyline'], convert_to_decimal=True)
+        kelly = calculate_kelly_criterion(edge, matchup['home_moneyline'], convert_to_decimal=True)
+        matchup_predictions.loc[index, 'suggested_bet'] = kelly
+
+    # predicted cover spread
+    matchup_predictions.loc[index, 'predicted_cover_spread'] = predicted_spread > spread if spread > 0 else predicted_spread < spread
+
     if matchup['actual_total'] == 0:
         continue
     
@@ -141,10 +165,8 @@ for index, matchup in matchup_predictions.iterrows():
     
     # calculate predicted_over_under_result
     matchup_predictions.loc[index, 'predicted_over_under_result'] = (matchup['predicted_total'] > matchup['over_under'] and matchup['actual_total'] > matchup['over_under']) or (matchup['predicted_total'] < matchup['over_under'] and matchup['actual_total'] < matchup['over_under'])
-    
-    spread = matchup['spread']
+
     result_spread = matchup['actual_home_score'] - matchup['actual_away_score']
-    predicted_spread = matchup['predicted_home_score'] - matchup['predicted_away_score']
     
     if spread > 0:
         matchup_predictions.loc[index, 'correct_spread'] = result_spread > spread and predicted_spread > spread or result_spread < spread and predicted_spread < spread
@@ -156,31 +178,49 @@ for index, matchup in matchup_predictions.iterrows():
     matchup_predictions.loc[index, 'predicted_underdog_win'] = matchup['predicted_away_score'] < matchup['predicted_home_score'] if home_underdog else matchup['predicted_home_score'] < matchup['predicted_away_score']
     matchup_predictions.loc[index, 'actual_underdog_win'] = matchup['actual_away_score'] < matchup['actual_home_score'] if home_underdog else matchup['actual_home_score'] < matchup['actual_away_score']
 
+# for each week, normalize the kelly criterion and calculate the suggested bet
+for week in matchup_predictions['week'].unique():
+    week_data = matchup_predictions[(matchup_predictions['week'] == week) & (matchup_predictions['predicted_home_score'] != matchup_predictions['predicted_away_score'])]
+    kelly_list = week_data['suggested_bet'].tolist()
+    normalized_kelly = normalize_kelly(kelly_list)
+    
+    for index, matchup in week_data.iterrows():
+        matchup_predictions.loc[index, 'suggested_bet'] = normalized_kelly.pop(0)
+    
+    # default tie predcitions to 0% bet
+    tie_data = matchup_predictions[(matchup_predictions['week'] == week) & (matchup_predictions['predicted_home_score'] == matchup_predictions['predicted_away_score'])]
+    for index, matchup in tie_data.iterrows():
+        matchup_predictions.loc[index, 'suggested_bet'] = 0
+
 prediction_insert_query = text(f"""
     INSERT INTO model_predictions 
         (schedule_id, 
         home_team_score, 
         away_team_score, 
         total_score,
-        home_win,
-        underdog_win,
-        correct_winner,
-        correct_underdog_win,
+        correct_winner_by_score,
+        over_under,
+        cover_spread,
+        correct_underdog_win_by_score,
+        suggested_moneyline_percent_bet_by_score,
         home_team_error,
         away_team_error,
-        total_error) 
+        total_error,
+        score_model_name) 
     VALUES 
         (:schedule_id, 
         :home_team_score, 
         :away_team_score, 
         :total_score,
-        :home_win,
-        :underdog_win,
         :correct_winner,
+        :over_under,
+        :cover_spread,
         :correct_underdog_win,
+        :suggested_bet,
         :home_team_error,
         :away_team_error,
-        :total_error)
+        :total_error,
+        '{model_name}_{model_version}')
 """)
 prediction_update_query = text(f"""
     UPDATE model_predictions
@@ -190,11 +230,15 @@ prediction_update_query = text(f"""
         -- total_score = total_score,
         -- home_win = home_win,
         -- underdog_win = underdog_win,
-        correct_winner = :correct_winner,
-        correct_underdog_win = :correct_underdog_win,
+        correct_winner_by_score = :correct_winner,
+        correct_underdog_win_by_score = :correct_underdog_win,
+        over_under = :over_under,
+        cover_spread = :cover_spread,
+        suggested_moneyline_percent_bet_by_score = :suggested_bet,
         home_team_error = :home_team_error,
         away_team_error = :away_team_error,
-        total_error = :total_error
+        total_error = :total_error,
+        score_model_name = '{model_name}_{model_version}'
     WHERE schedule_id = :schedule_id
 """)
 
@@ -208,9 +252,11 @@ if should_update_db == 'y':
                 'home_team_score': matchup['predicted_home_score'],
                 'away_team_score': matchup['predicted_away_score'],
                 'total_score': matchup['predicted_total'],
+                'over_under': 'OVER' if matchup['predicted_total'] > matchup['over_under'] else 'UNDER',
+                'cover_spread': matchup['predicted_cover_spread'],
+                'suggested_bet': matchup['suggested_bet'],
                 
                 # rest are null for non completed game
-                'cover_spread': None,
                 'home_win': None,
                 'underdog_win': None,
                 'correct_winner': None,
@@ -225,13 +271,16 @@ if should_update_db == 'y':
                 'home_team_score': matchup['predicted_home_score'],
                 'away_team_score': matchup['predicted_away_score'],
                 'total_score': matchup['predicted_total'],
-                'home_win': matchup['predicted_home_score'] > matchup['predicted_away_score'],
-                'underdog_win': matchup['predicted_underdog_win'],
+                'over_under': 'OVER' if matchup['predicted_total'] > matchup['over_under'] else 'UNDER',
+                'cover_spread': matchup['predicted_cover_spread'],
+                # 'home_win': matchup['predicted_home_score'] > matchup['predicted_away_score'],
+                # 'underdog_win': matchup['predicted_underdog_win'],
                 'correct_winner': matchup['correct_winner'],
                 'correct_underdog_win': matchup['predicted_underdog_win'] and matchup['actual_underdog_win'] if matchup['predicted_underdog_win'] else None,
-                'home_team_error': matchup['predicted_home_score'] - matchup['actual_home_score'],
-                'away_team_error': matchup['predicted_away_score'] - matchup['actual_away_score'],
-                'total_error': matchup['predicted_total'] - matchup['actual_total']
+                'home_team_error': matchup['predicted_home_score'] - matchup['actual_home_score'] if matchup['actual_home_score'] is not None else None,
+                'away_team_error': matchup['predicted_away_score'] - matchup['actual_away_score'] if matchup['actual_away_score'] is not None else None,
+                'total_error': matchup['predicted_total'] - matchup['actual_total'] if matchup['actual_total'] != 0 else None,
+                'suggested_bet': matchup['suggested_bet']
             }
         
         # see if entry with that schedule id exists
@@ -242,9 +291,12 @@ if should_update_db == 'y':
                 'schedule_id': matchup['schedule_id'],
                 'correct_winner': matchup['correct_winner'],
                 'correct_underdog_win': matchup['predicted_underdog_win'] and matchup['actual_underdog_win'] if matchup['predicted_underdog_win'] else None,
-                'home_team_error': matchup['predicted_home_score'] - matchup['actual_home_score'],
-                'away_team_error': matchup['predicted_away_score'] - matchup['actual_away_score'],
-                'total_error': matchup['predicted_total'] - matchup['actual_total']
+                'over_under': 'OVER' if matchup['predicted_total'] > matchup['over_under'] else 'UNDER',
+                'cover_spread': matchup['predicted_cover_spread'],
+                'home_team_error': matchup['predicted_home_score'] - matchup['actual_home_score'] if matchup['actual_home_score'] is not None else None,
+                'away_team_error': matchup['predicted_away_score'] - matchup['actual_away_score'] if matchup['actual_away_score'] is not None else None,
+                'total_error': matchup['predicted_total'] - matchup['actual_total'] if matchup['actual_total'] else None,
+                'suggested_bet': matchup['suggested_bet']
             }
             res = conn.connection.execute(prediction_update_query, update_data)
             if res.rowcount != 1:
@@ -261,8 +313,11 @@ if should_update_db == 'y':
     print('Done updating database')
     conn.connection.commit()
 
-# print(matchup_predictions[['predicted_home_score', 'predicted_away_score', 'actual_home_score', 'actual_away_score', 'correct_winner', 'spread', 'correct_spread']])
-print(matchup_predictions)
+# partition by weeks and print each week
+weeks = matchup_predictions['week'].unique()
+for week in weeks:
+    print(f'Week {week}')
+    print(matchup_predictions[matchup_predictions['week'] == week])
 
 # calculate accuracy
 correct_winner_accuracy = matchup_predictions['correct_winner'].sum() / len(matchup_predictions)

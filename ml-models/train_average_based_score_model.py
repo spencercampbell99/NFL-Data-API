@@ -27,6 +27,8 @@ features = [
     'team_total_epa',
     'team_turnovers',
     'team_time_of_possession',
+    'team_win_rate',
+    'opp_win_rate',
     # 'opp_turnovers'
 ]
 
@@ -41,7 +43,7 @@ full_features.append('over_under')
 # full_features.remove('opp_critical_situation_percentage')
 # full_features.remove('team_penalty_yards_against')
 
-data = build_expected_results_for_score_moden_training(2014, 2023)
+data = build_expected_results_for_score_moden_training(2023, 2023)
 
 # create test split
 X_train, X_test, y_train, y_test = train_test_split(data[full_features], data['points_scored'], test_size=0.1, random_state=42)
@@ -55,18 +57,25 @@ X_train, X_test, y_train, y_test = train_test_split(data[full_features], data['p
 
 # plot line of best fit for each feature and r squared
 for feature in full_features:
-    continue
-    plt.figure(figsize=(10, 10))
-    sns.regplot(x=X_train[feature], y=y_train, line_kws={'color': 'red'})
-    plt.title(f'{feature} vs. Points Scored')
-    plt.show()
+    # continue
+    # plt.figure(figsize=(10, 10))
+    # sns.regplot(x=X_train[feature], y=y_train, line_kws={'color': 'red'})
+    # plt.title(f'{feature} vs. Points Scored')
+    # plt.show()
+    
+    # print r squared
+    r_squared = np.corrcoef(data[feature], data['points_scored'])[0, 1] ** 2
+    print(f'{feature} r squared: {r_squared}')
 
+
+exit()
 # set random states
 random_state = 42
 np.random.seed(random_state)
 tf.random.set_seed(random_state)
 
 # scale data
+from sklearn.preprocessing import MinMaxScaler
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
@@ -95,9 +104,10 @@ model.summary()
 
 # save model and features with joblib
 model_name = 'points_scored_averages_model'
+version = 'v2024.1'
 print(f'Saving {model_name}...')
-joblib.dump(model, f'models/{model_name}.joblib')
-joblib.dump(full_features, f'models/{model_name}_features.joblib')
+joblib.dump(model, f'models/{model_name}_{version}.joblib')
+joblib.dump(full_features, f'models/{model_name}_{version}_features.joblib')
 
 # save the scaler
-joblib.dump(scaler, f'models/{model_name}_scaler.joblib')
+joblib.dump(scaler, f'models/{model_name}_{version}_scaler.joblib')
