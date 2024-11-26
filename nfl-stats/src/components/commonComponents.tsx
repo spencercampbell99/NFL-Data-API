@@ -1,4 +1,6 @@
 import React from "react";
+import RoundedButton from "./roundedButton.component";
+import { BasicDropdown } from "./commonDropdowns";
 
 const DateRangePicker: React.FunctionComponent<{ startDate: string, endDate: string, setStartDate: any, setEndDate: any }> = ({ startDate, endDate, setStartDate, setEndDate }) => {
     return (
@@ -10,4 +12,25 @@ const DateRangePicker: React.FunctionComponent<{ startDate: string, endDate: str
     )
 }
 
-export { DateRangePicker }
+const defaultSeasons = [
+    2023, 2024
+]
+
+const defaultWeeks = Array.from({ length: 18 }, (_, i) => i + 1);
+
+const SeasonWeekSelector: React.FunctionComponent<{ overrideSeasons?: number[], overrideWeeks?: number[], season: number, week: number, setSeason: any, setWeek: any, buttonText: string, onClick: any, className?: string }> = ({ overrideSeasons, overrideWeeks, season, week, setSeason, setWeek, buttonText, onClick, className = '' }) => {
+    const seasons = overrideSeasons || defaultSeasons;
+    const weeks = overrideWeeks || defaultWeeks;
+
+    return (
+        <div className={`flex flex-row items-center justify-center gap-2 mt-2 text-black ${className}`}>
+            <BasicDropdown options={seasons} selected={season} setSelected={setSeason} alternateDefaultText="Select a Season" />
+            <div className="ml-2"></div>
+            <BasicDropdown options={weeks} selected={week} setSelected={setWeek} multiSelect={false} provideSelectAllButton={false} />
+            <div className="ml-2"></div>
+            <RoundedButton text={buttonText} onClick={onClick} />
+        </div>
+    )
+}
+
+export { DateRangePicker, SeasonWeekSelector };

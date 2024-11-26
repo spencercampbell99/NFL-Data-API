@@ -18,7 +18,7 @@ const NavbarDropdown: React.FunctionComponent<NavbarDropdownProps> = ({ title, i
                 </div>
 
                 {isActive ? (
-                    <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-56 rounded-md shadow-lg bg-nflGreen ring-1 ring-black ring-opacity-5">
+                    <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-auto rounded-md shadow-lg bg-nflGreen ring-1 ring-black ring-opacity-5">
                         <div className="p-1 text-center flex flex-col">
                             {children}
                         </div>

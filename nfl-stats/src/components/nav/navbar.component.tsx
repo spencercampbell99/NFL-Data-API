@@ -21,11 +21,14 @@ const Navbar: FunctionComponent<{}> = () => {
             title: 'Games',
             links: (
                 <>
-                    <NavbarLink href="/nfl/games/2024/1">
-                        Week Breakdowns
+                    <NavbarLink href="/nfl/games/2024/1" className={"border-b-[1px] border-nflWhite"}>
+                        Weekly Games
+                    </NavbarLink>
+                    <NavbarLink href="/nfl/games/2024/1/sportsbook-performance" className={"border-b-[1px] border-nflWhite"}>
+                        Weekly Sportsbook Performance
                     </NavbarLink>
                     <NavbarLink href="/nfl/games/2024/1/model_performance">
-                        Weekly Model Performance
+                        Weekly Historical Model Performance
                     </NavbarLink>
                 </>
             ),
@@ -35,9 +38,6 @@ const Navbar: FunctionComponent<{}> = () => {
             title: 'Players',
             links: (
                 <>
-                    <NavbarLink href="/nfl/players/game/">
-                        Game Breakdowns
-                    </NavbarLink>
                     <NavbarLink href="/nfl/players">
                         Player Overviews
                     </NavbarLink>
@@ -60,7 +60,7 @@ const Navbar: FunctionComponent<{}> = () => {
             title: 'Models',
             links: (
                 <>
-                    <NavbarLink href="/nfl/models/score/analysis">
+                    <NavbarLink href="/nfl/models/score/analysis" className={"border-b-[1px] border-nflWhite"}>
                         Model Analysis
                     </NavbarLink>
                     <NavbarLink href="/nfl/models/score/week-predictions">

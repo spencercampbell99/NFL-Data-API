@@ -6,6 +6,7 @@ import GameService from '@/services/Game.service';
 import Game from '@/interfaces/game.interface';
 import RoundedButton from '@/components/roundedButton.component';
 import { BasicDropdown } from '@/components/commonDropdowns';
+import { SeasonWeekSelector } from '@/components/commonComponents';
 
 const seasons = [2023, 2024]
 const weeksToShow = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
@@ -63,19 +64,10 @@ const Page: FunctionComponent<{}> = () => {
 
     return (
         <div>
-            <h1 className="text-2xl font-semibold text-gray-800 mb-4">Games</h1>
+            {/* <h1 className="text-2xl font-semibold text-gray-800 mb-4">Games</h1> */}
             <div className="mb-4 w-full">
                 <div className="flex flex-row items-center justify-center m-4">
-                    <BasicDropdown options={seasons} selected={season} setSelected={setSeason} alternateDefaultText="Select a Season" />
-                    <div className="ml-2"></div>
-                    {season > 2000 ? 
-                        <>
-                            <BasicDropdown options={weeksToShow} selected={week} setSelected={setWeek} multiSelect={false} provideSelectAllButton={false} />
-                            <div className="ml-2"></div>
-                        </>
-                    : null }
-                    <div className="ml-2"></div>
-                    <RoundedButton text="Go" onClick={fetchGames}  />
+                    <SeasonWeekSelector season={season} week={week} setSeason={setSeason} setWeek={setWeek} buttonText="Go" onClick={fetchGames} overrideSeasons={seasons} overrideWeeks={weeksToShow} />
                 </div>
                 {false ? 
                     <>

@@ -89,6 +89,8 @@ WITH GameData AS (
         GameData
     GROUP BY
         week
+    HAVING
+        count(*) > 5
     ORDER BY
         week
 )
