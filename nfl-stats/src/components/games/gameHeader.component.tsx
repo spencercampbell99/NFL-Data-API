@@ -1,5 +1,6 @@
 import React from 'react'
 import Game from '@/interfaces/game.interface'
+import Team from '@/interfaces/team.interface';
 import moment from 'moment';
 import Link from 'next/link';
 
@@ -10,7 +11,18 @@ const ScoreboardItem: React.FunctionComponent<{ value: string }> = ({ value }) =
 
 }
 
-const GameHeader: React.FunctionComponent<{ game: Game, includeDate?: boolean, includeBoxscoreLink?: boolean }> = ({ game, includeDate = true, includeBoxscoreLink = false }) => {
+const TeamDisplay: React.FunctionComponent<{ team: Team, isHome: boolean }> = ({ team, isHome }) => {
+    return (
+        <div className="flex items-center space-x-2">
+            <span className="text-lg font-bold">{team.short_display_name} ({isHome ? 'H' : 'A'})</span>
+            <img src={team.team_logo_wikipedia} alt="Logo" className="w-8 h-8" />
+        </div>
+    );
+}
+
+const GameHeader: React.FunctionComponent<{ game: Game, includeDate?: boolean, includeBoxscoreLink?: boolean, invertHomeAway?: boolean }> = ({ game, includeDate = true, includeBoxscoreLink = false, invertHomeAway = false }) => {
+    const winnerLeft = game.away_score ? (!invertHomeAway ? game.away_score > game.home_score : game.away_score < game.home_score) : false;
+
     return (
         <div className="flex flex-col justify-center items-center bg-white px-[100px] py-4 rounded-lg shadow-md text-black min-w-[900px]">
             {includeDate && game.date ?
@@ -22,14 +34,13 @@ const GameHeader: React.FunctionComponent<{ game: Game, includeDate?: boolean, i
             : null}
             <div className="flex items-center justify-between w-full">
                 {/* Team 1 */}
-                <div className="flex items-center space-x-2">
-                    <span className="text-lg font-bold min-w-[140px]">{game.away_team.short_display_name} (A)</span>
-                    <img src={game.away_team.team_logo_wikipedia} alt="Logo" className="w-8 h-8" />
-                    <span className="text-3xl font-bold pl-4">{game.away_score}</span>
-                </div>
+                {invertHomeAway
+                    ? <TeamDisplay team={game.home_team} isHome={true} />
+                    : <TeamDisplay team={game.away_team} isHome={false} />
+                }
 
                 {/* Scoreboard */}
-                <div className="flex items-center flex-col min-w-[400px]">
+                <div className={`flex items-center flex-col min-w-[400px] border-green-800 px-5 ${game.away_score ? (winnerLeft ? 'border-l-4' : 'border-r-4') : ''}`}>
                     <div className="flex flex-row items-center justify-evenly border-black border-b-[1px] w-full">
                         <ScoreboardItem value={'Team'} />
                         <ScoreboardItem value={'Q1'} />
@@ -57,11 +68,10 @@ const GameHeader: React.FunctionComponent<{ game: Game, includeDate?: boolean, i
                 </div>
         
                 {/* Team 2 */}
-                <div className="flex items-center space-x-2">
-                    <span className="text-3xl font-bold pr-4">{game.home_score}</span>
-                    <img src={game.home_team.team_logo_wikipedia} alt="Logo" className="w-8 h-8" />
-                    <span className="text-lg font-bold text-right min-w-[140px]">{game.home_team.short_display_name} (H)</span>
-                </div>
+                {invertHomeAway
+                    ? <TeamDisplay team={game.away_team} isHome={false} />
+                    : <TeamDisplay team={game.home_team} isHome={true} />
+                }
             </div>
             {includeBoxscoreLink && game.id ?
                 <Link className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-1 px-4 rounded text-center" href={`/nfl/games/overview/${game.id}`} target='_blank'>

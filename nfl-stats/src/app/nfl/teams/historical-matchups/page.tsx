@@ -190,7 +190,12 @@ const HistoricalMatchup: React.FunctionComponent<{ game: Game, awayTeam: Team, h
             <div className="mt-3 flex flex-col">
                 {currentGames.length > 0 ? 
                         currentGames.map((game: Game) => (
-                            <GameHeader game={game} key={game.id} includeBoxscoreLink={true} />
+                            <GameHeader
+                                game={game}
+                                key={game.id}
+                                includeBoxscoreLink={true}
+                                invertHomeAway={game.home_team.char_id === team1?.char_id}
+                            />
                         ))
                 : null}
                 {currentGames.length > 0 && pagesLoaded > 0 ?

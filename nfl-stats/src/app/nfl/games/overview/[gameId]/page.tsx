@@ -255,22 +255,22 @@ const PlayerGamePage: React.FunctionComponent<{ params: Params }> = ({ params })
             <div>
                 <div className="grid grid-cols-2 gap-4 text-black w-[100%] mt-5 min-w-[1250px]">
                     <div className="w-full">
-                        <StatBlock title={`${game.away_team.team_name} Passing`} stats={game.player_stats.passing} team_id={game.away_team_id} stat_type='passing' columns={passingColumns}/>
+                        <StatBlock title={`${game.away_team.short_display_name} Passing`} stats={game.player_stats.passing} team_id={game.away_team_id} stat_type='passing' columns={passingColumns}/>
                     </div>
                     <div className="w-full">
-                        <StatBlock title={`${game.home_team.team_name} Passing`} stats={game.player_stats.passing} team_id={game.home_team_id} stat_type='passing' columns={passingColumns} />
+                        <StatBlock title={`${game.home_team.short_display_name} Passing`} stats={game.player_stats.passing} team_id={game.home_team_id} stat_type='passing' columns={passingColumns} />
                     </div>
                     <div className="w-full">
-                        <StatBlock title={`${game.away_team.team_name} Rushing`} stats={game.player_stats.rushing} team_id={game.away_team_id} stat_type='rushing' columns={rushingColumns} />
+                        <StatBlock title={`${game.away_team.short_display_name} Rushing`} stats={game.player_stats.rushing} team_id={game.away_team_id} stat_type='rushing' columns={rushingColumns} />
                     </div>
                     <div className="w-full">
-                        <StatBlock title={`${game.home_team.team_name} Rushing`} stats={game.player_stats.rushing} team_id={game.home_team_id} stat_type='rushing' columns={rushingColumns} />
+                        <StatBlock title={`${game.home_team.short_display_name} Rushing`} stats={game.player_stats.rushing} team_id={game.home_team_id} stat_type='rushing' columns={rushingColumns} />
                     </div>
                     <div className="w-full">
-                        <StatBlock title={`${game.away_team.team_name} Receiving`} stats={game.player_stats.receiving} team_id={game.away_team_id} stat_type='receiving' columns={receivingColumns} />
+                        <StatBlock title={`${game.away_team.short_display_name} Receiving`} stats={game.player_stats.receiving} team_id={game.away_team_id} stat_type='receiving' columns={receivingColumns} />
                     </div>
                     <div>
-                        <StatBlock title={`${game.home_team.team_name} Receiving`} stats={game.player_stats.receiving} team_id={game.home_team_id} stat_type='receiving' columns={receivingColumns} />
+                        <StatBlock title={`${game.home_team.short_display_name} Receiving`} stats={game.player_stats.receiving} team_id={game.home_team_id} stat_type='receiving' columns={receivingColumns} />
                     </div>
                 </div>
             </div>
