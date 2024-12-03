@@ -1,13 +1,7 @@
 import pandas as pd
 import numpy as np
-import tensorflow as tf
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from keras.models import Sequential
-from keras.layers import Dense, Dropout
-from keras.callbacks import EarlyStopping
+# import tensorflow as tf
 from data_getters import get_winner_model_data
-import matplotlib.pyplot as plt
 from MysqlConnection import MySQLConnection
 from sqlalchemy import text
 

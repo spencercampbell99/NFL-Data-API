@@ -55,7 +55,7 @@ const GameHeader: React.FunctionComponent<{ game: Game, includeDate?: boolean, i
                         <ScoreboardItem value={'-'} />
                         <ScoreboardItem value={'-'} />
                         <ScoreboardItem value={'-'} />
-                        <ScoreboardItem value={game.away_score.toString()} />
+                        <ScoreboardItem value={game.away_score ? game.away_score.toString() : '-'} />
                     </div>
                     <div className="flex flex-row items-center justify-evenly w-full">
                         <ScoreboardItem value={game.home_team.char_id ?? ''}/>
@@ -63,7 +63,7 @@ const GameHeader: React.FunctionComponent<{ game: Game, includeDate?: boolean, i
                         <ScoreboardItem value={'-'} />
                         <ScoreboardItem value={'-'} />
                         <ScoreboardItem value={'-'} />
-                        <ScoreboardItem value={game.home_score.toString()} />
+                        <ScoreboardItem value={game.home_score ? game.home_score.toString() : '-'} />
                     </div>
                 </div>
         

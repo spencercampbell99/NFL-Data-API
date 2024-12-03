@@ -232,7 +232,7 @@ const receivingColumns = [
     '2PTC'
 ];
 
-const PlayerGamePage: React.FunctionComponent<{ params: Params }> = ({ params }) => {
+const GameOverviewPage: React.FunctionComponent<{ params: Params }> = ({ params }) => {
     const [game, setGame] = React.useState<Game|null>(null);
 
     // fetch games
@@ -279,4 +279,4 @@ const PlayerGamePage: React.FunctionComponent<{ params: Params }> = ({ params })
     );
 }
 
-export default PlayerGamePage;
+export default GameOverviewPage;

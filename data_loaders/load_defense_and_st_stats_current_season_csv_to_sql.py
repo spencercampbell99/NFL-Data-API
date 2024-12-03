@@ -94,7 +94,7 @@ if not skip_def:
             print(f"{completed} / {total} ({completed / total * 100}%)")
         
         # if week < 7, skip
-        if row['week'] < 10:
+        if row['week'] < 5:
             completed += 1
             continue
         

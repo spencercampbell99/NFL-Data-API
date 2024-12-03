@@ -68,7 +68,7 @@ total = len(data)
 # insert/update the data into the database
 for index, row in data.iterrows():
     # if row week less than 6 then skip
-    if row['week'] < 6:
+    if row['week'] < 10:
         completed += 1
         continue
     
