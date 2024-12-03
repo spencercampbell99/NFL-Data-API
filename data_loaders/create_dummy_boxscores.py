@@ -8,7 +8,7 @@ conn = MySQLConnection()
 find_games_query = text(f"""
     SELECT id, home_team_id, away_team_id, home_team_char_id, away_team_char_id
     FROM schedules
-    WHERE season = 2024 and week = 13
+    WHERE season = 2024 and week = 14
 """)
 
 games = conn.connection.execute(find_games_query).fetchall()

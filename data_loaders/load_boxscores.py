@@ -5,7 +5,7 @@ from sqlalchemy import text
 conn = MySQLConnection()
 
 season = 2024
-week = 12
+week = 13
 
 # find all games for 2024
 find_games_query = text(f"""
