@@ -23,7 +23,7 @@ const { Op } = require("sequelize");
 exports.list = async (req, res) => {
     try {
         // parse query params
-        let queryObj = {limit: 100}
+        let queryObj = {limit: 100, raw: true};
         let whereObj = {}
         if (req.body.search !== null && req.body.search !== undefined) {
             whereObj.full_name = {
@@ -52,10 +52,29 @@ exports.list = async (req, res) => {
 
         console.log(queryObj);
 
+        // join in team on team_id and select team_char_id if team is in attributes
+        let flattenTeamCharId = false;
+        if (queryObj.attributes.includes('team')) {
+            queryObj.include = [{
+                model: nflDb.teams,
+                as: 'team',
+                attributes: [['char_id', 'team']]
+            }];
+            queryObj.attributes = queryObj.attributes.filter(attr => attr !== 'team');
+            flattenTeamCharId = true;
+        }
 
         const players = await Player.findAll(queryObj);
+
+        // if (flattenTeamCharId) {
+        //     players.forEach(player => {
+        //         player.team = player['team.team'] ?? 'N/A';
+        //     });
+        // }
+
         res.send(players);
     } catch (err) {
+        console.log(err)
         res.status(500).send({
             message: err.message || "An error occurred while retrieving players."
         });

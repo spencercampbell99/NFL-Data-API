@@ -20,8 +20,8 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className + ' text-black' + ' min-w-[1200px]'}>
         <AuthProvider>
-          <Navbar></Navbar>
-          {children}
+            <Navbar></Navbar>
+            {children}
         </AuthProvider>
       </body>
     </html>

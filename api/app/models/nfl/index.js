@@ -39,6 +39,7 @@ db.teams.hasMany(db.schedules, { foreignKey: 'home_team_id', as: 'home_team' });
 db.teams.hasMany(db.schedules, { foreignKey: 'away_team_id', as: 'away_team' });
 db.teams.hasMany(db.boxscores, { foreignKey: 'team_id' });
 db.teams.hasMany(db.playerGameStats, { foreignKey: 'team_id' });
+db.teams.hasMany(db.players, { foreignKey: 'team_id' });
 
 // schedules
 db.schedules.belongsTo(db.teams, { foreignKey: 'home_team_id', as: 'home_team' });
@@ -74,5 +75,9 @@ db.playerGameStats.belongsTo(db.boxscores, { foreignKey: 'boxscore_id' });
 db.fantasyPlayerPerformances.belongsTo(db.schedules, { foreignKey: 'schedule_id', as: 'schedule' });
 db.fantasyPlayerPerformances.belongsTo(db.players, { foreignKey: 'player_id', as: 'player' });
 db.fantasyPlayerPerformances.belongsTo(db.teams, { foreignKey: 'team_id', as: 'team' });
+
+// players
+db.players.hasMany(db.playerGameStats, { foreignKey: 'player_id', as: 'game_stats' });
+db.players.belongsTo(db.teams, { foreignKey: 'team_id', as: 'team' });
 
 module.exports = db;
