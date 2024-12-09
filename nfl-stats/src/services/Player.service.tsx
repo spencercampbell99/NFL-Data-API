@@ -65,6 +65,23 @@ class PlayerService {
             throw new Error('Error fetching player by ID');
         }
     }
+
+    /**
+     * Get player season overview by player id and season
+     * 
+     * @param {string|number} id - The ID of the player to fetch.
+     * @param {string|number} season - The season to fetch player stats for.
+     * 
+     * @returns {Promise<Player>} A promise that resolves to the player object.
+     */
+    static async getPlayerSeasonOverview(id: string|number, season: string|number): Promise<Player> {
+        try {
+            const response = await axios.get(`/player/${id}/overview-season/${season}`);
+            return response.data as Player;
+        } catch (error) {
+            throw new Error('Error fetching player season overview');
+        }
+    }
 }
 
 export default PlayerService;

@@ -1,6 +1,7 @@
 const nflDb = require('../models').nfl;
 const Player = nflDb.players;
 const { Op } = require("sequelize");
+const getTemplateQuery = require('../helpers').getTemplateQuery;
 
 /**
  * List first 100 players
@@ -110,4 +111,97 @@ exports.getPlayerById = async (req, res) => {
             message: err.message || "An error occurred while retrieving player."
         });
     }
+}
+
+/**
+ * Get player overivew for season
+ * 
+ * @param {Object} req - request object
+ * @param {Object} res - response object
+ * 
+ * @returns {Object} - response object
+ */
+exports.getPlayerOverviewBySeason = async (req, res) => {
+    try {
+        const playerId = req.params.id;
+        const season = req.params.season;
+
+        if (!playerId) {
+            return res.status(400).send({
+                message: "playerId is required."
+            });
+        }
+
+        if (!season) {
+            return res.status(400).send({
+                message: "season is required."
+            });
+        }
+
+        let player = await Player.findByPk(playerId, {
+            include: [{
+                model: nflDb.teams,
+                as: 'team',
+                attributes: [['char_id', 'team']]
+            }]
+          });
+
+        if (!player) {
+            return res.status(404).send({
+                message: "Player not found."
+            });
+        }
+
+        // keep just player field data
+        player = player.get({plain: true});
+
+        try {
+            // switch to get stats for player at season
+            let season_stats = [];
+            switch (player.position) {
+                case 'QB':
+                    season_stats = await _getQBStatsForSeason(playerId, season);
+                    break;
+                default:
+                    break;
+            }
+
+            player.season_stats = season_stats;
+        } catch (err) {
+            console.log(err);
+            res.status(500).send({
+                message: err.message || "An error occurred while retrieving player stats."
+            });
+
+            return;
+        }
+
+        // return
+        res.send(player);
+    } catch (err) {
+        console.log(err);
+
+        res.status(500).send({
+            message: err.message || "An error occurred while retrieving player."
+        });
+    }
+}
+
+/**
+ * Get QB aggregate stats for player at season
+ * 
+ * @param {int} playerId - player id
+ * @param {int} season - season
+ * 
+ * @returns {Object} - response object
+ */
+_getQBStatsForSeason = async (playerId, season) => {
+    const query = getTemplateQuery('players/QBSeasonOverview.sql', {':playerId': playerId, ':season': season});
+
+    const qbStats = await nflDb.sequelize.query(query, {
+        type: nflDb.Sequelize.QueryTypes.SELECT,
+        logging: false,
+    });
+
+    return qbStats;
 }

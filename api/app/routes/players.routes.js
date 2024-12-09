@@ -9,5 +9,8 @@ module.exports = app => {
     // get team by id
     router.get("/player/:id", playerController.getPlayerById);
 
+    // get player overview info for season
+    router.get("/player/:id/overview-season/:season", playerController.getPlayerOverviewBySeason);
+
     app.use('/api', router);
 };

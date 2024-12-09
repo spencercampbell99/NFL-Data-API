@@ -8,7 +8,7 @@ interface Player {
     jersey_number?: number;
     height?: number;
     weight?: number;
-    date_of_birth?: Date;
+    date_of_birth?: string;
     college?: string;
     experience?: number;
     rookie_year?: number;
@@ -17,6 +17,8 @@ interface Player {
     active?: boolean;
     headshot_url?: string;
     espn_id?: number;
+    season_stats?: any;
+    team?: any;
 }
 
 export default Player;

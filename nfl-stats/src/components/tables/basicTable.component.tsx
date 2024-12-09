@@ -10,10 +10,10 @@ interface ColumnConfig {
 interface TableProps {
   columns: ColumnConfig[];
   data: Record<string, any>[];
-  onRowClick: (rowData: Record<string, any>) => void;
+  onRowClick?: (rowData: Record<string, any>) => void;
 }
 
-const BasicTable: React.FC<TableProps> = ({ columns, data, onRowClick }) => {
+const BasicTable: React.FC<TableProps> = ({ columns, data, onRowClick = () => {} }) => {
   const [searchQueries, setSearchQueries] = useState<Record<string, string>>({});
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'ascending' | 'descending' } | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
@@ -110,39 +110,41 @@ const BasicTable: React.FC<TableProps> = ({ columns, data, onRowClick }) => {
           ))}
         </tbody>
       </table>
-      <div className="flex justify-between items-center m-4">
-        <button
-          onClick={() => setCurrentPage(0)}
-          disabled={currentPage === 0}
-          className="px-4 py-2 text-sm text-blue-500 bg-white rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
-        >
-          First
-        </button>
-        <button
-          onClick={() => setCurrentPage(currentPage - 1)}
-          disabled={currentPage === 0}
-          className="px-4 py-2 text-sm text-blue-500 bg-white rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
-        >
-          Previous
-        </button>
-        <span className="text-sm text-gray-700">
-          Page {currentPage + 1} of {totalPages}
-        </span>
-        <button
-          onClick={() => setCurrentPage(currentPage + 1)}
-          disabled={currentPage >= totalPages - 1}
-          className="px-4 py-2 text-sm text-blue-500 bg-white rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
-        >
-          Next
-        </button>
-        <button
-          onClick={() => setCurrentPage(totalPages - 1)}
-          disabled={currentPage === totalPages - 1}
-          className="px-4 py-2 text-sm text-blue-500 bg-white rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
-        >
-          Last
-        </button>
-      </div>
+      {totalPages > 1 ?
+        <div className="flex justify-between items-center m-4">
+          <button
+            onClick={() => setCurrentPage(0)}
+            disabled={currentPage === 0}
+            className="px-4 py-2 text-sm text-blue-500 bg-white rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
+          >
+            First
+          </button>
+          <button
+            onClick={() => setCurrentPage(currentPage - 1)}
+            disabled={currentPage === 0}
+            className="px-4 py-2 text-sm text-blue-500 bg-white rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <span className="text-sm text-gray-700">
+            Page {currentPage + 1} of {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage(currentPage + 1)}
+            disabled={currentPage >= totalPages - 1}
+            className="px-4 py-2 text-sm text-blue-500 bg-white rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
+          >
+            Next
+          </button>
+          <button
+            onClick={() => setCurrentPage(totalPages - 1)}
+            disabled={currentPage === totalPages - 1}
+            className="px-4 py-2 text-sm text-blue-500 bg-white rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
+          >
+            Last
+          </button>
+        </div>
+      : null}
     </div>
   );
 };

@@ -218,6 +218,24 @@ async function findOrCreatePlayer (playerObject, team_id) {
     return player;
 }
 
+/**
+ * Find or fail player by espn_id
+ * 
+ * @param {number} espn_id
+ * 
+ * @returns {Player}
+ */
+async function findPlayerByEspnId (espn_id) {
+    const player = await Player.findOne({
+        where: {
+            espn_id: espn_id,
+        },
+        logging: false,
+    });
+
+    return player;
+}
+
 const statNameToPosGroup = {
     'passing': 'Offense',
     'rushing': 'Offense',
@@ -262,25 +280,14 @@ async function populateGameStatsForPlayer ({ playerObject, statKeys, statName, t
 
     const game_id = game.id;
 
-    // find or create player
-    let player = await findOrCreatePlayer(playerObject.athlete, team_id);
-
     const espn_id = parseInt(playerObject.athlete.id, 10);
     if (!espn_id) {
         console.log(`Player ${playerObject.athlete.displayName} does not have a valid espn id. Skipping.`);
         return false;
     }
 
-    // find player or fail
-    // const player = await Player.findOne({
-    //     where: {
-    //         [Op.or]: [
-    //             {espn_id: espn_id},
-    //             {full_name: playerObject.athlete.displayName},
-    //         ]
-    //     },
-    //     logging: verbose,
-    // });
+    // find or create player
+    let player = await findPlayerByEspnId(espn_id);
 
     if (!player) {
         console.log(`Player ${playerObject.athlete.displayName} does not exist. Skipping.`);
@@ -314,7 +321,7 @@ async function populateGameStatsForPlayer ({ playerObject, statKeys, statName, t
             game_id: game_id,
             team_id: team_id,
             boxscore_id: boxscore_id,
-            position: statNameToPos[statName] ?? null,
+            position: player.position ?? (statNameToPos[statName] ?? null),
             position_group: statNameToPosGroup[statName] ?? null,
             season: game.season,
             week: game.week,
@@ -323,7 +330,7 @@ async function populateGameStatsForPlayer ({ playerObject, statKeys, statName, t
         });
     } else if (colsToCheck.some(col => !playerGameStats[col])) {
         playerGameStats.boxscore_id = boxscore_id;
-        playerGameStats.position = statNameToPos[statName] ?? playerGameStats.position;
+        playerGameStats.position = player.position ?? (statNameToPos[statName] ?? null);
         playerGameStats.position_group = statNameToPosGroup[statName] ?? playerGameStats.position_group;
         playerGameStats.season = game.season;
         playerGameStats.week = game.week;

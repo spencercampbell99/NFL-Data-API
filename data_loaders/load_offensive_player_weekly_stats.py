@@ -68,7 +68,7 @@ total = len(data)
 # insert/update the data into the database
 for index, row in data.iterrows():
     # if row week less than 6 then skip
-    if row['week'] < 11:
+    if row['week'] < 0:
         completed += 1
         continue
     
@@ -96,7 +96,7 @@ for index, row in data.iterrows():
         continue
     
     espn_game_ids.append(schedule_id[1])
-    
+
     row['game_id'] = schedule_id[0]
 
     row['player_id'] = row['player_id'][3:] # drop 00- preceeding

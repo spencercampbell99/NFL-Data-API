@@ -5,6 +5,9 @@ from SQLConnector import MySQLConnection
 from sqlalchemy import text
 
 data = nfl.import_players()
+
+# print(data.columns)
+# exit()
     
 # Create a connection to the database
 conn = MySQLConnection()
@@ -18,6 +21,8 @@ update_statement = text(f"""
     SET active = :active,
         height = :height,
         weight = :weight,
+        first_name = :first_name,
+        last_name = :last_name,
         experience = :years_of_experience,
         draft_club = :draft_club,
         draft_number = :draft_number,
@@ -78,6 +83,8 @@ for index, row in data.iterrows():
     insert_dict = {
         'player_id': player_id,
         'position': row['position'],
+        'first_name': row['football_name'] if row['football_name'] else row['display_name'].split(' ')[0],
+        'last_name': row['last_name'],
         'active': row['status'] == 'ACT',
         'birth_date': row['birth_date'],
         'height': row['height'],

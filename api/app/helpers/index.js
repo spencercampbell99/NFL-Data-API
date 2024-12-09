@@ -39,3 +39,23 @@ exports.random = () => {
 exports.authentication = (salt, password) => {
     return crypto.createHmac('sha256', [salt, password].join(':')).update(process.env.SECRET_KEY).digest('hex');
 }
+
+/**
+ * Return formatted query from saved sql queries.
+ * 
+ * @param {string} filename - The filename.
+ * @param {object} replaceMapping - The replace mapping.
+ * 
+ * @returns {string} The formatted query.
+ */
+exports.getTemplateQuery = (filename, replaceMapping) => {
+    const fs = require('fs');
+    const path = require('path');
+    let sql = fs.readFileSync(path.join(__dirname, `../sql/${filename}`)).toString();
+    
+    for (let key in replaceMapping) {
+        sql = sql.replace(key, replaceMapping[key]);
+    }
+
+    return sql;
+}
