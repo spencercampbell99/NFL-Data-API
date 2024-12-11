@@ -60,7 +60,7 @@ team_conversion = {
 
 # Insert the data into the database
 for index, row in schedule.iterrows():
-    if row['week'] > 14 or row['week'] < 11:
+    if row['week'] > 15 or row['week'] < 13:
         continue
     
     # print % progress every 100 rows
