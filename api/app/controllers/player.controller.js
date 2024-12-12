@@ -1,5 +1,6 @@
 const nflDb = require('../models').nfl;
 const Player = nflDb.players;
+const LeaguePlayerAveragesBySeason = nflDb.leaguePlayerAveragesBySeasons;
 const { Op } = require("sequelize");
 const getTemplateQuery = require('../helpers').getTemplateQuery;
 
@@ -143,7 +144,8 @@ exports.getPlayerOverviewBySeason = async (req, res) => {
                 model: nflDb.teams,
                 as: 'team',
                 attributes: [['char_id', 'team']]
-            }]
+            }],
+            logging: false,
           });
 
         if (!player) {
@@ -198,10 +200,29 @@ exports.getPlayerOverviewBySeason = async (req, res) => {
 _getQBStatsForSeason = async (playerId, season) => {
     const query = getTemplateQuery('players/QBSeasonOverview.sql', {':playerId': playerId, ':season': season});
 
-    const qbStats = await nflDb.sequelize.query(query, {
+    let qbStats = await nflDb.sequelize.query(query, {
         type: nflDb.Sequelize.QueryTypes.SELECT,
         logging: false,
     });
+
+    if (!qbStats || qbStats.length == 0) {
+        return [];
+    }
+
+    // get latest player averaged stats for 2024 qb
+    const leaguePositionAverages = await LeaguePlayerAveragesBySeason.findOne({
+        where: {
+            position: 'QB',
+            season: season
+        },
+        order: [['createdAt', 'DESC']],
+        logging: false,
+    });
+
+    // if player averages found, add to qbStats
+    if (leaguePositionAverages) {
+        qbStats[0].league_position_averages = leaguePositionAverages;
+    }
 
     return qbStats;
 }

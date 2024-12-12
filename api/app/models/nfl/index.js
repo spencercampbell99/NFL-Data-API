@@ -32,6 +32,8 @@ db.playerGameStats = require('./playerGameStat.model')(sequelize, Sequelize);
 db.modelPredictions = require('./modelPrediction.model')(sequelize, Sequelize);
 db.averagedTeamPerformances = require('./averagedTeamPerformance.model')(sequelize, Sequelize);
 db.fantasyPlayerPerformances = require('./fantasyPlayerPerformance.model')(sequelize, Sequelize);
+db.leaguePlayerAveragesBySeasons = require('./leaguePlayerAveragesBySeason.model')(sequelize, Sequelize);
+db.leagueTeamAveragesBySeasons = require('./leagueTeamAveragesBySeason.model')(sequelize, Sequelize);
 
 // define associations
 // teams
@@ -40,6 +42,8 @@ db.teams.hasMany(db.schedules, { foreignKey: 'away_team_id', as: 'away_team' });
 db.teams.hasMany(db.boxscores, { foreignKey: 'team_id' });
 db.teams.hasMany(db.playerGameStats, { foreignKey: 'team_id' });
 db.teams.hasMany(db.players, { foreignKey: 'team_id' });
+db.teams.hasMany(db.averagedTeamPerformances, { foreignKey: 'team_id', as: 'averaged_team_performances' });
+db.teams.hasMany(db.leagueTeamAveragesBySeasons, { foreignKey: 'team_id', as: 'league_team_averages_by_seasons' });
 
 // schedules
 db.schedules.belongsTo(db.teams, { foreignKey: 'home_team_id', as: 'home_team' });
@@ -79,5 +83,8 @@ db.fantasyPlayerPerformances.belongsTo(db.teams, { foreignKey: 'team_id', as: 't
 // players
 db.players.hasMany(db.playerGameStats, { foreignKey: 'player_id', as: 'game_stats' });
 db.players.belongsTo(db.teams, { foreignKey: 'team_id', as: 'team' });
+
+// league team averages by season
+db.leagueTeamAveragesBySeasons.belongsTo(db.teams, { foreignKey: 'team_id', as: 'team' });
 
 module.exports = db;

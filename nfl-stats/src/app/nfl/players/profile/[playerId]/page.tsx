@@ -48,24 +48,32 @@ const BasicPlayerInfoCard = ({ player }: { player: Player }) => {
 }
 
 const SeasonStatsCard = ({ player }: { player: Player }) => {
+    const stats = player.season_stats[0]
+
+    if (!stats) {
+        return null
+    }
+
+    const leagueAverageStats = stats?.league_position_averages
     return (
         <div className="bg-gray-100 p-6 shadow-md w-full">
-    <BasicTable
-        columns={[
-            { header: 'Stat', key: 'stat', searchable: false, sortable: false },
-            { header: 'Overall', key: 'overall', searchable: false, sortable: false },
-            { header: 'Home', key: 'home', searchable: false, sortable: false },
-            { header: 'Away', key: 'away', searchable: false, sortable: false },
-            { header: 'Division', key: 'division', searchable: false, sortable: false },
-        ]}
-        data={[
-            { stat: 'Passer Rating', overall: player.season_stats[0].passer_rating, home: player.season_stats[0].passer_rating_home, away: player.season_stats[0].passer_rating_away, division: player.season_stats[0].passer_rating_division },
-            { stat: 'Yards/Attempt', overall: player.season_stats[0].yards_per_attempt, home: player.season_stats[0].yards_per_attempt_home, away: player.season_stats[0].yards_per_attempt_away, division: player.season_stats[0].yards_per_attempt_division },
-            { stat: 'Yards/Completion', overall: player.season_stats[0].yards_per_completion, home: player.season_stats[0].yards_per_completion_home, away: player.season_stats[0].yards_per_completion_away, division: player.season_stats[0].yards_per_completion_division },
-            { stat: 'Air Yards/Attempt', overall: player.season_stats[0].air_yards_per_attempt, home: player.season_stats[0].air_yards_per_attempt_home, away: player.season_stats[0].air_yards_per_attempt_away, division: player.season_stats[0].air_yards_per_attempt_division },
-        ]}
-    />
-</div>
+            <BasicTable
+                columns={[
+                    { header: 'Stat', key: 'stat', searchable: false, sortable: false },
+                    { header: 'Overall', key: 'overall', searchable: false, sortable: false },
+                    { header: 'League Average', key: 'league_average', searchable: false, sortable: false },
+                    { header: 'Home', key: 'home', searchable: false, sortable: false },
+                    { header: 'Away', key: 'away', searchable: false, sortable: false },
+                    { header: 'Division', key: 'division', searchable: false, sortable: false },
+                ]}
+                data={[
+                    { stat: 'Passer Rating', overall: stats.passer_rating, league_average: leagueAverageStats?.passer_rating, home: stats.passer_rating_home, away: stats.passer_rating_away, division: stats.passer_rating_division },
+                    { stat: 'Yards/Attempt', overall: stats.yards_per_attempt, league_average: leagueAverageStats?.yards_per_passing_attempt, home: stats.yards_per_attempt_home, away: stats.yards_per_attempt_away, division: stats.yards_per_attempt_division },
+                    { stat: 'Yards/Completion', overall: stats.yards_per_completion, league_average: leagueAverageStats?.yards_per_passing_completion, home: stats.yards_per_completion_home, away: stats.yards_per_completion_away, division: stats.yards_per_completion_division },
+                    { stat: 'Air Yards/Attempt', overall: stats.air_yards_per_attempt, league_average: leagueAverageStats?.air_yards_per_passing_attempt, home: stats.air_yards_per_attempt_home, away: stats.air_yards_per_attempt_away, division: stats.air_yards_per_attempt_division },
+                ]}
+            />
+        </div>
     )
 }
 
