@@ -4,6 +4,9 @@ import React from "react"
 import PlayerService from "@/services/Player.service"
 import Player from "@/interfaces/player.interface"
 import BasicTable from "@/components/tables/basicTable.component"
+import GameService from "@/services/Game.service"
+import Game from "@/interfaces/game.interface"
+import { ScheduleList } from "@/components/games/scheduleList.component"
 
 const BasicPlayerInfoCard = ({ player }: { player: Player }) => {
     return (
@@ -77,8 +80,28 @@ const SeasonStatsCard = ({ player }: { player: Player }) => {
     )
 }
 
+const SeasonScheduleCard = ({ schedule, team=null }: { schedule: Game[], team?: string|null }) => {
+    return (
+        <div className="bg-gray-100 p-6 shadow-md w-full">
+            {schedule.length ?
+                <ScheduleList games={schedule} alternateTitle={'Season Schedule'} targetTeam={team} />
+            : null}
+        </div>
+    )
+}
+
+const NextGameCard = ({ game }: { game: Game }) => {
+    return (
+        <div className="bg-gray-100 p-6 shadow-md w-full">
+            Will show defensive/offensive averages for the opponent team and a link to historical matchups.
+        </div>
+    )
+}
+
 const PlayerProfilePage = () => {
     const [player, setPlayer] = React.useState<Player|null>(null)
+    const [schedule, setSchedule] = React.useState<Game[]>([])
+    const [nextGame, setNextGame] = React.useState<Game|null>(null)
 
     React.useEffect(() => {
         const playerId = window.location.pathname.split('/').pop()
@@ -93,12 +116,28 @@ const PlayerProfilePage = () => {
         }
     }, [])
 
+    React.useEffect(() => {
+        if (player?.team_id) {
+            GameService.getSeasonScheduleForTeam(player.team_id, 2024)
+                .then((schedule) => {
+                    setSchedule(schedule)
+                    
+                    if (schedule[15]) {
+                        setNextGame(schedule[15])
+                    }
+                })
+                .catch((error) => console.error(error))
+        }
+    }, [player])
+
     return (
         <div>
             {player ? 
                 <>
                     <BasicPlayerInfoCard player={player} />
                     <SeasonStatsCard player={player} />
+                    {nextGame ? <NextGameCard game={nextGame} /> : null}
+                    <SeasonScheduleCard schedule={schedule} team={player?.team?.team}/>
                 </>
             : <p>Loading...</p>}
         </div>

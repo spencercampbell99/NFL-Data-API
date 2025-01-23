@@ -92,9 +92,8 @@ if not skip_def:
         # print percent completion if divisible by 100
         if completed % 100 == 0:
             print(f"{completed} / {total} ({completed / total * 100}%)")
-        
-        # if week < 7, skip
-        if row['week'] < 11:
+
+        if row['week'] < 15 or row['week'] > 18:
             completed += 1
             continue
         
@@ -181,7 +180,14 @@ for index, row in special_teams.iterrows():
 
     # find the schedule id
     result = conn.connection.execute(find_schedule_query, {'season': row['season'], 'week': row['week'], 'team': team})
-    schedule_id = result.fetchone()[0]
+    schedule_id = result.fetchone()
+    
+    if schedule_id is None:
+        print(f"Schedule not found for team {team} in week {row['week']} of season {row['season']}")
+        completed += 1
+        continue
+    else:
+        schedule_id = schedule_id[0]
 
     if schedule_id is None:
         print(f"Schedule not found for team {team} in week {row['week']} of season {row['season']}")

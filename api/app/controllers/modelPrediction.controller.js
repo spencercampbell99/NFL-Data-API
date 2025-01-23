@@ -31,6 +31,7 @@ exports.getModelPredictionsOverviewBySeasonAndWeek = async (req, res) => {
                         game_type: 'REG',
                     },
                     attributes: ['season', 'week', 'over_under', 'spread', 'date', 'home_moneyline', 'away_moneyline', 'home_team_char_id', 'away_team_char_id','home_score', 'away_score'],
+                    order: [['date', 'ASC'], ['time', 'ASC']],
                 },
             ],
         });

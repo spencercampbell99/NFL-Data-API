@@ -43,6 +43,8 @@ exports.getGamesBySeasonAndWeek = async ({ week, season, idsOnly = true, withMod
                     attributes: ['home_team_score', 'away_team_score', 'total_score', 'over_under', 'cover_spread', 'home_win', 'underdog_win', 'suggested_moneyline_percent_bet', 'correct_winner'],
                 }
             ]
+
+            query.order = [['date', 'ASC'], ['time', 'ASC']]
         }
 
         const games = await Schedule.findAll(query);

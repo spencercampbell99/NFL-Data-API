@@ -27,7 +27,7 @@ scaler = joblib.load(f'models/{model_name}_scaler.joblib')
 matchup_predictions = pd.DataFrame(columns=['schedule_id', 'week', 'matchup', 'home_team', 'away_team', 'predicted_home_score', 'predicted_away_score', 'actual_home_score', 'actual_away_score', 'actual_total', 'correct_winner', 'predicted_total', 'over_under', 'predicted_over_under_result', 'actual_over_under_result', 'predicted_cover_spread', 'spread', 'correct_spread', 'predicted_underdog_win', 'actual_underdog_win', 'suggested_bet', 'home_moneyline', 'away_moneyline'])
 matchup_predictions.set_index('matchup', inplace=True)
 
-for week in range(15, 16):
+for week in range(18, 19):
     # data = get_data_for_points_scored_model_with_averages(week=week, season=2024, connection=conn, weeks_back=10)
     
     # make the index 0 -> length

@@ -12,5 +12,8 @@ module.exports = app => {
     // historical matchups
     router.get("/teams/historical-matchups", teamController.historicalMatchups);
 
+    // get team's season schedule
+    router.get("/team/:id/season-schedule/:season", teamController.getTeamScheduleForSeason);
+
     app.use('/api', router);
 };

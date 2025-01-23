@@ -97,7 +97,12 @@ const TeamKickingComparison: React.FunctionComponent<{ awayBoxscore: BoxScore, h
     )
 }
 
-const TeamStatsAtAGlance: React.FunctionComponent<{ awayBoxscore: BoxScore, homeBoxscore: BoxScore, awayName: string, homeName: string }> = ({ awayBoxscore, homeBoxscore, awayName, homeName }) => {
+const TeamStatsAtAGlance: React.FunctionComponent<{ awayBoxscore: BoxScore, homeBoxscore: BoxScore, awayName: string|undefined, homeName: string|undefined }> = ({ awayBoxscore, homeBoxscore, awayName, homeName }) => {
+    if (!awayName || !homeName) {
+        awayName = 'Away'
+        homeName = 'Home'
+    }
+
     return (
         <div className="grid grid-cols-4 gap-4 text-black w-[100%] mt-5 min-w-[1000px]">
             <div className="min-w-[250px]">

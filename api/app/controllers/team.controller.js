@@ -156,3 +156,46 @@ exports.getTeamById = async (req, res) => {
         });
     }
 }
+
+/**
+ * Get team schedule for season
+ * 
+ * @param {Object} req - request object
+ * @param {Object} res - response object
+ * @return {Object} - response object
+ */
+exports.getTeamScheduleForSeason = async (req, res) => {
+    try {
+        const teamId = req.params.id;
+        const season = req.params.season;
+
+        if (!teamId || !season) {
+            return res.status(400).send({
+                message: "teamId and season are required."
+            });
+        }
+
+        const schedule = await nflDb.schedules.findAll({
+            where: {
+                season: season,
+                [Op.or]: [
+                    { home_team_id: teamId },
+                    { away_team_id: teamId }
+                ]
+            },
+            attributes: [
+                'id', 'week', 'date', 'home_team_id', 'away_team_id', 'spread', 'home_moneyline', 'away_moneyline', 'over_under',
+                'home_score', 'away_score', 'home_team_char_id', 'away_team_char_id', 'time'
+            ],
+            order: [['week', 'ASC']]
+        });
+
+        // return
+        res.send(schedule);
+    } catch (err) {
+        console.log(err)
+        res.status(500).send({
+            message: err.message || "An error occurred while retrieving team schedule."
+        });
+    }
+}
