@@ -44,7 +44,7 @@ exports.list = async (req, res) => {
 
         return res.status(200).send(bets);
     } catch (err) {
-        console.log(err);
+        console.log(err?.message);
         return res.status(500).send({ message: err.message });
     }
 }
@@ -93,7 +93,7 @@ exports.gamesForBetSelection = async (req, res) => {
 
         return res.status(200).send(games);
     } catch (err) {
-        console.log(err);
+        console.log(err?.message);
         return res.status(500).send({ message: err.message });
     }
 }
@@ -213,7 +213,7 @@ exports.create = async (req, res) => {
                         allSettled = false;
                     }
                 } catch (err) {
-                    console.log(err)
+                    console.log(err?.message)
                     return res.status(400).send({ message: "Something went wrong calculating bet status" });
                 }
             } else {
@@ -268,7 +268,7 @@ exports.create = async (req, res) => {
 
         return res.status(200).send(result);
     } catch (err) {
-        console.log(err);
+        console.log(err?.message);
         return res.status(500).send({ message: err.message });
     }
 }
@@ -293,7 +293,7 @@ exports.deleteMyBets = async (req, res) => {
 
         return res.status(200).send({ message: 'Bets deleted.' });
     } catch (err) {
-        console.log(err);
+        console.log(err?.message);
         return res.status(500).send({ message: err.message });
     }
 }

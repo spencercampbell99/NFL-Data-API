@@ -27,7 +27,7 @@ exports.isAuthenticated = async (req, res, next) => {
 
         return next();
     } catch (err) {
-        console.log(err);
+        console.log(err?.message);
         return res.status(500).send({ message: err.message });
     }
 }
@@ -52,7 +52,7 @@ exports.isAuthenticated = async (req, res, next) => {
 
 //         return next();
 //     } catch (err) {
-//         console.log(err);
+//         console.log(err?.message);
 //         return res.status(500).send({ message: err.message });
 //     }
 // }

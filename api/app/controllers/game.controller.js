@@ -12,7 +12,7 @@ exports.find = async (id) => {
         const game = await Schedule.findByPk(id);
         return game;
     } catch (err) {
-        console.log(err);
+        console.log(err?.message);
         return null;
     }
 }
@@ -50,7 +50,7 @@ exports.getGamesBySeasonAndWeek = async ({ week, season, idsOnly = true, withMod
         const games = await Schedule.findAll(query);
         return games;
     } catch (err) {
-        console.log(err);
+        console.log(err?.message);
         return null;
     }
 }
@@ -113,7 +113,7 @@ exports.getGamesOverviewBySeasonAndWeek = async (req, res) => {
             games: games,
         });
     } catch (err) {
-        console.log(err);
+        console.log(err?.message);
         res.status(500).send({
             message: 'Error retrieving games',
         });
@@ -211,7 +211,7 @@ exports.getGameOverviewById = async (req, res) => {
             game: gameOverview,
         });
     } catch (err) {
-        console.log(err);
+        console.log(err?.message);
         res.status(500).send({
             message: 'Error retrieving game',
         });

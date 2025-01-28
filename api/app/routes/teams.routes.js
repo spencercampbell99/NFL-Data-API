@@ -15,5 +15,8 @@ module.exports = app => {
     // get team's season schedule
     router.get("/team/:id/season-schedule/:season", teamController.getTeamScheduleForSeason);
 
+    // get team's average performance going into given week and season for weeks back
+    router.get("/team/:id/average-window-performance/:season/:week", teamController.getTeamAveragePerformanceGoingIntoWeek);
+
     app.use('/api', router);
 };

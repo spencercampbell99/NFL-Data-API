@@ -62,7 +62,32 @@ class TeamService {
       } catch (error) {
         console.error(error);
       }
-  }
+    }
+
+    static async getSeasonScheduleForTeam(teamId: number, season: number) {
+        try {
+            const response = await axios.get(`/team/${teamId}/season-schedule/${season}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching season schedule for team:', error);
+        }
+    }
+
+    static async getAverageTeamPerformanceGoingIntoWeek(teamId: number, week: number, season: number, windowSize?: number) {
+        if (windowSize === undefined) {
+            windowSize = 5;
+        }
+        try {
+            const response = await axios.get(`/team/${teamId}/average-window-performance/${season}/${week}`, {
+                params: {
+                    window: windowSize
+                }
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching average team performance:', error);
+        }
+    }
   }
   
   export default TeamService;

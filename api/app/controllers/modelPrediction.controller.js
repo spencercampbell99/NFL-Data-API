@@ -47,7 +47,7 @@ exports.getModelPredictionsOverviewBySeasonAndWeek = async (req, res) => {
 
         return res.status(200).send({ modelPredictions });
     } catch (err) {
-        console.log(err);
+        console.log(err?.message);
         return res.status(500).send({ message: err.message });
     }
 }
@@ -119,7 +119,7 @@ exports.getModelPredictionsAnalysisBySeason = async (req, res) => {
 
         return res.status(200).send(modelPredictions);
     } catch (err) {
-        console.log(err);
+        console.log(err?.message);
         return res.status(500).send({ message: err.message });
     }
 }
@@ -171,7 +171,7 @@ exports.listModelPredictionsBySeason = async (req, res) => {
 
         return res.status(200).send({ modelPredictions });
     } catch (err) {
-        console.log(err);
+        console.log(err?.message);
         return res.status(500).send({ message: err.message });
     }
 }
@@ -239,7 +239,7 @@ exports.settleModelPredictionsBySeasonAndWeek = async (req, res) => {
 
         return res.status(200).send({ message: 'Model predictions settled successfully.' });
     } catch (err) {
-        console.log(err);
+        console.log(err?.message);
         return res.status(500).send({ message: err.message });
     }
 }

@@ -7,6 +7,7 @@ import BasicTable from "@/components/tables/basicTable.component"
 import GameService from "@/services/Game.service"
 import Game from "@/interfaces/game.interface"
 import { ScheduleList } from "@/components/games/scheduleList.component"
+import TeamService from "@/services/Team.service"
 
 const BasicPlayerInfoCard = ({ player }: { player: Player }) => {
     return (
@@ -74,6 +75,8 @@ const SeasonStatsCard = ({ player }: { player: Player }) => {
                     { stat: 'Yards/Attempt', overall: stats.yards_per_attempt, league_average: leagueAverageStats?.yards_per_passing_attempt, home: stats.yards_per_attempt_home, away: stats.yards_per_attempt_away, division: stats.yards_per_attempt_division },
                     { stat: 'Yards/Completion', overall: stats.yards_per_completion, league_average: leagueAverageStats?.yards_per_passing_completion, home: stats.yards_per_completion_home, away: stats.yards_per_completion_away, division: stats.yards_per_completion_division },
                     { stat: 'Air Yards/Attempt', overall: stats.air_yards_per_attempt, league_average: leagueAverageStats?.air_yards_per_passing_attempt, home: stats.air_yards_per_attempt_home, away: stats.air_yards_per_attempt_away, division: stats.air_yards_per_attempt_division },
+                    { stat: "Passing Yards", overall: stats.passing_yards, league_average: leagueAverageStats?.passing_yards, home: stats.passing_yards_home, away: stats.passing_yards_away, division: stats.passing_yards_division },
+                    { stat: "Completion %", overall: stats.completion_percentage, league_average: leagueAverageStats?.completion_percentage, home: stats.completion_percentage_home, away: stats.completion_percentage_away, division: stats.completion_percentage_division },
                 ]}
             />
         </div>
@@ -98,10 +101,58 @@ const NextGameCard = ({ game }: { game: Game }) => {
     )
 }
 
+interface Stats {
+    [key: string]: number | null;
+}
+
+const StatsDisplay = ({ stats, nextGame, teamId }: { stats: Stats, nextGame: Game, teamId: number|undefined }) => {
+    if (!stats) {
+        return <div>No stats available</div>;
+    }
+
+    const opponentCharId = nextGame.home_team_id == teamId ? nextGame.away_team_char_id : nextGame.home_team_char_id
+
+    return (
+        <div className="p-4">
+            <div className="text-xl font-bold mb-4">
+                {nextGame ? `Next Game: ${nextGame.home_team_char_id} vs ${nextGame.away_team_char_id} Week ${nextGame.week}` : 'Upcoming Matchup in week 15'}
+            </div>
+            <div className="text-lg font-semibold mb-2">
+                These are the average stats for the last several games of the opponent {`${opponentCharId ?? ''}`} going into the game.
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white shadow-md rounded p-4">
+                    <h2 className="font-bold text-lg mb-4">Avg Offense Stats {`${opponentCharId ?? ''}`}</h2>
+                    <ul className="space-y-2">
+                        {Object.entries(stats).filter(([key]) => key.startsWith('avg_') && !key.includes('allowed')).map(([key, value], index) => (
+                            <li key={key} className={`flex justify-between ${index % 2 === 0 ? 'bg-slate-100' : 'bg-slate-200'} p-2 rounded`}>
+                                <span className="capitalize">{key.replace('avg_', '').replace(/_/g, ' ')}</span>
+                                <span>{value ?? 'N/A'}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+                <div className="bg-white shadow-md rounded p-4">
+                    <h2 className="font-bold text-lg mb-4">Avg Defense Stats {`${opponentCharId ?? ''}`}</h2>
+                    <ul className="space-y-2">
+                        {Object.entries(stats).filter(([key]) => key.includes('allowed') || key.startsWith('avg_defense_')).map(([key, value], index) => (
+                            <li key={key} className={`flex justify-between ${index % 2 === 0 ? 'bg-slate-100' : 'bg-slate-200'} p-2 rounded`}>
+                                <span className="capitalize">{key.replace('avg_', '').replace(/_/g, ' ').replace('allowed', '(Allowed)')}</span>
+                                <span>{value ?? 'N/A'}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const PlayerProfilePage = () => {
     const [player, setPlayer] = React.useState<Player|null>(null)
     const [schedule, setSchedule] = React.useState<Game[]>([])
     const [nextGame, setNextGame] = React.useState<Game|null>(null)
+    const [opponentAveragesNextGame, setOpponentAveragesNextGame] = React.useState<any>(null)
 
     React.useEffect(() => {
         const playerId = window.location.pathname.split('/').pop()
@@ -118,7 +169,7 @@ const PlayerProfilePage = () => {
 
     React.useEffect(() => {
         if (player?.team_id) {
-            GameService.getSeasonScheduleForTeam(player.team_id, 2024)
+            TeamService.getSeasonScheduleForTeam(player.team_id, 2024)
                 .then((schedule) => {
                     setSchedule(schedule)
                     
@@ -130,13 +181,28 @@ const PlayerProfilePage = () => {
         }
     }, [player])
 
+    React.useEffect(() => {
+        if (nextGame) {
+            const teamIdToCheck = nextGame.home_team_id == player?.team_id ? nextGame.away_team_id : nextGame.home_team_id
+
+            TeamService.getAverageTeamPerformanceGoingIntoWeek(teamIdToCheck, nextGame.week, nextGame.season, 5)
+                .then((result) => {
+                    console.log(result)
+
+                    setOpponentAveragesNextGame(result)
+                })
+                .catch((error) => console.error(error))
+        }
+    }, [nextGame])
+
     return (
         <div>
             {player ? 
                 <>
                     <BasicPlayerInfoCard player={player} />
                     <SeasonStatsCard player={player} />
-                    {nextGame ? <NextGameCard game={nextGame} /> : null}
+                    {/* {nextGame ? <NextGameCard game={nextGame} /> : null} */}
+                    {(opponentAveragesNextGame && nextGame) ? <StatsDisplay stats={opponentAveragesNextGame} nextGame={nextGame} teamId={player.team_id} /> : null}
                     <SeasonScheduleCard schedule={schedule} team={player?.team?.team}/>
                 </>
             : <p>Loading...</p>}

@@ -42,15 +42,6 @@ class GameService {
             console.error('Error fetching game overview:', error);
         }
     }
-
-    async getSeasonScheduleForTeam(teamId: number, season: number) {
-        try {
-            const response = await axios.get(`/team/${teamId}/season-schedule/${season}`);
-            return response.data;
-        } catch (error) {
-            console.error('Error fetching season schedule for team:', error);
-        }
-    }
 }
 
 export default new GameService();

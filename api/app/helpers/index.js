@@ -48,13 +48,19 @@ exports.authentication = (salt, password) => {
  * 
  * @returns {string} The formatted query.
  */
-exports.getTemplateQuery = (filename, replaceMapping) => {
+exports.getTemplateQuery = ({ filename, replaceMapping, verbose = false }) => {
     const fs = require('fs');
     const path = require('path');
     let sql = fs.readFileSync(path.join(__dirname, `../sql/${filename}`)).toString();
-    
+
     for (let key in replaceMapping) {
-        sql = sql.replace(key, replaceMapping[key]);
+        const regex = new RegExp(key, 'g');
+        sql = sql.replace(regex, replaceMapping[key]);
+    }
+
+    if (verbose) {
+        console.log(replaceMapping)
+        console.log(sql)
     }
 
     return sql;

@@ -1,6 +1,7 @@
 import React from 'react';
 import moment from 'moment';
 import Game from '@/interfaces/game.interface';
+import { useRouter } from 'next/navigation';
 
 const formatDate = (sqlDate: string): string => {
     return moment(sqlDate).format('ddd');
@@ -13,9 +14,14 @@ const formatTime = (time24: string): string => {
 interface ScheduleListGameProps {
     game: Game;
     targetTeam?: string|null;
+    router?: any;
 }
 
-const ScheduleListGame: React.FC<ScheduleListGameProps> = ({ game, targetTeam = null }) => {
+const ScheduleListGame: React.FC<ScheduleListGameProps> = ({ game, targetTeam = null, router = null }) => {
+    if (!router) {
+        router = useRouter();
+    }
+
     let firstTeamInfo = {
         charId: game.home_team_char_id,
         moneyLine: game.home_moneyline,
@@ -41,12 +47,18 @@ const ScheduleListGame: React.FC<ScheduleListGameProps> = ({ game, targetTeam = 
         }
     }
 
+    const onClickNavigate = () => {
+        if (game.home_score === null || game.away_score === null) return;
+
+        router.push(`/nfl/games/overview/${game.id}`);
+    }
+
     const getScoreColor = (teamInfo: any) => {
         return teamInfo.score < (teamInfo.isHome ? game.away_score : game.home_score) ? 'text-nflRed' : 'text-black font-bold';
     };
 
     return (
-        <div className="p-2 border-b border-gray-300 bg-gray-200 hover:bg-gray-300 cursor-pointer" onClick={() => {}}>
+        <div className="p-2 border-b border-gray-300 bg-gray-200 hover:bg-gray-300 cursor-pointer" onClick={onClickNavigate}>
             <div className="grid grid-cols-4 items-center text-sm">
                 <h2 className="text-md font-bold text-nflBlue">
                     {moment(game.date).format('dddd')} - {moment(game.time, "HH:mm").format("h:mm A")} (Week {game.week})
@@ -79,6 +91,8 @@ const ScheduleListGame: React.FC<ScheduleListGameProps> = ({ game, targetTeam = 
  * @returns 
  */
 const ScheduleList = ({ games, alternateTitle = null, targetTeam = null }: { games: Game[], alternateTitle?: string|null, targetTeam?: string|null }) => {
+    const router = useRouter();
+    
     let wins = 0;
     let totalGames = 0;
 
@@ -100,7 +114,7 @@ const ScheduleList = ({ games, alternateTitle = null, targetTeam = null }: { gam
         <div className="max-w-4xl mx-auto mt-8">
             <h1 className="text-2xl font-bold text-center mb-4 text-nflBlue">{alternateTitle ? alternateTitle : 'Game Schedule'}</h1>
             {targetTeam && <div className="text-center mb-4">Record: {wins} - {totalGames - wins}</div>}
-            {games.map(game => <ScheduleListGame key={game.id} game={game} targetTeam={targetTeam} />)}
+            {games.map(game => <ScheduleListGame key={game.id} game={game} targetTeam={targetTeam} router={router} />)}
         </div>
     );
 }

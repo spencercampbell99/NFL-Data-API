@@ -47,7 +47,7 @@ exports.register = async (req, res) => {
 
         return res.status(200).send({ message: 'User registered successfully!', user: user }).end();
     } catch (err) {
-        console.log(err);
+        console.log(err?.message);
         return res.status(500).send({ message: err.message });
     }
 }
@@ -98,7 +98,7 @@ exports.login = async (req, res) => {
         res.cookie('SHHBETS-AUTH', sessionToken, { httpOnly: true })
         return res.status(200).send({ message: 'User logged in successfully!', user: user }).end();
     } catch (err) {
-        console.log(err);
+        console.log(err?.message);
         return res.status(500).send({ message: err.message });
     }
 }
@@ -129,7 +129,7 @@ exports.logout = async (req, res) => {
 
         return res.status(200).send({ message: 'User logged out successfully!' }).end();
     } catch (err) {
-        console.log(err);
+        console.log(err?.message);
         return res.status(500).send({ message: err.message });
     }
 }
@@ -152,7 +152,7 @@ exports.me = async (req, res) => {
 
         return res.status(200).send({ user: user }).end();
     } catch (err) {
-        console.log(err);
+        console.log(err?.message);
         return res.status(500).send({ message: err.message });
     }
 }

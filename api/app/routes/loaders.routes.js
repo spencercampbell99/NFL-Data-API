@@ -43,7 +43,7 @@ module.exports = app => {
             const boxscore = await loaders.loadBoxscoreForGame(req.params.gameId);
             res.status(200).send(boxscore);
         } catch (err) {
-            console.log(err);
+            console.log(err?.message);
             res.status(500).send({
                 message: err.message || "Error occurred while retrieving boxscore.",
                 gameId: req.params.gameId,

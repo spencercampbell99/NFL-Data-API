@@ -16,7 +16,7 @@ router.post('/teams', express.json(), (req, res) => {
     // create the new teams
     Team.bulkCreate(teams, (err, newTeams) => {
         if (err) {
-            console.log(err);
+            console.log(err?.message);
             res.sendStatus(500);
         } else {
             res.send(newTeams);

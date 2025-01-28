@@ -1,6 +1,7 @@
 const nflDb = require('../models').nfl;
 const Team = nflDb.teams;
 const { Op } = require("sequelize");
+const getTemplateQuery = require('../helpers').getTemplateQuery;
 
 // List teams
 exports.list = async (req, res) => {
@@ -119,7 +120,7 @@ exports.historicalMatchups = async (req, res) => {
         // return
         res.send(team1VsTeam2);
     } catch (err) {
-        console.log(err);
+        console.log(err?.message);
         res.status(500).send({
             message: err.message || "An error occurred while retrieving historical matchups."
         });
@@ -184,7 +185,7 @@ exports.getTeamScheduleForSeason = async (req, res) => {
                 ]
             },
             attributes: [
-                'id', 'week', 'date', 'home_team_id', 'away_team_id', 'spread', 'home_moneyline', 'away_moneyline', 'over_under',
+                'id', 'season', 'week', 'date', 'home_team_id', 'away_team_id', 'spread', 'home_moneyline', 'away_moneyline', 'over_under',
                 'home_score', 'away_score', 'home_team_char_id', 'away_team_char_id', 'time'
             ],
             order: [['week', 'ASC']]
@@ -193,9 +194,58 @@ exports.getTeamScheduleForSeason = async (req, res) => {
         // return
         res.send(schedule);
     } catch (err) {
-        console.log(err)
+        console.log(err?.message)
         res.status(500).send({
             message: err.message || "An error occurred while retrieving team schedule."
+        });
+    }
+}
+
+/**
+ * Get team's average performance going into given week and season
+ * 
+ * Given a team, week, season, and window (number of weeks back)
+ * returns the average offense and defense performance for the team.
+ * Does not include given week.
+ * 
+ * @param {Object} req - request object
+ * @param {Object} res - response object
+ * @return {Object} - response object
+ */
+exports.getTeamAveragePerformanceGoingIntoWeek = async (req, res) => {
+    try {
+        const teamId = req.params.id;
+        const week = req.params.week;
+        const season = req.params.season;
+        const window = req.query.window || 5; // number of weeks back to check
+
+        const query = getTemplateQuery({ filename: 'teams/TeamAveragesAtWeekWithWeeksBack.sql', replaceMapping: {':season': season, ':week': week, ':windowBack': window, ':teamId': teamId, ':limit': window + 1}, verbose: false });
+
+        let averages = await nflDb
+            .sequelize.query(query, {
+                type: nflDb.sequelize.QueryTypes.SELECT,
+                raw: true,
+                logging: false
+            });
+
+        // get team info
+        const team = await Team.findByPk(teamId);
+
+        averages = averages[0] ?? {};
+
+        // round all values to 1 decimal place
+        for (const key in averages) {
+            averages[key] = Math.round(averages[key] * 10) / 10;
+        }
+
+        averages['team'] = team;
+
+        // return
+        res.send(averages);
+    } catch (err) {
+        console.log(err?.message.message)
+        res.status(500).send({
+            message: err.message || "An error occurred while retrieving team averages."
         });
     }
 }

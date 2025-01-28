@@ -20,7 +20,7 @@ exports._find = async (id) => {
         const user = await User.findByPk(id);
         return user;
     } catch (err) {
-        console.log(err);
+        console.log(err?.message);
         return null;
     }
 }
@@ -46,7 +46,7 @@ exports._findByEmail = async (email) => {
         });
         return user;
     } catch (err) {
-        console.log(err);
+        console.log(err?.message);
         return null;
     }
 }
@@ -72,7 +72,7 @@ exports._findBySessionToken = async (sessionToken) => {
         });
         return user;
     } catch (err) {
-        console.log(err);
+        console.log(err?.message);
         return null;
     }
 }
@@ -91,7 +91,7 @@ exports.list = async (req, res) => {
         
         return res.status(200).send(users);
     } catch (err) {
-        console.log(err);
+        console.log(err?.message);
         return null;
     }
 }

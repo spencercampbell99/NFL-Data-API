@@ -76,7 +76,7 @@ exports.list = async (req, res) => {
 
         res.send(players);
     } catch (err) {
-        console.log(err)
+        console.log(err?.message)
         res.status(500).send({
             message: err.message || "An error occurred while retrieving players."
         });
@@ -170,7 +170,7 @@ exports.getPlayerOverviewBySeason = async (req, res) => {
 
             player.season_stats = season_stats;
         } catch (err) {
-            console.log(err);
+            console.log(err?.message);
             res.status(500).send({
                 message: err.message || "An error occurred while retrieving player stats."
             });
@@ -181,7 +181,7 @@ exports.getPlayerOverviewBySeason = async (req, res) => {
         // return
         res.send(player);
     } catch (err) {
-        console.log(err);
+        console.log(err?.message);
 
         res.status(500).send({
             message: err.message || "An error occurred while retrieving player."
@@ -198,7 +198,7 @@ exports.getPlayerOverviewBySeason = async (req, res) => {
  * @returns {Object} - response object
  */
 _getQBStatsForSeason = async (playerId, season) => {
-    const query = getTemplateQuery('players/QBSeasonOverview.sql', {':playerId': playerId, ':season': season});
+    const query = getTemplateQuery({ filename: 'players/QBSeasonOverview.sql', replaceMapping: {':playerId': playerId, ':season': season} });
 
     let qbStats = await nflDb.sequelize.query(query, {
         type: nflDb.Sequelize.QueryTypes.SELECT,

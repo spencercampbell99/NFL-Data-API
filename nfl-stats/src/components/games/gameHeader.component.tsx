@@ -15,7 +15,7 @@ const TeamDisplay: React.FunctionComponent<{ team: Team, isHome: boolean }> = ({
     return (
         <div className="flex items-center space-x-2">
             <span className="text-lg font-bold">{team.short_display_name} ({isHome ? 'H' : 'A'})</span>
-            <img src={team.team_logo_wikipedia} alt="Logo" className="w-8 h-8" />
+            {/* <img src={team.team_logo_wikipedia} alt="Logo" className="w-8 h-8" /> */}
         </div>
     );
 }
