@@ -8,6 +8,9 @@ import GameService from "@/services/Game.service"
 import Game from "@/interfaces/game.interface"
 import { ScheduleList } from "@/components/games/scheduleList.component"
 import TeamService from "@/services/Team.service"
+import { stat } from "fs"
+import { QBSeasonStatsCard } from "@/components/players/seasonStatCards.component"
+import AveragedTeamPerformance from "@/interfaces/averagedTeamPerformance.interface"
 
 const BasicPlayerInfoCard = ({ player }: { player: Player }) => {
     return (
@@ -51,38 +54,6 @@ const BasicPlayerInfoCard = ({ player }: { player: Player }) => {
     )
 }
 
-const SeasonStatsCard = ({ player }: { player: Player }) => {
-    const stats = player.season_stats[0]
-
-    if (!stats) {
-        return null
-    }
-
-    const leagueAverageStats = stats?.league_position_averages
-    return (
-        <div className="bg-gray-100 p-6 shadow-md w-full">
-            <BasicTable
-                columns={[
-                    { header: 'Stat', key: 'stat', searchable: false, sortable: false },
-                    { header: 'Overall', key: 'overall', searchable: false, sortable: false },
-                    { header: 'League Average', key: 'league_average', searchable: false, sortable: false },
-                    { header: 'Home', key: 'home', searchable: false, sortable: false },
-                    { header: 'Away', key: 'away', searchable: false, sortable: false },
-                    { header: 'Division', key: 'division', searchable: false, sortable: false },
-                ]}
-                data={[
-                    { stat: 'Passer Rating', overall: stats.passer_rating, league_average: leagueAverageStats?.passer_rating, home: stats.passer_rating_home, away: stats.passer_rating_away, division: stats.passer_rating_division },
-                    { stat: 'Yards/Attempt', overall: stats.yards_per_attempt, league_average: leagueAverageStats?.yards_per_passing_attempt, home: stats.yards_per_attempt_home, away: stats.yards_per_attempt_away, division: stats.yards_per_attempt_division },
-                    { stat: 'Yards/Completion', overall: stats.yards_per_completion, league_average: leagueAverageStats?.yards_per_passing_completion, home: stats.yards_per_completion_home, away: stats.yards_per_completion_away, division: stats.yards_per_completion_division },
-                    { stat: 'Air Yards/Attempt', overall: stats.air_yards_per_attempt, league_average: leagueAverageStats?.air_yards_per_passing_attempt, home: stats.air_yards_per_attempt_home, away: stats.air_yards_per_attempt_away, division: stats.air_yards_per_attempt_division },
-                    { stat: "Passing Yards", overall: stats.passing_yards, league_average: leagueAverageStats?.passing_yards, home: stats.passing_yards_home, away: stats.passing_yards_away, division: stats.passing_yards_division },
-                    { stat: "Completion %", overall: stats.completion_percentage, league_average: leagueAverageStats?.completion_percentage, home: stats.completion_percentage_home, away: stats.completion_percentage_away, division: stats.completion_percentage_division },
-                ]}
-            />
-        </div>
-    )
-}
-
 const SeasonScheduleCard = ({ schedule, team=null }: { schedule: Game[], team?: string|null }) => {
     return (
         <div className="bg-gray-100 p-6 shadow-md w-full">
@@ -101,11 +72,7 @@ const NextGameCard = ({ game }: { game: Game }) => {
     )
 }
 
-interface Stats {
-    [key: string]: number | null;
-}
-
-const StatsDisplay = ({ stats, nextGame, teamId }: { stats: Stats, nextGame: Game, teamId: number|undefined }) => {
+const StatsDisplay = ({ stats, nextGame, teamId }: { stats: AveragedTeamPerformance, nextGame: Game, teamId: number|undefined }) => {
     if (!stats) {
         return <div>No stats available</div>;
     }
@@ -152,7 +119,7 @@ const PlayerProfilePage = () => {
     const [player, setPlayer] = React.useState<Player|null>(null)
     const [schedule, setSchedule] = React.useState<Game[]>([])
     const [nextGame, setNextGame] = React.useState<Game|null>(null)
-    const [opponentAveragesNextGame, setOpponentAveragesNextGame] = React.useState<any>(null)
+    const [opponentAveragesNextGame, setOpponentAveragesNextGame] = React.useState<AveragedTeamPerformance|null>(null)
 
     React.useEffect(() => {
         const playerId = window.location.pathname.split('/').pop()
@@ -200,7 +167,7 @@ const PlayerProfilePage = () => {
             {player ? 
                 <>
                     <BasicPlayerInfoCard player={player} />
-                    <SeasonStatsCard player={player} />
+                    <QBSeasonStatsCard player={player} />
                     {/* {nextGame ? <NextGameCard game={nextGame} /> : null} */}
                     {(opponentAveragesNextGame && nextGame) ? <StatsDisplay stats={opponentAveragesNextGame} nextGame={nextGame} teamId={player.team_id} /> : null}
                     <SeasonScheduleCard schedule={schedule} team={player?.team?.team}/>

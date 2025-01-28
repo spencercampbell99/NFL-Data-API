@@ -40,7 +40,7 @@ const ScheduleListGame: React.FC<ScheduleListGameProps> = ({ game, targetTeam = 
     if (targetTeam) {
         if (game.home_team_char_id === targetTeam) {
             firstTeamInfo.isHome = true;
-            vsOrAt = '@';
+            vsOrAt = 'vs';
         } else if (game.away_team_char_id === targetTeam) {
             [firstTeamInfo, secondTeamInfo] = [secondTeamInfo, firstTeamInfo];
             vsOrAt = '@';
