@@ -79,7 +79,7 @@ WITH GameData AS (
 ), ROI_Calculations AS (
     SELECT
         week,
-        (SUM(CASE WHEN correct_winner_by_score THEN decimal_odds_score_model ELSE 0 END) / COUNT(CASE WHEN predicted_tie_by_score THEN null ELSE 1 END)) * 100 - 100 AS roi_per_week_moneyline_by_score,
+        (SUM(CASE WHEN correct_winner_by_score AND NOT predicted_tie_by_score THEN decimal_odds_score_model ELSE 0 END) / COUNT(CASE WHEN predicted_tie_by_score THEN null ELSE 1 END)) * 100 - 100 AS roi_per_week_moneyline_by_score,
         (SUM(CASE WHEN correct_winner = true THEN decimal_odds ELSE 0 END) / COUNT(*)) * 100 - 100 AS roi_per_week_moneyline,
         (SUM(CASE WHEN correct_winner = true THEN decimal_odds * kelly_bet ELSE 0 END)) * 100 - 100 AS roi_per_week_kelly,
         (SUM(CASE WHEN correct_winner_by_score THEN decimal_odds_score_model * kelly_bet ELSE 0 END) / COUNT(CASE WHEN predicted_tie_by_score THEN null ELSE 1 END)) * 100 - 100 AS roi_per_week_kelly_by_score,

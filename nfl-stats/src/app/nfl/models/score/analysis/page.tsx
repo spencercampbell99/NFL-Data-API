@@ -173,7 +173,13 @@ export default function ScoreModelAnalysis() {
                     <br />
                     Note that Cumulative ROI calculation is broken when filtering by teams.
                 </p>
+                <p className="text-sm text-gray-500 mt-2 text-center">
+                    Note: The money won is based on the model as bettor and is not a guarantee of actual winnings. The model is based on historical data and may not accurately predict future outcomes.
+                    <br />
+                    <strong>The model is not a financial advisor and should not be used as such. Please gamble responsibly.</strong>
+                </p>
             </div>
+            
             <div className="flex flex-row items-center justify-center mt-4">
                 <BasicDropdown options={seasons} selected={season} setSelected={setSeason} alternateDefaultText="Select a Season" />
                 <div className="ml-2"></div>

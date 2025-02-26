@@ -1,3 +1,5 @@
+import Game from "./game.interface";
+
 export default interface ScoreModelPrediction {
     schedule_id: number;
     suggested_moneyline_percent_bet: number|null;
@@ -13,7 +15,10 @@ export default interface ScoreModelPrediction {
     correct_spread: boolean|null;
     correct_over_under: boolean|null;
     correct_underdog_win: boolean|null;
+    correct_underdog_win_by_score: boolean|null;
     home_team_error: number|null;
     away_team_error: number|null;
     total_error: number|null;
+    schedule?: Game;
+    score_model_name: string|null;
 }

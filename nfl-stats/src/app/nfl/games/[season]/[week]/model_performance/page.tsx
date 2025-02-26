@@ -22,6 +22,7 @@ interface Game {
     correct_winner: boolean
     correct_winner_by_score: boolean
     correct_underdog_win: boolean | null | undefined
+    correct_underdog_win_by_score: boolean | null | undefined
     cover_spread: boolean
     home_team_error: number
     home_team_score: number
@@ -181,16 +182,15 @@ export default function WeekOverview({ params }: { params: { season: number, wee
         let overUnderMoneyWon = 0
         let decimalOdds = 0
 
-        let hypotheticalBet = 100 / response.data.modelPredictions.length
+        let _hypotheticalBet = 100 / response.data.modelPredictions.length
 
         // non tie games predicted
         const nonTieGames = response.data.modelPredictions.filter((game: Game) => game.home_team_score !== game.away_team_score)
-        const numGames = response.data.modelPredictions.length
         let hypotheticalBetScore = 100 / nonTieGames.length
-        setHypotheticalBet(hypotheticalBet)
+        setHypotheticalBet(Number(_hypotheticalBet.toFixed(2)))
         
         response.data.modelPredictions.forEach((game: Game, index: number) => {
-            if (game.correct_winner) {
+            if (game.correct_winner_by_score) {
                 correctWinner++
             }
 
@@ -202,7 +202,7 @@ export default function WeekOverview({ params }: { params: { season: number, wee
                 correctOverUnder++
             }
 
-            if (game.correct_underdog_win) {
+            if (game.correct_underdog_win_by_score) {
                 correctUnderdogWin++
             }
 
@@ -210,7 +210,7 @@ export default function WeekOverview({ params }: { params: { season: number, wee
             totalScore += game.total_score
             totalGames++
 
-            const homeWinner = game.schedule.away_score && game.schedule.home_score ? game.schedule.home_score > game.schedule.away_score : null
+            const homeWinner = game.schedule.away_score !== null && game.schedule.home_score !== null ? game.schedule.home_score > game.schedule.away_score : null
 
             if (homeWinner === null) {
                 return
@@ -227,36 +227,29 @@ export default function WeekOverview({ params }: { params: { season: number, wee
                 decimalOdds = game.schedule.away_moneyline / 100 + 1
             }
 
-            // kelly decimal odds
-            const kellyMoneyline = game.home_win ? game.schedule.home_moneyline : game.schedule.away_moneyline
-            const kellyDecimalOdds = kellyMoneyline < 0 ? 100 / Math.abs(kellyMoneyline) + 1 : kellyMoneyline / 100 + 1
-
             // update decimal odds on game object
             response.data.modelPredictions[index].decimal_odds = decimalOdds
 
             // calculate money won/lost
-            moneyWagered += hypotheticalBet * 3 // + hypotheticalBetScore
-            // moneyLineMoneyWageredKelly += hypotheticalBet * numGames * game.suggested_moneyline_percent_bet
-            if (game.home_team_score != game.away_team_score)
+            moneyWagered += _hypotheticalBet * 2
+            if (game.home_team_score != game.away_team_score) {
                 moneyLineMoneyWagered += hypotheticalBetScore
-            spreadMoneyWagered += hypotheticalBet
-            overUnderMoneyWagered += hypotheticalBet
-
-            if (game.correct_winner) {
-                // let kellyMoneyWon = hypotheticalBet * game.suggested_moneyline_percent_bet * numGames * kellyDecimalOdds
-                // moneyLineMoneyWonKelly += kellyMoneyWon
+                moneyWagered += hypotheticalBetScore
             }
-            if (game.correct_winner_by_score) {
+            spreadMoneyWagered += _hypotheticalBet
+            overUnderMoneyWagered += _hypotheticalBet
+
+            if (game.correct_winner_by_score && game.home_team_score != game.away_team_score) {
                 moneyWon += hypotheticalBetScore * decimalOdds
                 moneyLineMoneyWon += hypotheticalBetScore * decimalOdds
             }
             if (game.correct_spread) {
-                moneyWon += hypotheticalBet * 1.91 // assuming -110 odds
-                spreadMoneyWon += hypotheticalBet * 1.91 // assuming -110 odds
+                moneyWon += _hypotheticalBet * 1.91 // assuming -110 odds
+                spreadMoneyWon += _hypotheticalBet * 1.91 // assuming -110 odds
             }
             if (game.correct_over_under) {
-                moneyWon += hypotheticalBet * 1.91 // assuming -110 odds
-                overUnderMoneyWon += hypotheticalBet * 1.91 // assuming -110 odds
+                moneyWon += _hypotheticalBet * 1.91 // assuming -110 odds
+                overUnderMoneyWon += _hypotheticalBet * 1.91 // assuming -110 odds
             }
         })
 
@@ -328,6 +321,11 @@ export default function WeekOverview({ params }: { params: { season: number, wee
                         onClick={() => settleModelPredictions()}
                         className="mx-auto block mb-2"
                     />
+                    <p className="text-sm text-gray-500 mt-2 text-center">
+                        Note: The money won is based on the model as bettor and is not a guarantee of actual winnings. The model is based on historical data and may not accurately predict future outcomes.
+                        <br />
+                        <strong>The model is not a financial advisor and should not be used as such. Please gamble responsibly.</strong>
+                    </p>
                 </div>
             </div>
             {weekSummary ? 
@@ -337,8 +335,6 @@ export default function WeekOverview({ params }: { params: { season: number, wee
                         <h3 className="ml-5">Hypothetical bet: ${hypotheticalBet} (Total: $100)</h3>
                         <p className="ml-5">
                             Total Money Wagered (Won) (% return): ${weekSummary.moneyWagered.toFixed(2)} (${weekSummary.moneyWon.toFixed(2)}) ({((weekSummary.moneyWon - weekSummary.moneyWagered) / weekSummary.moneyWagered * 100).toFixed(2)}%)
-                            <br />
-                            {/* Moneyline Money  Wagered Kelly (Won) (% return): ${weekSummary.moneyLineMoneyWageredKelly.toFixed(2)} (${weekSummary.moneyLineMoneyWonKelly.toFixed(2)}) ({((weekSummary.moneyLineMoneyWonKelly - weekSummary.moneyLineMoneyWageredKelly) / weekSummary.moneyLineMoneyWageredKelly * 100).toFixed(2)}%) */}
                             <br />
                             Moneyline Money Wagered (Won) (% return): ${weekSummary.moneyLineMoneyWagered.toFixed(2)} (${weekSummary.moneyLineMoneyWon.toFixed(2)}) ({((weekSummary.moneyLineMoneyWon - weekSummary.moneyLineMoneyWagered) / weekSummary.moneyLineMoneyWagered * 100).toFixed(2)}%)
                             <br />
