@@ -1,39 +1,39 @@
 'use client'
 
-import Image from 'next/image'
-import loadTeams from '../loaders/TeamLoader'
-import loadSchedules from '../loaders/ScheduleLoader'
-import loadBoxScores from '../loaders/BoxscoreLoader'
-import loadPlayerStats from '../loaders/PlayerStatLoader'
+interface InfoCardProps {
+  title: string;
+  description: string;
+}
+
+const InfoCard: React.FC<InfoCardProps> = ({ title, description }) => {
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-lg transform transition duration-500 hover:scale-105">
+      <h2 className="text-2xl font-bold mb-4">{title}</h2>
+      <p className="text-gray-700">{description}</p>
+    </div>
+  )
+}
 
 export default function Home() {
-  // const loadScheduleForYears = (startYear: number, endYear: number) => {
-  //   for (let year = startYear; year <= endYear; year++) {
-  //     loadSchedules(year)
-  //   }
-  // }
-  // const loadBoxScoresForYears = async (startYear: number, endYear: number) => {
-  //   for (let year = startYear; year <= endYear; year++) {
-  //     for (let week = 1; week <= 18; week++) {
-  //       await loadBoxScores({ season: year, week: week })
-  //     }
-  //   }
-  // }
-  // const loadPlayerStatsForYears = async (startYear: number, endYear: number) => {
-  //   for (let year = startYear; year <= endYear; year++) {
-  //     for (let week = 1; week <= 18; week++) {
-  //       await loadPlayerStats({ season: year, week: week })
-  //       await new Promise((resolve) => setTimeout(resolve, 2000));
-  //     }
-  //   }
-  // }
-
   return (
-    <main>
-      {/* <button onClick={() => getTeams()}>Load teams</button> */}
-      {/* <button onClick={() => loadScheduleForYears(2023, 2023)}>Load schedules</button> */}
-      {/* <button onClick={() => loadBoxScoresForYears(2010, 2023)}>Load boxscores</button> */}
-      {/* <button onClick={() => loadPlayerStatsForYears(2010, 2023)}>Load player stats</button> */}
+    <main className="bg-gray-100 min-h-screen p-8">
+      <header className="text-center mb-12">
+        <h1 className="text-4xl font-bold text-blue-600">Shhh Data: NFL Stats & Predictions</h1>
+        <p className="text-lg text-gray-700 mt-4">Get access to comprehensive NFL stats, predictions, historical performances, and machine learning models for just $50/year.</p>
+      </header>
+
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <InfoCard title="Comprehensive Stats" description="Access detailed stats for every NFL team and player, including game scores, player stats, and more." />
+        <InfoCard title="Predictions" description="Get accurate predictions for upcoming games using advanced machine learning models." />
+        <InfoCard title="Historical Performance" description="Analyze historical performance data to make informed decisions." />
+        <InfoCard title="Machine Learning Models" description="Utilize cutting-edge machine learning models to enhance your predictions." />
+      </section>
+
+      <footer className="text-center mt-12">
+        <button className="bg-blue-600 text-white py-2 px-4 rounded-lg shadow-lg transform transition duration-500 hover:scale-105">
+          Subscribe Now
+        </button>
+      </footer>
     </main>
   )
 }
