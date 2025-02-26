@@ -131,7 +131,18 @@ const ProfilePage = () => {
             <LeftTabs tabs={_tabs} selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
             <div className="w-3/4 bg-white p-8 rounded-lg shadow-lg">
                 {selectedTab === 'General' && user && <GeneralTab user={user} />}
-                {selectedTab === 'Bet Tracking' && <BetTrackingTab bets={bets} />}
+                {selectedTab === 'Bet Tracking' ? 
+                    (false ? 
+                        <BetTrackingTab bets={bets} />
+                    :
+                        <div className="flex items-center justify-center h-full">
+                            <div className="text-center">
+                                <h1 className="text-2xl font-bold mb-4">Coming Soon!</h1>
+                                <p className="text-gray-600">This feature is under development.</p>
+                            </div>
+                        </div>
+                    )
+                : null}
             </div>
         </div>
     )

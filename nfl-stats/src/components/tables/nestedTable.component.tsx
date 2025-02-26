@@ -4,7 +4,7 @@ type Transformer = (...values: any[]) => any;
 
 interface TableProps {
     headers: string[];
-    columnOrder: Array<string | { key: Array<string>, transformer: Transformer }>;
+    columnOrder: Array<string | { key?: Array<string>|string|null, transformer: Transformer }>;
     data: Array<Record<string, any>>;
     onRowClick: (rowData: Record<string, any>) => void;
     childHeaders?: string[];
@@ -33,10 +33,13 @@ const handleExpandClick = (rowIndex: number) => {
     setExpandedRows(newExpandedRows);
 };
 
-const renderCell = (row: Record<string, any>, column: string | { key: string|Array<string>, transformer: Transformer }) => {
+const renderCell = (row: Record<string, any>, column: string | { key?: string|Array<string>|null, transformer: Transformer }) => {
     if (typeof column === 'string') {
         return row[column];
     } else {
+        if (!column.key) {
+            return column.transformer(row);
+        }
         if (!Array.isArray(column.key)) {
             return column.transformer(row[column.key]);
         }

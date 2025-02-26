@@ -9,6 +9,7 @@ export default interface ScoreModelPrediction {
     home_win: boolean|null;
     underdog_win: boolean|null;
     correct_winner: boolean|null;
+    correct_winner_by_score: boolean|null;
     correct_spread: boolean|null;
     correct_over_under: boolean|null;
     correct_underdog_win: boolean|null;
