@@ -125,7 +125,7 @@ const Navbar: FunctionComponent<{}> = () => {
                         <NavbarLink href="/nfl/games/2024/1/sportsbook-performance" className={"border-b-[1px] border-nflWhite"} navRequirements={requireAuthObject}>
                             Weekly Sportsbook Performance
                         </NavbarLink>
-                        <NavbarLink href="/nfl/games/2024/1/model_performance" navRequirements={requireAuthObject}>
+                        <NavbarLink href="/nfl/games/2024/1/model-performance" navRequirements={requireAuthObject}>
                             Weekly Historical Model Performance
                         </NavbarLink>
                     </NavbarDropdown>

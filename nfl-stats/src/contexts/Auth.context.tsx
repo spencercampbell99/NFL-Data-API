@@ -8,6 +8,7 @@ import User from '@/interfaces/user.interface';
 
 interface AuthContextType {
   user: User | null;
+  loading: boolean;
   login: (email: string, password: string) => Promise<User>;
   register: (email: string, password: string, username: string, firstName: string) => Promise<User>;
   logout: () => void;
@@ -30,6 +31,7 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const router = useRouter();
 
@@ -40,6 +42,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         const sessionUser = sessionStorage.getItem('user');
         if (sessionUser) {
           setUser(JSON.parse(sessionUser));
+          setLoading(false);
           return;
         }
 
@@ -54,9 +57,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               if (error.response?.status !== 403) {
                 console.error('No user logged in:', error);
               }
+              setLoading(false);
           });
         } catch (error) {
           console.error('No user logged in:', error);
+          setLoading(false);
         }
       }
     };
@@ -120,7 +125,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, me }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, me }}>
       {children}
     </AuthContext.Provider>
   );
