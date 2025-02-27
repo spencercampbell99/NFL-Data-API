@@ -29,6 +29,7 @@ exports._find = async (id) => {
  * Find user by email
  * 
  * @param {string} email - The user email.
+ * @param {boolean} withPermissions - Whether to include the user's permissions in the response.
  * 
  * @returns {User}
  * @throws {Error} If there is an error while retrieving the user.
@@ -37,13 +38,22 @@ exports._find = async (id) => {
  * // Returns the user with the email
  * const user = await userController.findByEmail(email);
  */
-exports._findByEmail = async (email) => {
+exports._findByEmail = async (email, withPermissions = false) => {
     try {
-        const user = await User.findOne({
+        let queryObj = {
             where: {
                 email: email,
             },
-        });
+        }
+
+        if (withPermissions) {
+            queryObj.include = [{
+                model: db.permissions,
+                as: 'permissions',
+            }];
+        }
+
+        const user = await User.findOne(queryObj);
         return user;
     } catch (err) {
         console.log(err?.message);
@@ -55,6 +65,7 @@ exports._findByEmail = async (email) => {
  * Find user by session token
  * 
  * @param {string} sessionToken - The session token.
+ * @param {boolean} withPermissions - Whether to include the user's permissions in the response.
  * 
  * @returns {User}
  * @throws {Error} If there is an error while retrieving the user.
@@ -63,13 +74,21 @@ exports._findByEmail = async (email) => {
  * // Returns the user with the session token
  * const user = await userController.findBySessionToken(sessionToken);
  */
-exports._findBySessionToken = async (sessionToken) => {
+exports._findBySessionToken = async (sessionToken, withPermissions = false) => {
     try {
-        const user = await User.findOne({
+        let queryObj = {
             where: {
                 session_token: sessionToken,
             },
-        });
+        }
+        if (withPermissions) {
+            queryObj.include = [{
+                model: db.permissions,
+                as: 'permissions',
+            }];
+        }
+
+        const user = await User.findOne(queryObj);
         return user;
     } catch (err) {
         console.log(err?.message);

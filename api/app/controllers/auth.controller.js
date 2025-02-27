@@ -3,8 +3,8 @@ const User = db.users;
 const userController = require('../controllers/user.controller');
 const authentication = require('../helpers/index').authentication;
 const random = require('../helpers/index').random;
-const generateToken = require('../helpers/index').generateToken;
-const generateExpirationDate = require('../helpers/index').generateExpirationDate;
+const jwt = require('jsonwebtoken');
+const { generateToken, generateExpirationDate } = require('../helpers/index');
 
 /**
  * Registers a new user.
@@ -22,7 +22,7 @@ exports.register = async (req, res) => {
         }
 
         // check that user doesn't already exist
-        const userExists = await userController._findByEmail(req.body.email);
+        const userExists = await userController._findByEmail(req.body.email, withPermissions = false);
         if (userExists) {
             return res.status(400).send({ message: `User with email ${req.body.email} already exists.` });
         }
@@ -41,15 +41,44 @@ exports.register = async (req, res) => {
             last_name: req.body.last_name,
         });
 
-        // drop password and salt from response
+        const { token, authToken, sessionExpiration } = await _generateTokens(user, res);
+
+        // Remove sensitive data from user object
         user.password = undefined;
         user.salt = undefined;
 
-        return res.status(200).send({ message: 'User registered successfully!', user: user }).end();
+        return res.status(200).send({ message: 'User registered successfully!', user: user, token: token }).end();
     } catch (err) {
         console.log(err?.message);
         return res.status(500).send({ message: err.message });
     }
+}
+
+async function _generateTokens(user, res) {
+    // Generate JWT
+    const token = jwt.sign({
+        userId: user.id,
+        email: user.email,
+        permissions: user.permissions,
+    }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
+
+    // Generate a separate auth token
+    const authToken = generateToken();
+    const sessionExpiration = generateExpirationDate();
+
+    // Set HTTP-only cookie
+    res.cookie('SHHBETS-JWT-USER', token, { httpOnly: true, maxAge: 3600000 });
+    res.cookie('SHHBETS-AUTH', authToken, { httpOnly: true });
+
+    // Set session token and expiration
+    await User.update({
+        session_token: authToken,
+        session_expiration: sessionExpiration,
+    }, {
+        where: { id: user.id },
+    });
+
+    return { token, authToken, sessionExpiration };
 }
 
 /**
@@ -67,7 +96,7 @@ exports.login = async (req, res) => {
             return res.status(400).send({ message: 'Email and password are required.' });
         }
 
-        let user = await userController._findByEmail(req.body.email);
+        let user = await userController._findByEmail(req.body.email, withPermissions = true);
 
         if (!user) {
             return res.status(404).send({ message: `User with email ${req.body.email} does not exist.` });
@@ -79,24 +108,13 @@ exports.login = async (req, res) => {
             return res.sendStatus(403); // FORBIDDEN
         }
 
-        const sessionToken = generateToken();
-        const sessionExpiration = generateExpirationDate();
-
-        await User.update({
-            session_token: sessionToken,
-            session_expiration: sessionExpiration,
-        }, {
-            where: { id: user.id },
-        });
-
-        // remove sensitive data from user object
+        const { token, authToken, sessionExpiration } = await _generateTokens(user, res);
+        
+        // Remove sensitive data from user object
         user.password = undefined;
         user.salt = undefined;
-        user.session_expiration = undefined
-        // user.session_token = undefined
 
-        res.cookie('SHHBETS-AUTH', sessionToken, { httpOnly: true })
-        return res.status(200).send({ message: 'User logged in successfully!', user: user }).end();
+        return res.status(200).send({ message: 'User logged in successfully!', user: user, token: token });
     } catch (err) {
         console.log(err?.message);
         return res.status(500).send({ message: err.message });
@@ -126,6 +144,7 @@ exports.logout = async (req, res) => {
         });
 
         res.clearCookie('SHHBETS-AUTH');
+        res.clearCookie('SHHBETS-JWT-USER');
 
         return res.status(200).send({ message: 'User logged out successfully!' }).end();
     } catch (err) {
@@ -144,10 +163,10 @@ exports.logout = async (req, res) => {
  */
 exports.me = async (req, res) => {
     try {
-        const user = await userController._findBySessionToken(req.cookies['SHHBETS-AUTH']);
+        const user = await userController._findBySessionToken(req.cookies['SHHBETS-AUTH'], withPermissions = true);
 
         if (!user) {
-            return res.sendStatus(401); // FORBIDDEN
+            return res.sendStatus(401); // UNAUTHORIZED
         }
 
         return res.status(200).send({ user: user }).end();

@@ -24,6 +24,8 @@ db.users = require('./user.model')(sequelize, Sequelize);
 db.bets = require('./bet.model')(sequelize, Sequelize);
 db.betLegs = require('./betLeg.model')(sequelize, Sequelize);
 db.userPredictions = require('./userPrediction.model')(sequelize, Sequelize);
+db.permissions = require('./permission.model')(sequelize, Sequelize);
+db.userPermissions = require('./userPermission')(sequelize, Sequelize);
 
 // bets
 db.bets.belongsTo(db.users, { foreignKey: 'bettor_id', as: 'bettor' });
@@ -36,5 +38,11 @@ db.betLegs.belongsTo(db.nfl.teams, { foreignKey: 'team_id', as: 'team' });
 // user predictions
 db.userPredictions.belongsTo(db.nfl.schedules, { foreignKey: 'schedule_id', as: 'schedule' });
 db.userPredictions.belongsTo(db.users, { foreignKey: 'user_id', as: 'user' });
+
+// user permissions
+db.userPermissions.belongsTo(db.users, { foreignKey: 'user_id', as: 'user' });
+db.userPermissions.belongsTo(db.permissions, { foreignKey: 'permission_id', as: 'permission' });
+db.permissions.belongsToMany(db.users, { through: db.userPermissions, foreignKey: 'permission_id', as: 'users' });
+db.users.belongsToMany(db.permissions, { through: db.userPermissions, foreignKey: 'user_id', as: 'permissions' });
 
 module.exports = db;

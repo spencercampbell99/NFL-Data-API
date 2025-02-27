@@ -4,13 +4,14 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import axios from '@/axiosConfig';
 import { useRouter } from 'next/navigation';
 import { AxiosError } from 'axios';
+import { jwtDecode } from 'jwt-decode';
 import User from '@/interfaces/user.interface';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<User>;
-  register: (email: string, password: string, username: string, firstName: string) => Promise<User>;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, username: string, firstName: string) => Promise<void>;
   logout: () => void;
   me: () => Promise<User>;
 }
@@ -37,54 +38,34 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   useEffect(() => {
     const checkUser = async () => {
-      if (!user) {
-        // check session storage
-        const sessionUser = sessionStorage.getItem('user');
-        if (sessionUser) {
-          setUser(JSON.parse(sessionUser));
-          setLoading(false);
-          return;
-        }
-
+      const token = sessionStorage.getItem('token');
+      if (token) {
         try {
-          axios.get('/auth/me').then((response) => {
-            const userData = response.data.user;
-            setUser(userData);
-            // Store user in session storage
-            sessionStorage.setItem('user', JSON.stringify(userData));
-          }).catch((error: AxiosError) => {
-              // if not 403 error, print
-              if (error.response?.status !== 403) {
-                console.error('No user logged in:', error);
-              }
-              setLoading(false);
-          });
+          const decodedUser = jwtDecode<User>(token);
+          setUser(decodedUser);
         } catch (error) {
-          console.error('No user logged in:', error);
-          setLoading(false);
+          console.error('Invalid token:', error);
         }
       }
+      setLoading(false);
     };
     checkUser();
-  }, [user]);
+  }, []);
 
-  const login = async (email: string, password: string): Promise<User> => {
+  const login = async (email: string, password: string): Promise<void> => {
     try {
       const response = await axios.post('/auth/login', { email, password });
-      const userData = response.data.user;
-      setUser(userData);
-
-      // Store user in session storage
-      sessionStorage.setItem('user', JSON.stringify(userData));
-
-      return userData;
+      const token = response.data.token;
+      sessionStorage.setItem('token', token);
+      const decodedUser = jwtDecode<User>(token);
+      setUser(decodedUser);
     } catch (error) {
       console.error('Login error:', error);
       throw error;
     }
   };
 
-  const register = async (email: string, password: string, username: string, firstName: string): Promise<User> => {
+  const register = async (email: string, password: string, username: string, firstName: string): Promise<void> => {
     try {
       const response = await axios.post('/auth/register', {
         email,
@@ -92,10 +73,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         username,
         first_name: firstName,
       });
-      const userData = response.data.user;
-      setUser(userData);
-
-      return userData;
+      const token = response.data.token;
+      sessionStorage.setItem('token', token);
+      const decodedUser = jwtDecode<User>(token);
+      setUser(decodedUser);
     } catch (error) {
       console.error('Register error:', error);
       throw error;
@@ -106,7 +87,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       await axios.post('/auth/logout');
       setUser(null);
-      sessionStorage.removeItem('user');
+      sessionStorage.removeItem('token');
       router.push('/login');
     } catch (error) {
       console.error('Logout error:', error);
