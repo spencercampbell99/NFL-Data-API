@@ -4,7 +4,7 @@ import { PermissionProtectedRoute } from "@/middleware/Permission.middleware";
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <AuthProtected>
-      <PermissionProtectedRoute>
+      <PermissionProtectedRoute permissionsRequired={["owner"]}>
         {children}
       </PermissionProtectedRoute>
     </AuthProtected>

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/Auth.context";
 
-export function PermissionProtectedRoute({ children }: { children: React.ReactNode }) {
+export function PermissionProtectedRoute({ children, permissionsRequired }: { children: React.ReactNode, permissionsRequired?: string[] }) {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [isChecking, setIsChecking] = useState(true);
@@ -14,15 +14,15 @@ export function PermissionProtectedRoute({ children }: { children: React.ReactNo
       if (!user) {
         router.replace("/");
       } else {
-        // check user permissions
-        console.log(user)
-
+        // Check if user has the required permissions
+        console.log(permissionsRequired, user.permissions);
+        if (permissionsRequired && !permissionsRequired.every(permission => user.permissions?.some(userPermission => userPermission.slug === permission))) {
+          router.replace("/");
+        }
         setIsChecking(false);
       }
     }
-  }, [user, loading, router]);
-
-  console.log(user, loading, isChecking)
+  }, [user, loading, router, permissionsRequired]);
 
   if (loading || isChecking) {
     return <p>Loading...</p>;
