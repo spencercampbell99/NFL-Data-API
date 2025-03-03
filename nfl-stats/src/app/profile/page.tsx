@@ -11,8 +11,9 @@ import BetService from '@/services/Bet.service'
 import { AxiosError } from 'axios'
 import CreateBetModal from '@/components/modals/addBet.modal'
 import NestedTable from '@/components/tables/nestedTable.component'
+import SubscriptionService from '@/services/Subscription.service'
 
-const _tabs = ['General', 'Bet Tracking']
+const _tabs = ['General', 'Bet Tracking', 'Subscription Management']
 
 const BasicLabel = ({ label, value }: { label: string, value: string }) => {
     return (
@@ -38,6 +39,27 @@ const GeneralTab = ({ user }: { user: User }) => {
             <button className="bg-red-500 text-white px-4 py-2 rounded mt-4" onClick={logout}>Logout</button>
         </div>
     )
+}
+
+const SubscriptionManagementTab = () => {
+    return (
+        <div>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Subscription Management</h2>
+            <p>Manage your subscription here.</p>
+            <div className="space-y-3">
+                <button
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    onClick={() => SubscriptionService.handleCreateSubscription('monthly_basic')}>
+                    Subscribe Monthly
+                </button>
+                <button
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    onClick={() => SubscriptionService.handleCreateSubscription('yearly')}>
+                    Subscribe Yearly
+                </button>
+            </div>
+        </div>
+    );
 }
 
 const BetTrackingTableColumnOrder = [
@@ -143,6 +165,7 @@ const ProfilePage = () => {
                         </div>
                     )
                 : null}
+                {selectedTab === 'Subscription Management' && <SubscriptionManagementTab />}
             </div>
         </div>
     )

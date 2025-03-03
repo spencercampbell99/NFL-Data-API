@@ -2,7 +2,7 @@ const { get, merge } = require('lodash');
 const findBySessionToken = require('../controllers/user.controller')._findBySessionToken;
 
 /**
- * Checks that a user is authenticated.
+ * Checks that a user is authenticated. If authenticated, it adds the user object to the request.
  * 
  * @param {Object} req - The request object.
  * @param {Object} res - The response object.

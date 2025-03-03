@@ -4,7 +4,7 @@ const http = require('http');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const compression = require('compression');
-require('dotenv').config();
+require('@dotenvx/dotenvx').config();
 
 const app = express();
 
@@ -22,7 +22,9 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 
 const db = require('./app/models');
-db.sequelize.sync();
+db.sequelize.sync({ alter: false }).then(() => {
+  console.log('DB synced');
+});
 
 // cfb db
 const cfbDb = require('./app/models/cfb');
@@ -41,6 +43,7 @@ require('./app/routes/players.routes')(app);
 require('./app/routes/auth.routes')(app);
 require('./app/routes/users.routes')(app);
 require('./app/routes/bet.routes')(app);
+require('./app/routes/stripe.routes')(app);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to the NFL Stats API.' });

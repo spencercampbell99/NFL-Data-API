@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@nextui-org/react": "^2.4.8",
+    "@stripe/stripe-js": "^5.8.0",
     "axios": "^1.6.2",
     "framer-motion": "^11.13.1",
     "jwt-decode": "^4.0.0",
