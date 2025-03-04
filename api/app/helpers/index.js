@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const DisplayableException = require('../exceptions/CustomExceptions').DisplayableException;
 
 /**
  * Generates a random token.
@@ -64,4 +65,21 @@ exports.getTemplateQuery = ({ filename, replaceMapping, verbose = false }) => {
     }
 
     return sql;
+}
+
+/**
+ * Handle displayable exceptions.
+ * 
+ * @param {Error|DisplayableException} error - The error to handle.
+ * 
+ * @returns {DisplayableException} The handled error.
+ */
+exports.handleDisplayableException = (error) => {
+    if (error instanceof DisplayableException) {
+        return error;
+    } else if (error instanceof Error) {
+        return new DisplayableException(error.message || "Something went wrong", error.statusCode || 500);
+    } else {
+        return new DisplayableException('Unknown error', 500);
+    }
 }

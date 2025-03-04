@@ -1,12 +1,10 @@
-const { query } = require("express");
-
-module.exports = app => {
+module.exports = (app, authMiddleware) => {
     const gameController = require("../controllers/game.controller.js");
 
     var router = require("express").Router();
 
     // Get game by id
-    router.get("/game/:id", async (req, res) => {
+    router.get("/game/:id", authMiddleware, async (req, res) => {
         try {
             const game = await gameController.find(req.params.id);
             if (!game) {
@@ -24,7 +22,7 @@ module.exports = app => {
     });
 
     // get games by week and season
-    router.get("/games/week/:week/season/:season", async (req, res) => {
+    router.get("/games/week/:week/season/:season", authMiddleware, async (req, res) => {
         // get additional query params
         const queryParams = req.query;
 
@@ -57,13 +55,13 @@ module.exports = app => {
     });
 
     // get overview for game
-    router.get("/game/:id/overview", gameController.getGameOverviewById);
+    router.get("/game/:id/overview", authMiddleware, gameController.getGameOverviewById);
 
     // get games overview by week and season
-    router.get('/games/overview/:season/:week', gameController.getGamesOverviewBySeasonAndWeek);
+    router.get('/games/overview/:season/:week', authMiddleware, gameController.getGamesOverviewBySeasonAndWeek);
 
     // default route
-    router.get("/games", (req, res) => {
+    router.get("/games", authMiddleware, (req, res) => {
         res.json({ message: "Getting all games is not currently allowed due to size." });
     });
 

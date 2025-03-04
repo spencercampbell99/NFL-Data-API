@@ -1,4 +1,4 @@
-module.exports = app => {
+module.exports = (app, authMiddleware) => {
     const authController = require("../controllers/auth.controller.js");
 
     var router = require("express").Router();
@@ -7,9 +7,9 @@ module.exports = app => {
 
     router.post("/login", authController.login);
 
-    router.post("/logout", authController.logout);
+    router.post("/logout", authMiddleware, authController.logout);
 
-    router.get("/me", authController.me);
+    router.get("/me", authMiddleware, authController.me);
 
     app.use('/api/auth', router);
 }

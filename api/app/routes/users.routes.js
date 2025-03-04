@@ -1,14 +1,12 @@
-module.exports = app => {
+module.exports = (app, authMiddleware) => {
     const userController = require("../controllers/user.controller.js");
-    const isAuthenticated = require("../middleware/auth.middleware").isAuthenticated;
 
     var router = require("express").Router();
 
-    router.use(isAuthenticated);
-
     // Get user by id
-    router.get("/user/:id", async (req, res) => {
+    router.get("/user/:id", authMiddleware, async (req, res) => {
         try {
+            throw new Error("Test error"); // Simulate an error
             const user = await userController.find(req.params.id);
             if (!user) {
                 res.status(404).send({
@@ -25,7 +23,7 @@ module.exports = app => {
     });
 
     // Get all users
-    router.get("/users", userController.list);
+    router.get("/users", authMiddleware, userController.list);
 
     app.use('/api', router);
 }

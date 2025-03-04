@@ -34,16 +34,18 @@ cfbDb.sequelize.sync();
 const nflDb = require('./app/models/nfl');
 nflDb.sequelize.sync(); // add {alter: true} to alter tables without removing data
 
+const authRequire = require("./app/middleware/auth.middleware").isAuthenticated;
+
 // load routes
-require('./app/routes/loaders.routes')(app);
-require('./app/routes/games.routes')(app);
-require('./app/routes/teams.routes')(app);
-require('./app/routes/modelPredictions.routes')(app);
-require('./app/routes/players.routes')(app);
-require('./app/routes/auth.routes')(app);
-require('./app/routes/users.routes')(app);
-require('./app/routes/bet.routes')(app);
-require('./app/routes/stripe.routes')(app);
+require('./app/routes/loaders.routes')(app, authRequire);
+require('./app/routes/games.routes')(app, authRequire);
+require('./app/routes/teams.routes')(app, authRequire);
+require('./app/routes/modelPredictions.routes')(app, authRequire);
+require('./app/routes/players.routes')(app, authRequire);
+require('./app/routes/auth.routes')(app, authRequire);
+require('./app/routes/users.routes')(app, authRequire);
+require('./app/routes/bet.routes')(app, authRequire);
+require('./app/routes/stripe.routes')(app, authRequire);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to the NFL Stats API.' });

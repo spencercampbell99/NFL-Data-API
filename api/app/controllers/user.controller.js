@@ -80,6 +80,7 @@ exports._findBySessionToken = async (sessionToken, withPermissions = false) => {
             where: {
                 session_token: sessionToken,
             },
+            logging: false,
         }
         if (withPermissions) {
             queryObj.include = [{

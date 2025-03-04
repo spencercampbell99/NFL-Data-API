@@ -1,20 +1,19 @@
-module.exports = app => {
+module.exports = (app, authMiddleware) => {
     const betController = require("../controllers/bet.controller.js");
-    const authMiddleware = require("../middleware/auth.middleware.js");
 
     var router = require("express").Router();
 
     // List all bets for authed user
-    router.get("/my-bets", authMiddleware.isAuthenticated, betController.list);
+    router.get("/my-bets", authMiddleware, betController.list);
 
     // List games for bet selection
-    router.get("/bets/list-games", authMiddleware.isAuthenticated, betController.gamesForBetSelection);
+    router.get("/bets/list-games", authMiddleware, betController.gamesForBetSelection);
 
     // Create a new bet
-    router.post("/bet", authMiddleware.isAuthenticated, betController.create);
+    router.post("/bet", authMiddleware, betController.create);
 
     // Delete bets for authed user
-    router.delete("/my-bets", authMiddleware.isAuthenticated, betController.deleteMyBets);
+    router.delete("/my-bets", authMiddleware, betController.deleteMyBets);
 
     app.use('/api', router);
 }

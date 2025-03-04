@@ -1,5 +1,7 @@
 'use client'
 
+import Link from "next/link";
+
 interface InfoCardProps {
   title: string;
   description: string;
@@ -30,9 +32,9 @@ export default function Home() {
       </section>
 
       <footer className="text-center mt-12">
-        <button className="bg-blue-600 text-white py-2 px-4 rounded-lg shadow-lg transform transition duration-500 hover:scale-105">
+      <Link href="/profile"className="bg-blue-600 text-white py-2 px-4 rounded-lg shadow-lg transform transition duration-500 hover:scale-105">
           Subscribe Now
-        </button>
+      </Link>
       </footer>
     </main>
   )

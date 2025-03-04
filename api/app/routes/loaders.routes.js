@@ -1,17 +1,17 @@
-module.exports = app => {
+module.exports = (app, authMiddleware) => {
     const loaders = require("../controllers/loader.controller.js");
     const gameController = require("../controllers/game.controller.js");
 
     var router = require("express").Router();
 
     // Load in teams given an array of teams
-    router.post("/teams", loaders.loadTeams);
+    router.post("/teams", authMiddleware, loaders.loadTeams);
 
     // Load in schedules given an array of schedules
-    router.post("/schedules", loaders.loadSchedules);
+    router.post("/schedules", authMiddleware, loaders.loadSchedules);
 
     // load in boxscores for given season and week
-    router.get("/boxscores/week/:week/season/:season", async (req, res) => {
+    router.get("/boxscores/week/:week/season/:season", authMiddleware, async (req, res) => {
         // load the games for given week and season
         try {
             const games = await gameController.getGamesBySeasonAndWeek({ week: req.params.week, season: req.params.season, idsOnly: true });
@@ -38,7 +38,7 @@ module.exports = app => {
     });
 
     // Load in boxscores given a game id
-    router.get("/boxscores/:gameId", async (req, res) => {
+    router.get("/boxscores/:gameId", authMiddleware, async (req, res) => {
         try {
             const boxscore = await loaders.loadBoxscoreForGame(req.params.gameId);
             res.status(200).send(boxscore);
@@ -53,7 +53,7 @@ module.exports = app => {
     });
 
     // load in player stats for a given game id
-    router.get("/playerStats/:gameId", async (req, res) => {
+    router.get("/playerStats/:gameId", authMiddleware, async (req, res) => {
         try {
             const verbose = req.query.verbose == 1 ? 
                 (sql) => {
@@ -72,7 +72,7 @@ module.exports = app => {
     });
 
     // default route
-    router.get("/", (req, res) => {
+    router.get("/", authMiddleware, (req, res) => {
         res.json({ message: "Welcome to the NFL Stats API. These routes are for loading data in." });
     });
 
