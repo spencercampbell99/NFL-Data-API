@@ -26,8 +26,6 @@ module.exports = (sequelize, Sequelize) => {
     session_token: { type: DataTypes.STRING(40), allowNull: true },
     session_expiration: { type: DataTypes.DATE, allowNull: true },
     stripe_customer_id: { type: DataTypes.STRING(50), allowNull: true },
-    stripe_subscription_id: { type: DataTypes.STRING(50), allowNull: true },
-    subscription_expiration: { type: DataTypes.DATE, allowNull: true },
   }, {
     sequelize,
     modelName: 'User',
