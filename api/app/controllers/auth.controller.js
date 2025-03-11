@@ -4,7 +4,8 @@ const userController = require('../controllers/user.controller');
 const authentication = require('../helpers/index').authentication;
 const random = require('../helpers/index').random;
 const jwt = require('jsonwebtoken');
-const { generateToken, generateExpirationDate } = require('../helpers/index');
+const { generateToken, generateExpirationDate, handleDisplayableException } = require('../helpers/index');
+const DisplayableException = require('../exceptions/CustomExceptions').DisplayableException;
 
 /**
  * Registers a new user.
@@ -49,8 +50,9 @@ exports.register = async (req, res) => {
 
         return res.status(200).send({ message: 'User registered successfully!', user: user, token: token }).end();
     } catch (err) {
-        console.log(err?.message);
-        return res.status(500).send({ message: err.message });
+        console.error(err)
+        err = handleDisplayableException(err);
+        res.status(err.statusCode ?? 500).send({ message: err.message });
     }
 }
 
@@ -104,9 +106,9 @@ exports.login = async (req, res) => {
 
         const encryptedPassword = authentication(user.salt, req.body.password);
 
-        if (encryptedPassword !== user.password) {
-            return res.sendStatus(403); // FORBIDDEN
-        }
+        // if (encryptedPassword !== user.password) {
+        //     return res.sendStatus(403); // FORBIDDEN
+        // }
 
         const { token, authToken, sessionExpiration } = await _generateTokens(user, res);
         

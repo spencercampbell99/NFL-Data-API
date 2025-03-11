@@ -5,6 +5,6 @@ class DisplayableException extends Error {
   }
 }
 
-exports = {
+module.exports = {
     DisplayableException
 }

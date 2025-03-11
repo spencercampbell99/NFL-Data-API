@@ -49,12 +49,12 @@ const SubscriptionManagementTab = () => {
             <div className="space-y-3">
                 <button
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                    onClick={() => SubscriptionService.handleCreateSubscription('monthly_basic')}>
+                    onClick={() => SubscriptionService.handleCreateSubscription('monthly_full_data_basic')}>
                     Subscribe Monthly
                 </button>
                 <button
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                    onClick={() => SubscriptionService.handleCreateSubscription('yearly')}>
+                    onClick={() => SubscriptionService.handleCreateSubscription('yearly_full_data_basic')}>
                     Subscribe Yearly
                 </button>
             </div>

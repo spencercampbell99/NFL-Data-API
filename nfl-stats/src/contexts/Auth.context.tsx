@@ -11,7 +11,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, username: string, firstName: string) => Promise<void>;
+  register: ({ email, password, username, firstName }: { email: string; password: string; username: string; firstName: string }) => Promise<void>;
   logout: () => void;
   me: () => Promise<User>;
 }
@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const register = async (email: string, password: string, username: string, firstName: string): Promise<void> => {
+  const register = async ({ email, password, username, firstName }: { email: string; password: string; username: string; firstName: string }): Promise<void> => {
     try {
       const response = await axios.post('/auth/register', {
         email,
