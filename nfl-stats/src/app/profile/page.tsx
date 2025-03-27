@@ -11,7 +11,7 @@ import BetService from '@/services/Bet.service'
 import { AxiosError } from 'axios'
 import CreateBetModal from '@/components/modals/addBet.modal'
 import NestedTable from '@/components/tables/nestedTable.component'
-import SubscriptionService from '@/services/Subscription.service'
+import StripeService from '@/services/Stripe.service'
 
 const _tabs = ['General', 'Bet Tracking', 'Subscription Management']
 
@@ -41,7 +41,9 @@ const GeneralTab = ({ user }: { user: User }) => {
     )
 }
 
-const SubscriptionManagementTab = () => {
+// Subscription management tab in left nav
+// No idea what the type of useRouter is, can't be bothered to find it right now
+const SubscriptionManagementTab = ({ router }: { router: any }) => {
     return (
         <div>
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">Subscription Management</h2>
@@ -49,13 +51,13 @@ const SubscriptionManagementTab = () => {
             <div className="space-y-3">
                 <button
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                    onClick={() => SubscriptionService.handleCreateSubscription('monthly_full_data_basic')}>
-                    Subscribe Monthly
-                </button>
-                <button
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                    onClick={() => SubscriptionService.handleCreateSubscription('yearly_full_data_basic')}>
-                    Subscribe Yearly
+                    onClick={async () => {
+                        const url = await StripeService.getStripePortalUrl()
+                        if (url && router) {
+                            router.push(url)
+                        }
+                    }}>
+                    Manage Subscription
                 </button>
             </div>
         </div>
@@ -165,7 +167,7 @@ const ProfilePage = () => {
                         </div>
                     )
                 : null}
-                {selectedTab === 'Subscription Management' && <SubscriptionManagementTab />}
+                {selectedTab === 'Subscription Management' && <SubscriptionManagementTab router={router} />}
             </div>
         </div>
     )

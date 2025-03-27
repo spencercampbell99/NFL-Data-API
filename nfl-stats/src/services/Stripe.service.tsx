@@ -1,7 +1,7 @@
 import axios from '@/axiosConfig';
 import { loadStripe } from '@stripe/stripe-js';
 
-class SubscriptionService {
+class StripeService {
     static async handleCreateSubscription(lookupKey: string) {
         try {
             const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
@@ -23,6 +23,28 @@ class SubscriptionService {
             console.error('Error creating subscription:', error);
         }
     }
+
+    static async handleCheckSubscriptionStatus() {
+        try {
+            const { data } = await axios.get('/stripe/check-subscription-status');
+            return data;
+        } catch (error) {
+            console.error('Error checking subscription status:', error);
+        }
+    }
+
+    static async getStripePortalUrl() {
+        try {
+            const { data } = await axios.post('/stripe/create-portal-session');
+
+            if (data.url) {
+                return data.url;
+            }
+        } catch (error) {
+            console.error('Error creating portal session:', error);
+        }
+        return null;
+    }
 }
 
-export default SubscriptionService;
+export default StripeService;
