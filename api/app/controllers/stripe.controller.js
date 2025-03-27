@@ -308,55 +308,194 @@ exports.webhook = async (req, res) => {
         let subscription;
         let status;
 
-        // Handle the event with a switch
-        switch (event.type) {
-            // MAKE SURE THESE ARE ALL REGISTERED IN STRIPE
-            case 'customer.updated':
-                subscription = event.data.object;
-                status = subscription.status;
+        console.log(`Received event: ${event.type}`);
 
-                console.log(`Customer updated: ${status}`);
-                break;
-            case 'customer.subscription.trial_will_end':
-                subscription = event.data.object;
-                status = subscription.status;
-
-                console.log(`Subscription status is ${status}.`);
-                break;
-            case 'customer.subscription.deleted':
-                subscription = event.data.object;
-                status = subscription.status;
-
-                console.log(`Subscription status is ${status}.`);
-                break;
-            case 'customer.subscription.created':
-                subscription = event.data.object;
-                status = subscription.status;
-
-                console.log(`Subscription status is ${status}.`);
-                break;
-            case 'customer.subscription.updated':
-                subscription = event.data.object;
-                status = subscription.status;
-
-                console.log(`Subscription status is ${status}.`);
-                break;
-            case 'entitlements.active_entitlement_summary.updated':
-                subscription = event.data.object;
-                status = subscription.status;
-
-                // handle update to entitlement summary
-                break;
-            default:
-                console.log(`Unhandled event type ${event.type}`);
+        if (event.type.startsWith('customer.subscription')) {
+            subscription = event.data.object;
+                
+            await _updateUserSubscription(subscription);
+        } else {
+            // Handle the event with a switch
+            switch (event.type) {
+                // MAKE SURE THESE ARE ALL REGISTERED IN STRIPE
+                case 'customer.updated':
+                    console.log(`Customer updated`);
+                    break;
+                case 'entitlements.active_entitlement_summary.updated':
+                    _updateUserAccess({ user: event.data.object.customer, searchType: 'stripe_customer_id' });
+                    break;
+                case 'entitlements.active_entitlement_summary.updated':
+                    break;
+                default:
+                    // console.log(`Unhandled event type ${event.type}`);
+            }
         }
 
         res.status(200).send({ received: true });
     } catch (error) {
         console.error('Error handling webhook:', error);
-        res.status(500).send('Internal Server Error');
+        error = handleDisplayableException(error);
+        res.status(400).send({ error: error.message });
     }
 }
+
+/**
+ * Update User's Access Endpoint
+ * 
+ * @param {Object} req - The request object.
+ * @param {Object} req.body - The body of the request.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} - A promise that resolves to void.
+ */
+exports.updateUserAccess = async (req, res) => {
+    try {
+        const userId = req.params.id
+
+        await _updateUserAccess({ user: userId, searchType: 'user_id' });
+
+        res.status(200).send({ message: 'User access updated' });
+    } catch (error) {
+        console.error(error);
+        error = handleDisplayableException(error);
+        res.status(400).send({ error: error.message });
+    }
+}
+
+/**
+ * Update user's access
+ * 
+ * @param {Object|number} user - The user object or ID.
+ * @param {string} searchType - The search type. 'user', 'user_id', or 'stripe_customer_id'.
+ * 
+ * @returns {void}
+ */
+_updateUserAccess = async ({ user, searchType}) => {
+    try {
+        if (!['user', 'user_id', 'stripe_customer_id'].includes(searchType)) {
+            throw new Error('Invalid search type');
+        }
+
+        if (searchType === 'user_id') {
+            user = await db.users.findOne({ where: { id: user } });
+        } else if (searchType === 'stripe_customer_id') {
+            user = await db.users.findByStripeCustomerId(user);
+        }
+
+        if (!user || !user.stripe_customer_id) {
+            throw new DisplayableException('User not found or doesnt have a stripe customer ID');
+        }
+
+        const entitlements = await _listEntitlements(user.stripe_customer_id);
+        let accessLevel = 'free';
+
+        entitlements.data.forEach((entitlement) => {
+            if (entitlement.lookup_key === 'basic-access') {
+                accessLevel = 'basic';
+            }
+        });
+
+        const oldAccessLevel = user.access_level;
+
+        await db.users.update(
+            { access_level: accessLevel },
+            { where: { id: user.id } }
+        );
+
+        if (oldAccessLevel !== accessLevel && accessLevel == 'free') {
+            // log out
+            await db.users.update(
+                { session_token: null, session_expiration: null },
+                { where: { id: user.id } }
+            );
+        }
+
+        console.debug(`Updated user ${user.id} access level to ${accessLevel}`);
+    } catch (error) {
+        console.error(error);
+        error = handleDisplayableException(error);
+        throw error;
+    }
+}
+
+/**
+ * List entitlements
+ * 
+ * @param {string} customerId - The customer ID.
+ * 
+ * @returns {Object|null} - The entitlements.
+ */
+_listEntitlements = async (customerId) => {
+    try {
+        const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+        const entitlements = await stripe.entitlements.activeEntitlements.list({
+            customer: customerId,
+        });
+
+        return entitlements;
+    } catch (error) {
+        console.error(error);
+        error = handleDisplayableException(error);
+        throw error;
+    }
+}
+
+/**
+ * Take subscription event data and update user's subscription
+ * 
+ * @param {Object} subscription - The subscription object.
+ * 
+ * @throws {Error} - If the subscription is not found or if the user is not found.
+ * 
+ * @returns {void}
+ */
+_updateUserSubscription = async (subscription) => {
+    try {
+        return; // No currently tracking in db
+
+        // Find user
+        const user = await db.users.findByStripeCustomerId(subscription.customer);
+        if (!user) {
+            throw new DisplayableException('User not found');
+        }
+
+        const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+        // Subscription statuses: https://docs.stripe.com/billing/subscriptions/webhooks#state-changes
+        const userSubscriptionInfo = {
+            user_id: user.id,
+            stripe_customer_id: subscription.customer,
+            stripe_subscription_id: subscription.id,
+            stripe_latest_invoice_id: subscription.latest_invoice,
+            stripe_price_id: subscription.items.data[0].price.id,
+            is_active: subscription.status === 'active' || subscription.status === 'trialing',
+            is_recurring: subscription.collection_method === 'charge_automatically',
+            start_date: new Date(subscription.current_period_start * 1000),
+            end_date: subscription.cancel_at_period_end ? new Date(subscription.current_period_end * 1000) : null,
+            valid_through: subscription.cancel_at ? new Date(subscription.cancel_at * 1000) : null,
+        };
+
+        // Find subscription
+        const userSubscription = await db.userSubscriptions.findOne({
+            where: { user_id: user.id, stripe_subscription_id: subscription.id, stripe_customer_id: subscription.customer },
+            logging: false,
+        });
+
+        if (!userSubscription) {
+            // Create subscription
+            await db.userSubscriptions.create(userSubscriptionInfo);
+        } else {
+            // Update subscription
+            await db.userSubscriptions.update(userSubscriptionInfo, {
+                where: { user_id: user.id, stripe_subscription_id: subscription.id },
+            });
+        }
+    } catch (error) {
+        console.error(error);
+        error = handleDisplayableException(error);
+        throw error;
+    }
+};
 
 /**
  * Create a Stripe subscription

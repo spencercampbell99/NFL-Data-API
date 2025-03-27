@@ -26,7 +26,6 @@ db.betLegs = require('./betLeg.model')(sequelize, Sequelize);
 db.userPredictions = require('./userPrediction.model')(sequelize, Sequelize);
 db.permissions = require('./permission.model')(sequelize, Sequelize);
 db.userPermissions = require('./userPermission')(sequelize, Sequelize);
-db.stripeProducts = require('./stripeProduct.model')(sequelize, Sequelize);
 db.userSubscriptions = require('./userSubscription.model')(sequelize, Sequelize);
 
 // bets
@@ -49,6 +48,5 @@ db.users.belongsToMany(db.permissions, { through: db.userPermissions, foreignKey
 
 // user subscriptions
 db.userSubscriptions.belongsTo(db.users, { foreignKey: 'user_id', as: 'user' });
-db.userSubscriptions.belongsTo(db.stripeProducts, { foreignKey: 'stripe_product_id', as: 'stripe_product' });
 
 module.exports = db;

@@ -17,9 +17,12 @@ module.exports = (sequelize, Sequelize) => {
 
     // init model
     UserSubscription.init({
-        'user_id': { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, references: { model: 'users', key: 'id', as: 'user' }  },
-        'stripe_product_id': { type: DataTypes.STRING, allowNull: false, references: { model: 'stripe_products', key: 'stripe_product_id', as: 'stripe_product' }, description: 'Foreign id to stripe products'  },
-        'stripe_subscription_id': { type: DataTypes.STRING, allowNull: false, primaryKey: true, description: 'The recurringg subscription id from stripe' },
+        'id': { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
+        'user_id': { type: DataTypes.INTEGER, allowNull: false, references: { model: 'users', key: 'id', as: 'user' }  },
+        'stripe_customer_id': { type: DataTypes.STRING, allowNull: true, description: 'The customer id from stripe' },
+        'stripe_subscription_id': { type: DataTypes.STRING, allowNull: false, description: 'The recurring subscription id from stripe' },
+        'stripe_latest_invoice_id': { type: DataTypes.STRING, allowNull: false, description: 'The latest invoice id from stripe' },
+        'stripe_price_id': { type: DataTypes.STRING, allowNull: false, description: 'The price id from stripe' },
         'is_active': { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true, description: 'Is the subscription active' },
         'is_recurring': { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true, description: 'Is the subscription recurring' },
         'start_date': { type: DataTypes.DATE, allowNull: false, defaultValue: Sequelize.NOW, description: 'The date the subscription started' },

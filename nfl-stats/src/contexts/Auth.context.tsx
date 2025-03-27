@@ -14,6 +14,7 @@ interface AuthContextType {
   register: ({ email, password, username, firstName }: { email: string; password: string; username: string; firstName: string }) => Promise<void>;
   logout: () => void;
   me: () => Promise<User>;
+  checkUser: (reload?: boolean) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -36,19 +37,33 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const router = useRouter();
 
-  useEffect(() => {
-    const checkUser = async () => {
-      const token = sessionStorage.getItem('token');
-      if (token) {
-        try {
-          const decodedUser = jwtDecode<User>(token);
-          setUser(decodedUser);
-        } catch (error) {
-          console.error('Invalid token:', error);
-        }
+  const checkUser = async (reload = false) => {
+    let token;
+    if (reload) {
+      try {
+        const response = await axios.get('/auth/me');
+        token = response.data.token;
+        sessionStorage.setItem('token', token);
+      } catch (error) {
+        console.error('Check user error:', error);
       }
-      setLoading(false);
-    };
+    } else {
+      token = sessionStorage.getItem('token');
+    }
+    if (token) {
+      try {
+        const decodedUser = jwtDecode<User>(token);
+        setUser(decodedUser);
+      } catch (error) {
+        console.error('Invalid token:', error);
+      }
+    } else {
+      setUser(null);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
     checkUser();
   }, []);
 
@@ -106,7 +121,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, me }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, me, checkUser }}>
       {children}
     </AuthContext.Provider>
   );

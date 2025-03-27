@@ -12,5 +12,7 @@ module.exports = (app, authMiddleware) => {
 
     router.get('/stripe/user/:id/subscriptions', authMiddleware, stripeController.getUserSubscriptions);
 
+    router.get('/stripe/user/:id/update-access', authMiddleware, stripeController.updateUserAccess);
+
     app.use('/api', router);
 }

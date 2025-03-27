@@ -41,24 +41,54 @@ const GeneralTab = ({ user }: { user: User }) => {
     )
 }
 
+const updateUserAccessLevel = async ({ user, checkUser }: { user: User|null, checkUser: any }) => {
+    if (!user)
+        return
+    try {
+        await StripeService.updateUserAccess({ userId: user?.id || '' });
+        checkUser(true);
+    } catch (error) {
+        console.error('Error updating user access:', error)
+    }
+}
+
 // Subscription management tab in left nav
 // No idea what the type of useRouter is, can't be bothered to find it right now
-const SubscriptionManagementTab = ({ router }: { router: any }) => {
+const SubscriptionManagementTab = ({ router, user, checkUser }: { router: any, user: User|null, checkUser: any }) => {
     return (
         <div>
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">Subscription Management</h2>
             <p>Manage your subscription here.</p>
-            <div className="space-y-3">
+            <div className="space-y-3 my-4">
+                <span className="inline-block px-3 py-1 text-sm font-semibold bg-gray-200 rounded-full shadow-md text-black">
+                    Current Access Level: {user?.access_level?.toUpperCase() || 'No Access Level'}
+                </span>
+                <br/>
                 <button
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                    onClick={async () => {
-                        const url = await StripeService.getStripePortalUrl()
-                        if (url && router) {
-                            router.push(url)
-                        }
-                    }}>
-                    Manage Subscription
+                    onClick={async () => updateUserAccessLevel({ user, checkUser })}
+                >
+                    Update Access Level
                 </button>
+            </div>
+            <div className="space-y-3 my-2">
+                {user?.access_level === 'free' ?
+                    <button
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                        onClick={() => StripeService.handleCreateSubscription('monthly_full_data_basic')}>
+                        Subscribe Monthly
+                    </button>
+                    : <button
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                        onClick={async () => {
+                            const url = await StripeService.getStripePortalUrl()
+                            if (url && router) {
+                                router.push(url)
+                            }
+                        }}>
+                        Manage Subscription
+                    </button>
+                }
             </div>
         </div>
     );
@@ -122,7 +152,7 @@ const BetTrackingTab: React.FC<{ bets: Bet[] }> = ({ bets }) => {
 }
 
 const ProfilePage = () => {
-    const { user, logout } = useAuth()
+    const { user, logout, checkUser } = useAuth()
     const router = useRouter()
     const [selectedTab, setSelectedTab] = useState('General')
     const [bets, setBets] = useState<Bet[]>([])
@@ -130,6 +160,8 @@ const ProfilePage = () => {
     React.useEffect(() => {
         if (!user) {
             router.push('/auth/login');
+        } else {
+            updateUserAccessLevel({ user, checkUser })
         }
     }, [user]);
 
@@ -167,7 +199,7 @@ const ProfilePage = () => {
                         </div>
                     )
                 : null}
-                {selectedTab === 'Subscription Management' && <SubscriptionManagementTab router={router} />}
+                {selectedTab === 'Subscription Management' && <SubscriptionManagementTab router={router} user={user} checkUser={checkUser} />}
             </div>
         </div>
     )

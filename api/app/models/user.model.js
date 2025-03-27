@@ -12,7 +12,14 @@ module.exports = (sequelize, Sequelize) => {
    * @extends Model
    */
   class User extends Model {
-    
+    /**
+     * Finds a user by their Stripe customer ID.
+     * @param {string} stripeCustomerId - The Stripe customer ID.
+     * @returns {Promise<User|null>} The user instance or null if not found.
+     */
+    static findByStripeCustomerId(stripeCustomerId) {
+      return this.findOne({ where: { stripe_customer_id: stripeCustomerId } });
+    } 
   }
 
   // init model
@@ -26,6 +33,7 @@ module.exports = (sequelize, Sequelize) => {
     session_token: { type: DataTypes.STRING(40), allowNull: true },
     session_expiration: { type: DataTypes.DATE, allowNull: true },
     stripe_customer_id: { type: DataTypes.STRING(50), allowNull: true },
+    access_level: { type: DataTypes.ENUM('free', 'basic'), allowNull: false, defaultValue: 'free', description: 'The access level of the subscription' },
   }, {
     sequelize,
     modelName: 'User',

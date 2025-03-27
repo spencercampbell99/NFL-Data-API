@@ -5,6 +5,7 @@ const authentication = require('../helpers/index').authentication;
 const random = require('../helpers/index').random;
 const jwt = require('jsonwebtoken');
 const { generateToken, generateExpirationDate, handleDisplayableException } = require('../helpers/index');
+const { access } = require('fs');
 const DisplayableException = require('../exceptions/CustomExceptions').DisplayableException;
 
 /**
@@ -40,6 +41,7 @@ exports.register = async (req, res) => {
             email: req.body.email,
             first_name: req.body.first_name,
             last_name: req.body.last_name,
+            access_level: req.body.access_level ?? 'free',
         });
 
         const { token, authToken, sessionExpiration } = await _generateTokens(user, res);
@@ -59,9 +61,10 @@ exports.register = async (req, res) => {
 async function _generateTokens(user, res) {
     // Generate JWT
     const token = jwt.sign({
-        userId: user.id,
+        id: user.id,
         email: user.email,
         permissions: user.permissions,
+        access_level: user.access_level,
     }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
 
     // Generate a separate auth token
@@ -171,7 +174,15 @@ exports.me = async (req, res) => {
             return res.sendStatus(401); // UNAUTHORIZED
         }
 
-        return res.status(200).send({ user: user }).end();
+        // create JWT token
+        const token = jwt.sign({
+            id: user.id,
+            email: user.email,
+            permissions: user.permissions,
+            access_level: user.access_level,
+        }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
+
+        return res.status(200).send({ token })
     } catch (err) {
         console.log(err?.message);
         return res.status(500).send({ message: err.message });

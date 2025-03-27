@@ -20,4 +20,5 @@ export default interface User {
     first_name: string;
     last_name: string;
     permissions?: Permission[]|undefined;
+    access_level?: string;
 }

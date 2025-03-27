@@ -1,5 +1,8 @@
 import axios from '@/axiosConfig';
+import { useAuth } from '@/contexts/Auth.context';
+import User from '@/interfaces/user.interface';
 import { loadStripe } from '@stripe/stripe-js';
+import { jwtDecode } from 'jwt-decode';
 
 class StripeService {
     static async handleCreateSubscription(lookupKey: string) {
@@ -44,6 +47,16 @@ class StripeService {
             console.error('Error creating portal session:', error);
         }
         return null;
+    }
+
+    static async updateUserAccess({ userId }: { userId: string }) {
+        try {
+            const { data } = await axios.get('/stripe/user/' + userId + '/update-access');
+
+            return data;
+        } catch (error) {
+            console.error('Error updating user access:', error);
+        }
     }
 }
 
