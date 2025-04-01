@@ -10,9 +10,9 @@ class AuthService {
             return false;
         }
 
-        // if (navRequirements.requireSubscription && !navRequirements.user?.is_subscribed) {
-        //     return null;
-        // }
+        if (navRequirements.accessLevelToRequire && navRequirements?.accessLevelToRequire && navRequirements.user?.access_level != navRequirements?.accessLevelToRequire) {
+            return null;
+        }
 
         return true;
     }

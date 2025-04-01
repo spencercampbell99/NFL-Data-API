@@ -108,6 +108,12 @@ const Navbar: FunctionComponent<{}> = () => {
         user: user
     }
 
+    const requireBasicAccessObject: NavRequirements = {
+        requireAuth: true,
+        user: user,
+        accessLevelToRequire: 'basic'
+    }
+
     return (
         <nav className="bg-gradient-to-b from-mediumGreen to-darkGreen h-[75px] max-h-[75px] align-middle">
             <Link href="/"><Image src="/rectangle-logo.png" alt="Logo" width={125} height={100} className="absolute pl-3 pt-[6px]" /></Link>
@@ -121,11 +127,11 @@ const Navbar: FunctionComponent<{}> = () => {
                     <NavbarDropdown title={dropdowns.games.title} isActive={dropdowns.games.active} toggleActive={() => toggleActiveDropdown('games')}>
                         <NavbarLink href="/nfl/games/2024/1" className={user ? 'border-b-[1px] border-nflWhite' : ''}>
                             Weekly Games
-                        </NavbarLink>
-                        <NavbarLink href="/nfl/games/2024/1/sportsbook-performance" className={"border-b-[1px] border-nflWhite"} navRequirements={requireAuthObject}>
+                    </NavbarLink>
+                        <NavbarLink href="/nfl/games/2024/1/sportsbook-performance" className={"border-b-[1px] border-nflWhite"} navRequirements={requireBasicAccessObject}>
                             Weekly Sportsbook Performance
                         </NavbarLink>
-                        <NavbarLink href="/nfl/games/2024/1/model-performance" navRequirements={requireAuthObject}>
+                        <NavbarLink href="/nfl/games/2024/1/model-performance" navRequirements={requireBasicAccessObject}>
                             Weekly Historical Model Performance
                         </NavbarLink>
                     </NavbarDropdown>
@@ -137,14 +143,14 @@ const Navbar: FunctionComponent<{}> = () => {
                         </NavbarLink>
                     </NavbarDropdown>
                 </NavListItem>
-                <NavListItem navRequirements={requireAuthObject}>
+                <NavListItem navRequirements={requireBasicAccessObject}>
                     <NavbarDropdown title={dropdowns.teams.title} isActive={dropdowns.teams.active} toggleActive={() => toggleActiveDropdown('teams')}>
                         <NavbarLink href="/nfl/teams/historical-matchups">
                             Historical Matchups
                         </NavbarLink>
                     </NavbarDropdown>
                 </NavListItem>
-                <NavListItem navRequirements={requireAuthObject}>
+                <NavListItem navRequirements={requireBasicAccessObject}>
                     <NavbarDropdown title={dropdowns.models.title} isActive={dropdowns.models.active} toggleActive={() => toggleActiveDropdown('models')}>
                         <NavbarLink href="/nfl/models/score/analysis" className={"border-b-[1px] border-nflWhite"}>
                             Model Analysis
