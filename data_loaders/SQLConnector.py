@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine
 class MySQLConnection:
     def __init__(self):
+        # Replace with your own connections (TODO: Put connection info into a .env or config file)
         self.engine = create_engine('mysql+mysqlconnector://root:password@localhost/nfldb')
         self.connection = None
         self.connect()
