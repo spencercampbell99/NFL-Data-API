@@ -20,8 +20,8 @@ export default function Home() {
   return (
     <main className="bg-gray-100 min-h-screen p-8">
       <header className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-blue-600">Shhh Data: NFL Stats & Predictions</h1>
-        <p className="text-lg text-gray-700 mt-4">Get access to comprehensive NFL stats, predictions, historical performances, and machine learning models for just $50/year.</p>
+        <h1 className="text-4xl font-bold text-blue-600">Endzone Edge: NFL Stats & Predictions</h1>
+        <p className="text-lg text-gray-700 mt-4">Get access to comprehensive NFL stats, predictions, historical performances, and machine learning models for just $50/year or $6/month.</p>
       </header>
 
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

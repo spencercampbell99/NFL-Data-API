@@ -15,15 +15,15 @@ class LocalhostAPI:
 
         self.api_user = 'sallertonc@gmail.com'
         
-        # Login and extract the SHHBETS-AUTH cookie
+        # Login and extract the ENDZONE-EDGE-AUTH cookie
         login_response = self.post('/api/auth/login', {'email': self.api_user, 'password': self.api_pass}, return_response=True)
 
-        if login_response is None or 'SHHBETS-AUTH' not in login_response.cookies:
-            print('Error logging in. SHHBETS-AUTH cookie not found in the response.')
+        if login_response is None or 'ENDZONE-EDGE-AUTH' not in login_response.cookies:
+            print('Error logging in. ENDZONE-EDGE-AUTH cookie not found in the response.')
             exit()
 
-        # Store the SHHBETS-AUTH cookie
-        self.auth_cookie = login_response.cookies['SHHBETS-AUTH']
+        # Store the ENDZONE-EDGE-AUTH cookie
+        self.auth_cookie = login_response.cookies['ENDZONE-EDGE-AUTH']
 
     def get_headers(self):
         """Helper function to get headers (optional) and cookies."""
@@ -37,7 +37,7 @@ class LocalhostAPI:
         if self.auth_cookie is None:
             return None
         
-        return {'SHHBETS-AUTH': self.auth_cookie}
+        return {'ENDZONE-EDGE-AUTH': self.auth_cookie}
 
     def get(self, endpoint):
         url = self.base_url + endpoint

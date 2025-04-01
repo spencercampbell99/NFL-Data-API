@@ -156,12 +156,16 @@ const ProfilePage = () => {
     const router = useRouter()
     const [selectedTab, setSelectedTab] = useState('General')
     const [bets, setBets] = useState<Bet[]>([])
+    const [hasUpdatedAccess, setHasUpdatedAccess] = useState(false)
 
     React.useEffect(() => {
         if (!user) {
             router.push('/auth/login');
         } else {
-            updateUserAccessLevel({ user, checkUser })
+            if (!hasUpdatedAccess) {
+                updateUserAccessLevel({ user, checkUser })
+                setHasUpdatedAccess(true)
+            }
         }
     }, [user]);
 

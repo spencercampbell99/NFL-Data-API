@@ -12,7 +12,7 @@ const findBySessionToken = require('../controllers/user.controller')._findBySess
  */
 exports.isAuthenticated = async (req, res, next) => {
     try {
-        const sessionToken = req.cookies['SHHBETS-AUTH']
+        const sessionToken = req.cookies['ENDZONE-EDGE-AUTH']
 
         if (!sessionToken) {
             return res.status(401).send({ message: 'Unauthorized token' });

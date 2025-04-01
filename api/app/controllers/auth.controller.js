@@ -72,8 +72,8 @@ async function _generateTokens(user, res) {
     const sessionExpiration = generateExpirationDate();
 
     // Set HTTP-only cookie
-    res.cookie('SHHBETS-JWT-USER', token, { httpOnly: true, maxAge: 3600000 });
-    res.cookie('SHHBETS-AUTH', authToken, { httpOnly: true });
+    res.cookie('ENDZONE-EDGE-JWT-USER', token, { httpOnly: true, maxAge: 3600000 });
+    res.cookie('ENDZONE-EDGE-AUTH', authToken, { httpOnly: true });
 
     // Set session token and expiration
     await User.update({
@@ -136,7 +136,7 @@ exports.login = async (req, res) => {
  */
 exports.logout = async (req, res) => {
     try {
-        if (!req.cookies['SHHBETS-AUTH']) {
+        if (!req.cookies['ENDZONE-EDGE-AUTH']) {
             return res.status(400).send({ message: 'No session token found.' });
         }
 
@@ -145,11 +145,11 @@ exports.logout = async (req, res) => {
             session_token: null,
             session_expiration: null,
         }, {
-            where: { session_token: req.cookies['SHHBETS-AUTH'] },
+            where: { session_token: req.cookies['ENDZONE-EDGE-AUTH'] },
         });
 
-        res.clearCookie('SHHBETS-AUTH');
-        res.clearCookie('SHHBETS-JWT-USER');
+        res.clearCookie('ENDZONE-EDGE-AUTH');
+        res.clearCookie('ENDZONE-EDGE-JWT-USER');
 
         return res.status(200).send({ message: 'User logged out successfully!' }).end();
     } catch (err) {
@@ -168,7 +168,7 @@ exports.logout = async (req, res) => {
  */
 exports.me = async (req, res) => {
     try {
-        const user = await userController._findBySessionToken(req.cookies['SHHBETS-AUTH'], withPermissions = true);
+        const user = await userController._findBySessionToken(req.cookies['ENDZONE-EDGE-AUTH'], withPermissions = true);
 
         if (!user) {
             return res.sendStatus(401); // UNAUTHORIZED
