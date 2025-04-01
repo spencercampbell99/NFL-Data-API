@@ -26,5 +26,17 @@ module.exports = (sequelize, Sequelize) => {
         timestamps: false,
     });
 
+    UserPermission.associate = (models) => {
+        // Define many-to-many relationship between User and Permission
+        UserPermission.belongsTo(models.User, {
+            foreignKey: 'user_id',
+            as: 'user',
+        });
+        UserPermission.belongsTo(models.Permission, {
+            foreignKey: 'permission_id',
+            as: 'permission',
+        });
+    }
+
     return UserPermission;
 };

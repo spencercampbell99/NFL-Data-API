@@ -121,7 +121,7 @@ exports._createCustomer = async ({user, stripe=null, forceRecreate = false}) => 
         }
 
         // Update the user with the Stripe customer ID
-        await db.users.update(
+        await db.User.update(
             { stripe_customer_id: customer.id },
             { where: { id: user.id } }
         );
@@ -156,7 +156,7 @@ exports.getUserSubscriptions = async (req, res) => {
             return res.status(400).send({ error: 'User not provided' });
         }
 
-        const user = await db.users.findOne({
+        const user = await db.User.findOne({
             where: { id: userId },
             attributes: ['id', 'email', 'first_name', 'last_name', 'stripe_customer_id'],
             logging: false,
@@ -262,7 +262,7 @@ exports.createPortalSession = async (req, res) => {
                 customerId = checkoutSession.customer;
 
                 // Update the user with the new Stripe customer ID
-                await db.users.update(
+                await db.User.update(
                     { stripe_customer_id: customerId },
                     { where: { id: user.id } }
                 );
@@ -376,13 +376,38 @@ _updateUserAccess = async ({ user, searchType}) => {
         }
 
         if (searchType === 'user_id') {
-            user = await db.users.findOne({ where: { id: user } });
+            user = await db.User.findOne({ where: { id: user } });
         } else if (searchType === 'stripe_customer_id') {
-            user = await db.users.findByStripeCustomerId(user);
+            user = await db.User.findByStripeCustomerId(user);
         }
 
-        if (!user || !user.stripe_customer_id) {
-            throw new DisplayableException('User not found or doesnt have a stripe customer ID');
+        if (!user) {
+            throw new DisplayableException('User not found.');
+        }
+
+        // Get user's permissions
+        let userPermissions = await user.listUserPermissions();
+        const overrideAccessPermissions = ["owner"]
+        if (userPermissions && userPermissions.length > 0) {
+            console.log(userPermissions)
+            // if user has override permissions, give them full access
+            userPermissions = userPermissions.filter((permission) => overrideAccessPermissions.includes(permission.slug));
+
+            console.log(userPermissions)
+
+            if (userPermissions.length > 0) {
+                // user has permissions, so they have access
+                await db.User.update(
+                    { access_level: 'full' },
+                    { where: { id: user.id } }
+                );
+
+                return;
+            }
+        }
+
+        if (!user.stripe_customer_id) {
+            throw new DisplayableException('User does not have a Stripe customer ID.');
         }
 
         const entitlements = await _listEntitlements(user.stripe_customer_id);
@@ -396,14 +421,14 @@ _updateUserAccess = async ({ user, searchType}) => {
 
         const oldAccessLevel = user.access_level;
 
-        await db.users.update(
+        await db.User.update(
             { access_level: accessLevel },
             { where: { id: user.id } }
         );
 
         if (oldAccessLevel !== accessLevel && accessLevel == 'free') {
             // log out
-            await db.users.update(
+            await db.User.update(
                 { session_token: null, session_expiration: null },
                 { where: { id: user.id } }
             );
@@ -454,7 +479,7 @@ _updateUserSubscription = async (subscription) => {
         return; // No currently tracking in db
 
         // Find user
-        const user = await db.users.findByStripeCustomerId(subscription.customer);
+        const user = await db.User.findByStripeCustomerId(subscription.customer);
         if (!user) {
             throw new DisplayableException('User not found');
         }
@@ -476,17 +501,17 @@ _updateUserSubscription = async (subscription) => {
         };
 
         // Find subscription
-        const userSubscription = await db.userSubscriptions.findOne({
+        const userSubscription = await db.UserSubscription.findOne({
             where: { user_id: user.id, stripe_subscription_id: subscription.id, stripe_customer_id: subscription.customer },
             logging: false,
         });
 
         if (!userSubscription) {
             // Create subscription
-            await db.userSubscriptions.create(userSubscriptionInfo);
+            await db.UserSubscription.create(userSubscriptionInfo);
         } else {
             // Update subscription
-            await db.userSubscriptions.update(userSubscriptionInfo, {
+            await db.UserSubscription.update(userSubscriptionInfo, {
                 where: { user_id: user.id, stripe_subscription_id: subscription.id },
             });
         }
@@ -538,7 +563,7 @@ exports.createSubscription = async (req, res) => {
             }
 
             // Update the user with the Stripe customer ID
-            await db.users.update(
+            await db.User.update(
                 { stripe_customer_id: customer.id },
                 { where: { id: req.user.id } }
             );
@@ -546,7 +571,7 @@ exports.createSubscription = async (req, res) => {
             customer = { id: customerId };
 
             if (!req.user.stripe_customer_id) {
-                await db.users.update(
+                await db.User.update(
                     { stripe_customer_id: customerId },
                     { where: { id: req.user.id } }
                 );

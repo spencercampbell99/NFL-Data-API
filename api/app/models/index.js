@@ -6,7 +6,6 @@ const db = {};
 
 let sequelize;
 
-// Set up sequelize to point to our MySQL db
 sequelize = new Sequelize(process.env.DB_DATABASE, 'root', process.env.DB_ROOT_PASSWORD, {
     host: process.env.DB_HOST,
     dialect: 'mysql',
@@ -15,38 +14,43 @@ sequelize = new Sequelize(process.env.DB_DATABASE, 'root', process.env.DB_ROOT_P
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
-// load nfl index and cfb index
+// Load other indices if needed
 db.nfl = require('./nfl');
 db.cfb = require('./cfb');
 
-// require models
-db.users = require('./user.model')(sequelize, Sequelize);
-db.bets = require('./bet.model')(sequelize, Sequelize);
-db.betLegs = require('./betLeg.model')(sequelize, Sequelize);
-db.userPredictions = require('./userPrediction.model')(sequelize, Sequelize);
-db.permissions = require('./permission.model')(sequelize, Sequelize);
-db.userPermissions = require('./userPermission')(sequelize, Sequelize);
-db.userSubscriptions = require('./userSubscription.model')(sequelize, Sequelize);
+// Require models with correct naming (singular and uppercase)
+db.User = require('./user.model')(sequelize, Sequelize);
+db.Permission = require('./permission.model')(sequelize, Sequelize);
+db.UserPermission = require('./userPermission')(sequelize, Sequelize);
 
-// bets
-db.bets.belongsTo(db.users, { foreignKey: 'bettor_id', as: 'bettor' });
-db.bets.hasMany(db.betLegs, { foreignKey: 'bet_id', as: 'legs' });
-db.betLegs.belongsTo(db.bets, { foreignKey: 'bet_id', as: 'bet' });
-db.betLegs.belongsTo(db.users, { foreignKey: 'bettor_id', as: 'bettor' });
-db.betLegs.belongsTo(db.nfl.schedules, { foreignKey: 'game_id', as: 'game' });
-db.betLegs.belongsTo(db.nfl.teams, { foreignKey: 'team_id', as: 'team' });
+// Other models (you can keep your previous conventions for unrelated models)
+db.Bet = require('./bet.model')(sequelize, Sequelize);
+db.BetLeg = require('./betLeg.model')(sequelize, Sequelize);
+db.UserPrediction = require('./userPrediction.model')(sequelize, Sequelize);
+db.UserSubscription = require('./userSubscription.model')(sequelize, Sequelize);
+
+// Now explicitly call associate after loading all models
+Object.keys(db).forEach((modelName) => {
+  if (db[modelName].associate) {
+    db[modelName].associate(db);
+  }
+});
+
+// TODO: Move these to model level
+
+// bets associations (keeping your convention here)
+db.Bet.belongsTo(db.User, { foreignKey: 'bettor_id', as: 'bettor' });
+db.Bet.hasMany(db.BetLeg, { foreignKey: 'bet_id', as: 'legs' });
+db.BetLeg.belongsTo(db.Bet, { foreignKey: 'bet_id', as: 'bet' });
+db.BetLeg.belongsTo(db.User, { foreignKey: 'bettor_id', as: 'bettor' });
+db.BetLeg.belongsTo(db.nfl.schedules, { foreignKey: 'game_id', as: 'game' });
+db.BetLeg.belongsTo(db.nfl.teams, { foreignKey: 'team_id', as: 'team' });
 
 // user predictions
-db.userPredictions.belongsTo(db.nfl.schedules, { foreignKey: 'schedule_id', as: 'schedule' });
-db.userPredictions.belongsTo(db.users, { foreignKey: 'user_id', as: 'user' });
-
-// user permissions
-db.userPermissions.belongsTo(db.users, { foreignKey: 'user_id', as: 'user' });
-db.userPermissions.belongsTo(db.permissions, { foreignKey: 'permission_id', as: 'permission' });
-db.permissions.belongsToMany(db.users, { through: db.userPermissions, foreignKey: 'permission_id', as: 'users' });
-db.users.belongsToMany(db.permissions, { through: db.userPermissions, foreignKey: 'user_id', as: 'permissions' });
+db.UserPrediction.belongsTo(db.nfl.schedules, { foreignKey: 'schedule_id', as: 'schedule' });
+db.UserPrediction.belongsTo(db.User, { foreignKey: 'user_id', as: 'user' });
 
 // user subscriptions
-db.userSubscriptions.belongsTo(db.users, { foreignKey: 'user_id', as: 'user' });
+db.UserSubscription.belongsTo(db.User, { foreignKey: 'user_id', as: 'user' });
 
 module.exports = db;

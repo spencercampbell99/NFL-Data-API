@@ -1,8 +1,8 @@
 const db = require('../models');
 const nflDb = require('../models').nfl;
-const User = db.users;
-const Bet = db.bets;
-const BetLeg = db.betLegs;
+const User = db.User;
+const Bet = db.Bet;
+const BetLeg = db.BetLeg;
 const Schedule = nflDb.schedules;
 
 /**

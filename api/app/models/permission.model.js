@@ -12,7 +12,7 @@ module.exports = (sequelize, Sequelize) => {
      * @extends Model
      */
     class Permission extends Model {
-        
+
     }
 
     // init model
@@ -27,6 +27,16 @@ module.exports = (sequelize, Sequelize) => {
         tableName: 'permissions',
         timestamps: false,
     });
+
+    Permission.associate = (models) => {
+        // Define many-to-many relationship between User and Permission
+        Permission.belongsToMany(models.User, {
+            through: models.UserPermission,
+            foreignKey: 'permission_id',
+            otherKey: 'user_id',
+            as: 'users',
+        });
+    };
 
     return Permission;
 };

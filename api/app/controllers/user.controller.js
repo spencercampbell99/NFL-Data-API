@@ -1,5 +1,5 @@
 const db = require('../models');
-const User = db.users;
+const User = db.User;
 
 // TODO Swap controller exported functions over to using req, res and incude route name in docblocks
 
@@ -48,7 +48,7 @@ exports._findByEmail = async (email, withPermissions = false) => {
 
         if (withPermissions) {
             queryObj.include = [{
-                model: db.permissions,
+                model: db.Permission,
                 as: 'permissions',
             }];
         }
@@ -56,7 +56,7 @@ exports._findByEmail = async (email, withPermissions = false) => {
         const user = await User.findOne(queryObj);
         return user;
     } catch (err) {
-        console.log(err?.message);
+        console.error(err);
         return null;
     }
 }
@@ -84,7 +84,7 @@ exports._findBySessionToken = async (sessionToken, withPermissions = false) => {
         }
         if (withPermissions) {
             queryObj.include = [{
-                model: db.permissions,
+                model: db.Permission,
                 as: 'permissions',
             }];
         }

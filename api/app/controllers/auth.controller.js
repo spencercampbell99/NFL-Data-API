@@ -1,5 +1,5 @@
 const db = require('../models');
-const User = db.users;
+const User = db.User;
 const userController = require('../controllers/user.controller');
 const authentication = require('../helpers/index').authentication;
 const random = require('../helpers/index').random;
