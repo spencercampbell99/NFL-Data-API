@@ -71,25 +71,27 @@ const SubscriptionManagementTab = ({ router, user, checkUser }: { router: any, u
                     Update Access Level
                 </button>
             </div>
-            <div className="space-y-3 my-2">
-                {user?.access_level === 'free' ?
-                    <button
-                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                        onClick={() => StripeService.handleCreateSubscription('monthly_full_data_basic')}>
-                        Subscribe Monthly
-                    </button>
-                    : <button
-                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                        onClick={async () => {
-                            const url = await StripeService.getStripePortalUrl()
-                            if (url && router) {
-                                router.push(url)
-                            }
-                        }}>
-                        Manage Subscription
-                    </button>
-                }
-            </div>
+            {user?.access_level === 'full' ? null
+                : <div className="space-y-3 my-2">
+                    {user?.access_level === 'free' ?
+                        <button
+                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                            onClick={() => StripeService.handleCreateSubscription('monthly_full_data_basic')}>
+                            Subscribe Monthly
+                        </button>
+                        : <button
+                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                            onClick={async () => {
+                                const url = await StripeService.getStripePortalUrl()
+                                if (url && router) {
+                                    router.push(url)
+                                }
+                            }}>
+                            Manage Subscription
+                        </button>
+                    }
+                </div>
+            }
         </div>
     );
 }
