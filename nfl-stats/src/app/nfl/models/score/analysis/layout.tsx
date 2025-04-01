@@ -1,12 +1,12 @@
 import AuthProtected from "@/middleware/Auth.middleware";
-import { PermissionProtectedRoute } from "@/middleware/Permission.middleware";
+import { AccessLevelProtectedRoute } from "@/middleware/AccessLevel.middleware";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <AuthProtected>
-      <PermissionProtectedRoute permissionsRequired={["owner"]}>
+      <AccessLevelProtectedRoute accessLevelRequired="basic">
         {children}
-      </PermissionProtectedRoute>
+      </AccessLevelProtectedRoute>
     </AuthProtected>
   );
 }
