@@ -6,6 +6,7 @@ import React from 'react'
 import ScoreModelService from '@/services/ScoreModel.service';
 import { SeasonWeekSelector } from '@/components/commonComponents';
 import { useRouter } from 'next/navigation';
+import { StandardParagraphDisclaimer } from '@/components/legal/disclaimerComponents';
 
 // import Table from '@/components/table/table.component';
 
@@ -321,11 +322,7 @@ export default function WeekOverview({ params }: { params: { season: number, wee
                         onClick={() => settleModelPredictions()}
                         className="mx-auto block mb-2"
                     />
-                    <p className="text-sm text-gray-500 mt-2 text-center">
-                        Note: The money won is based on the model as bettor and is not a guarantee of actual winnings. The model is based on historical data and may not accurately predict future outcomes.
-                        <br />
-                        <strong>The model is not a financial advisor and should not be used as such. Please gamble responsibly.</strong>
-                    </p>
+                    <StandardParagraphDisclaimer />
                 </div>
             </div>
             {weekSummary ? 

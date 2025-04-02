@@ -7,6 +7,7 @@ import TeamService from '@/services/Team.service'
 import ScoreModelService from '@/services/ScoreModel.service'
 import Team from '@/interfaces/team.interface'
 import { HiInformationCircle } from "react-icons/hi";
+import { StandardParagraphDisclaimer } from '@/components/legal/disclaimerComponents'
 
 interface StatsContainerProps {
     total_games: number;
@@ -100,20 +101,20 @@ const StatsContainer: React.FC<StatsContainerProps> = (props) => {
         { label: 'Correct Winner Count', value: props.correct_winner_count, helpText: 'Number of games where the correct winner was predicted' },
         { label: 'Correct Spread Count', value: props.correct_spread_count, helpText: 'Number of games where the correct spread was predicted' },
         { label: 'Correct Over/Under Count', value: props.correct_over_under_count, helpText: 'Number of games where the correct over/under was predicted' },
-        { label: 'Total Error Sum', value: props.total_error_sum, helpText: 'Sum of the absolute value of the error between predicted total score and actual total score' },
-        { label: 'Avg Total Error', value: props.avg_total_error, helpText: 'Average error between predicted total score and actual total score' },
-        { label: 'Avg Total Score', value: props.avg_total_score, helpText: 'Average total score of all games' },
+        { label: 'Absolute Error Sum', value: props.total_error_sum, helpText: 'Sum of the absolute value of the error between predicted total score and actual total score' },
+        { label: 'Avg Absolute Error', value: props.avg_total_error, helpText: 'Average error between predicted total score and actual total score' },
+        { label: 'Avg Total Score', value: props.avg_total_score, helpText: 'Average actual total score of all games' },
         { label: 'Overall Correct Winner Rate', value: `${Number(props.overall_correct_winner_rate_by_score).toFixed(2)}%`, helpText: 'Percentage of games where the correct winner was predicted' },
         { label: 'Home Correct Winner Rate', value: `${Number(props.home_correct_winner_rate_by_score).toFixed(2)}%`, helpText: 'Percentage of games where the correct winner was predicted for the home team' },
         { label: 'Away Correct Winner Rate', value: `${Number(props.away_correct_winner_rate_by_score).toFixed(2)}%`, helpText: 'Percentage of games where the correct winner was predicted for the away team' },
-        { label: 'Straight Return Rate Moneyline', value: props.total_return_rate_moneyline_by_score > 0 ? `+${Number(props.total_return_rate_moneyline_by_score).toFixed(2)}%` : `${Number(props.total_return_rate_moneyline_by_score).toFixed(2)}%`, helpText: 'ROI for moneyline bets assuming static bet size betting with model every time.' },
-        { label: 'Total Return Over/Under', value: props.total_return_over_under > 0 ? `+${Number(props.total_return_over_under).toFixed(2)}%` : `${Number(props.total_return_over_under).toFixed(2)}%`, helpText: 'ROI for over/under bets assuming static bet size betting with model every time.' },
-        { label: 'Total Return Spread', value: props.total_return_spread > 0 ? `+${Number(props.total_return_spread).toFixed(2)}%` : `${Number(props.total_return_spread).toFixed(2)}%`, helpText: 'ROI for spread bets assuming static bet size betting with model every time.' },
+        { label: 'Straight Return Rate Moneyline', value: props.total_return_rate_moneyline_by_score > 0 ? `+${Number(props.total_return_rate_moneyline_by_score).toFixed(2)}%` : `${Number(props.total_return_rate_moneyline_by_score).toFixed(2)}%`, helpText: 'Historical ROI for moneyline bets assuming static bet size by the model as a gambler.' },
+        { label: 'Total Return Over/Under', value: props.total_return_over_under > 0 ? `+${Number(props.total_return_over_under).toFixed(2)}%` : `${Number(props.total_return_over_under).toFixed(2)}%`, helpText: 'Historical ROI for over/under bets assuming static bet size by the model as a gambler.' },
+        { label: 'Total Return Spread', value: props.total_return_spread > 0 ? `+${Number(props.total_return_spread).toFixed(2)}%` : `${Number(props.total_return_spread).toFixed(2)}%`, helpText: 'Historical ROI for spread bets assuming static bet size by the model as a gambler.' },
         // { label: 'Cumulative ROI Moneyline', value: cumulativeRoi.moneyline > 0 ? `+${Number(cumulativeRoi.moneyline).toFixed(2)}%` : `${Number(cumulativeRoi.moneyline).toFixed(2)}%`, helpText: 'Cumulative ROI for moneyline bets assuming reinvestment of winnings each week.' },
-        { label: 'Cumulative ROI Moneyline by Score', value: cumulativeRoi.moneyline_by_score > 0 ? `+${Number(cumulativeRoi.moneyline_by_score).toFixed(2)}%` : `${Number(cumulativeRoi.moneyline_by_score).toFixed(2)}%`, helpText: 'Cumulative ROI for moneyline bets assuming reinvestment of winnings each week.' },
+        { label: 'Cumulative ROI Moneyline by Score', value: cumulativeRoi.moneyline_by_score > 0 ? `+${Number(cumulativeRoi.moneyline_by_score).toFixed(2)}%` : `${Number(cumulativeRoi.moneyline_by_score).toFixed(2)}%`, helpText: 'Historical cumulative ROI for moneyline bets assuming reinvestment of winnings each week by the model as a gambler.' },
         // { label: 'Cumulative ROI Moneyline with Kelly', value: cumulativeRoi.moneyline_with_kelly > 0 ? `+${Number(cumulativeRoi.moneyline_with_kelly).toFixed(2)}%` : `${Number(cumulativeRoi.moneyline_with_kelly).toFixed(2)}%`, helpText: 'Cumulative ROI for moneyline bets assuming reinvestment of winnings each week.' },
-        { label: 'Cumulative ROI Over/Under', value: cumulativeRoi.overUnder > 0 ? `+${Number(cumulativeRoi.overUnder).toFixed(2)}%` : `${Number(cumulativeRoi.overUnder).toFixed(2)}%`, helpText: 'Cumulative ROI for over/under bets assuming reinvestment of winnings each week.' },
-        { label: 'Cumulative ROI Spread', value: cumulativeRoi.spread > 0 ? `+${Number(cumulativeRoi.spread).toFixed(2)}%` : `${Number(cumulativeRoi.spread).toFixed(2)}%`, helpText: 'Cumulative ROI for spread bets assuming reinvestment of winnings each week.' }
+        { label: 'Cumulative ROI Over/Under', value: cumulativeRoi.overUnder > 0 ? `+${Number(cumulativeRoi.overUnder).toFixed(2)}%` : `${Number(cumulativeRoi.overUnder).toFixed(2)}%`, helpText: 'Historical cumulative ROI for over/under bets assuming reinvestment of winnings each week by the model as a gambler.' },
+        { label: 'Cumulative ROI Spread', value: cumulativeRoi.spread > 0 ? `+${Number(cumulativeRoi.spread).toFixed(2)}%` : `${Number(cumulativeRoi.spread).toFixed(2)}%`, helpText: 'Historical cumulative ROI for spread bets assuming reinvestment of winnings each week by the model as a gambler.' }
     ];
 
     return (
@@ -173,11 +174,7 @@ export default function ScoreModelAnalysis() {
                     <br />
                     Note that Cumulative ROI calculation is broken when filtering by teams.
                 </p>
-                <p className="text-sm text-gray-500 mt-2 text-center">
-                    Note: The money won is based on the model as bettor and is not a guarantee of actual winnings. The model is based on historical data and may not accurately predict future outcomes.
-                    <br />
-                    <strong>The model is not a financial advisor and should not be used as such. Please gamble responsibly.</strong>
-                </p>
+                <StandardParagraphDisclaimer />
             </div>
             
             <div className="flex flex-row items-center justify-center mt-4">
