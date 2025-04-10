@@ -6,20 +6,12 @@ const db = {};
 
 let sequelize;
 
-// Set up sequelize to point to our MySQL db
-if (process.env.ENVIRONMENT === 'staging') {
-    sequelize = new Sequelize(process.env.RDS_DB_DATABASE, process.env.RDS_DB_USERNAME, process.env.RDS_DB_PASSWORD, {
-        host: process.env.RDS_DB_HOST,
-        dialect: 'mysql',
-    });
-
-} else {
-    sequelize = new Sequelize(process.env.DB_DATABASE, 'root', process.env.DB_ROOT_PASSWORD, {
-        host: process.env.DB_HOST,
-        dialect: 'mysql',
-    });
-}
-
+sequelize = new Sequelize(process.env.DB_DATABASE, process.env.DB_USERNAME, process.env.DB_PASSWORD, {
+    host: process.env.DB_HOST,
+    port: `${process.env.DB_PORT}`,
+    dialect: 'mysql',
+    logging: process.env.DB_LOGGING === 'true' ? console.log : false,
+});
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 

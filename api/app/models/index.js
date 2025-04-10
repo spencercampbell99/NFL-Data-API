@@ -6,9 +6,11 @@ const db = {};
 
 let sequelize;
 
-sequelize = new Sequelize(process.env.DB_DATABASE, 'root', process.env.DB_ROOT_PASSWORD, {
+sequelize = new Sequelize(process.env.DB_DATABASE, process.env.DB_USERNAME, process.env.DB_PASSWORD, {
     host: process.env.DB_HOST,
+    port: `${process.env.DB_PORT}`,
     dialect: 'mysql',
+    logging: process.env.DB_LOGGING === 'true' ? console.log : false,
 });
 
 db.sequelize = sequelize;
@@ -18,12 +20,10 @@ db.Sequelize = Sequelize;
 db.nfl = require('./nfl');
 db.cfb = require('./cfb');
 
-// Require models with correct naming (singular and uppercase)
 db.User = require('./user.model')(sequelize, Sequelize);
 db.Permission = require('./permission.model')(sequelize, Sequelize);
 db.UserPermission = require('./userPermission')(sequelize, Sequelize);
 
-// Other models (you can keep your previous conventions for unrelated models)
 db.Bet = require('./bet.model')(sequelize, Sequelize);
 db.BetLeg = require('./betLeg.model')(sequelize, Sequelize);
 db.UserPrediction = require('./userPrediction.model')(sequelize, Sequelize);
@@ -38,7 +38,6 @@ Object.keys(db).forEach((modelName) => {
 
 // TODO: Move these to model level
 
-// bets associations (keeping your convention here)
 db.Bet.belongsTo(db.User, { foreignKey: 'bettor_id', as: 'bettor' });
 db.Bet.hasMany(db.BetLeg, { foreignKey: 'bet_id', as: 'legs' });
 db.BetLeg.belongsTo(db.Bet, { foreignKey: 'bet_id', as: 'bet' });

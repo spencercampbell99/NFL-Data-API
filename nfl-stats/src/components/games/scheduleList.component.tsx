@@ -18,9 +18,8 @@ interface ScheduleListGameProps {
 }
 
 const ScheduleListGame: React.FC<ScheduleListGameProps> = ({ game, targetTeam = null, router = null }) => {
-    if (!router) {
-        router = useRouter();
-    }
+    const defaultRouter = useRouter();
+    router = router || defaultRouter;
 
     let firstTeamInfo = {
         charId: game.home_team_char_id,

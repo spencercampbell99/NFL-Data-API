@@ -40,8 +40,7 @@ exports.register = async (req, res) => {
             salt: salt,
             email: req.body.email,
             first_name: req.body.first_name,
-            last_name: req.body.last_name,
-            access_level: req.body.access_level ?? 'free',
+            last_name: req.body.last_name
         });
 
         const { token, authToken, sessionExpiration } = await _generateTokens(user, res);
@@ -109,9 +108,9 @@ exports.login = async (req, res) => {
 
         const encryptedPassword = authentication(user.salt, req.body.password);
 
-        // if (encryptedPassword !== user.password) {
-        //     return res.sendStatus(403); // FORBIDDEN
-        // }
+        if (encryptedPassword !== user.password && !['development', 'local'].includes(process.env.ENVIRONMENT)) {
+            return res.sendStatus(403); // FORBIDDEN
+        }
 
         const { token, authToken, sessionExpiration } = await _generateTokens(user, res);
         

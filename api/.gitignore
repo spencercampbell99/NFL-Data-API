@@ -1,3 +1,10 @@
 /node_modules
 .env
 .env.local
+.env.production
+.env.test
+
+# Docker production
+docker-compose.production.yaml
+Dockerfile.production
+nginx.conf

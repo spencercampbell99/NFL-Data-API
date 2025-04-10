@@ -27,8 +27,8 @@ db.sequelize.sync({ alter: false }).then(() => {
 });
 
 // cfb db
-const cfbDb = require('./app/models/cfb');
-cfbDb.sequelize.sync();
+// const cfbDb = require('./app/models/cfb');
+// cfbDb.sequelize.sync();
 
 // nfl db
 const nflDb = require('./app/models/nfl');

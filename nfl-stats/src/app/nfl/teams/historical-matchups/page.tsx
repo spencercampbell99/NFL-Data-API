@@ -20,7 +20,7 @@ interface MatchupAtAGlance {
     team2TotalPoints: number
 }
 
-const HistoricalMatchup: React.FunctionComponent<{ game: Game, awayTeam: Team, homeTeam: Team }> = ({ game, awayTeam, homeTeam }) => {
+const HistoricalMatchup: React.FunctionComponent = () => {
     const [teams, setTeams] = React.useState<Team[]>([]);
     const [selectTeam1, setSelectTeam1] = React.useState<number>(-1);
     const [selectTeam2, setSelectTeam2] = React.useState<number>(-1);
