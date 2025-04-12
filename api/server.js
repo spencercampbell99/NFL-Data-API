@@ -6,11 +6,30 @@ const cookieParser = require('cookie-parser');
 const compression = require('compression');
 require('@dotenvx/dotenvx').config();
 
+// Suppress logs in staging or production
+if (['staging', 'production'].includes(process.env.NODE_ENV)) {
+  console.log = () => {};
+  console.error = () => {};
+}
+
 const app = express();
 
+const allowedOrigins = [
+  ...(process.env.CORS_ALLOWED_ORIGINS ? process.env.CORS_ALLOWED_ORIGINS.split(',').map(origin => origin.trim()) : []),
+  ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL.trim()] : [])
+];
+
 var corsOptions = {
-  origin: [process.env.FRONTEND_URL],
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  allowedMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
+  optionsSuccessStatus: 204,
 };
 
 // middleware

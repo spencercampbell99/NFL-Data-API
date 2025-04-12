@@ -3,6 +3,7 @@
 .env.local
 .env.production
 .env.test
+.env.staging
 
 # Docker production
 docker-compose.production.yaml
