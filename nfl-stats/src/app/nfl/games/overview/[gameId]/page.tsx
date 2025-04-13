@@ -239,10 +239,7 @@ const GameOverviewPage: React.FunctionComponent<{ params: Params }> = ({ params 
     React.useEffect(() => {
         const fetchGames = async () => {
             const response = await GameService.gameOverview(params.gameId);
-            console.log(response)
             setGame(response.game);
-
-            console.log(response.game);
         }
         fetchGames();
     }, []);

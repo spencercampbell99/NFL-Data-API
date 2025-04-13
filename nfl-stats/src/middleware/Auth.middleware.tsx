@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/Auth.context";
+import axios from '@/axiosConfig';
 
 export default function AuthProtected({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -12,7 +13,13 @@ export default function AuthProtected({ children }: { children: React.ReactNode 
   useEffect(() => {
     if (!loading) {
       if (!user) {
-        router.replace("/auth/login");
+        // clear any tokens or user data from local storage or context
+        sessionStorage.removeItem("token");
+
+        axios.post('/auth/logout')
+          .finally(() => {
+            router.replace("/auth/login");
+          });
       } else {
         setIsChecking(false);
       }

@@ -58,7 +58,7 @@ module.exports = (app, authMiddleware) => {
     router.get("/game/:id/overview", authMiddleware, gameController.getGameOverviewById);
 
     // get games overview by week and season
-    router.get('/games/overview/:season/:week', authMiddleware, gameController.getGamesOverviewBySeasonAndWeek);
+    router.get('/games/overview/:season/:week', gameController.getGamesOverviewBySeasonAndWeek);
 
     // default route
     router.get("/games", authMiddleware, (req, res) => {

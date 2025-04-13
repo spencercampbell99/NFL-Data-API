@@ -155,7 +155,6 @@ export default function ScoreModelAnalysis() {
     const analyze = () => {
         try {
             ScoreModelService.getScoreModelResults(season, weeks, selectedTeams).then((data: any) => {
-                console.log(data)
                 setStats(data);
             });
         } catch (error) {

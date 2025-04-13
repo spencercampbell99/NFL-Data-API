@@ -8,8 +8,6 @@ const QBSeasonStatsCard = ({ player }: { player: Player }) => {
         return null
     }
 
-    console.log(stats)
-
     const leagueAverageStats = stats?.league_position_averages
 
     const calcCompPerc = (leagueAverageStats: any) => {

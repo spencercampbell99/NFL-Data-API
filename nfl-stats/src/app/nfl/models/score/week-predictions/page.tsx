@@ -36,7 +36,6 @@ const Page: FunctionComponent<{}> = () => {
         GameService.getGamesByWeek({ season, week, withModelPredictions: true }).then((data) => {
             // take data, if present, and sort by date and time
             setGames(data);
-            console.log(data)
         }).catch((error) => {
             console.error('Error fetching games:', error);
         })
@@ -149,7 +148,7 @@ const Page: FunctionComponent<{}> = () => {
                     { key: null, transformer: getPredScoreColText },
                 ]}
                 data={games}
-                onRowClick={(row) => console.log(row)}
+                onRowClick={() => { }}
             />
         </div>
     );

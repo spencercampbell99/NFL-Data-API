@@ -15,7 +15,6 @@ export function PermissionProtectedRoute({ children, permissionsRequired }: { ch
         router.replace("/");
       } else {
         // Check if user has the required permissions
-        console.log(permissionsRequired, user.permissions);
         if (permissionsRequired && !permissionsRequired.every(permission => user.permissions?.some(userPermission => userPermission.slug === permission))) {
           router.replace("/");
         }

@@ -4,10 +4,10 @@ module.exports = (app, authMiddleware) => {
     var router = require("express").Router();
 
     // List teams
-    router.post("/players", authMiddleware, playerController.list);
+    router.post("/players", playerController.list);
 
     // get team by id
-    router.get("/player/:id", authMiddleware, playerController.getPlayerById);
+    router.get("/player/:id", playerController.getPlayerById);
 
     // get player overview info for season
     router.get("/player/:id/overview-season/:season", authMiddleware, playerController.getPlayerOverviewBySeason);

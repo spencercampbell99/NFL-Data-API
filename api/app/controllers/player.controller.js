@@ -52,8 +52,6 @@ exports.list = async (req, res) => {
         }
         queryObj.where = whereObj;
 
-        console.log(queryObj);
-
         // join in team on team_id and select team_char_id if team is in attributes
         let flattenTeamCharId = false;
         if (queryObj.attributes.includes('team')) {
@@ -76,7 +74,7 @@ exports.list = async (req, res) => {
 
         res.send(players);
     } catch (err) {
-        console.log(err?.message)
+        console.error(err?.message)
         res.status(500).send({
             message: err.message || "An error occurred while retrieving players."
         });
@@ -103,7 +101,19 @@ exports.getPlayerById = async (req, res) => {
             });
         }
 
-        const player = await Player.findByPk(playerId);
+        const withTeam = req.query.with_team || false;
+
+        let queryObj = {};
+
+        if (withTeam) {
+            queryObj.include = [{
+                model: nflDb.teams,
+                as: 'team',
+                attributes: [['char_id', 'team']]
+            }];
+        }
+
+        const player = await Player.findByPk(playerId, queryObj);
 
         // return
         res.send(player);
@@ -170,7 +180,7 @@ exports.getPlayerOverviewBySeason = async (req, res) => {
 
             player.season_stats = season_stats;
         } catch (err) {
-            console.log(err?.message);
+            console.error(err?.message);
             res.status(500).send({
                 message: err.message || "An error occurred while retrieving player stats."
             });
@@ -181,7 +191,7 @@ exports.getPlayerOverviewBySeason = async (req, res) => {
         // return
         res.send(player);
     } catch (err) {
-        console.log(err?.message);
+        console.error(err?.message);
 
         res.status(500).send({
             message: err.message || "An error occurred while retrieving player."

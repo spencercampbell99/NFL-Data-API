@@ -150,8 +150,6 @@ export default function WeekOverview({ params }: { params: { season: number, wee
         // TODO: Move this to a service
         const response = await axios.get(`/model-predictions/overview/${params.season}/${params.week}`)
 
-        console.log(response.data.modelPredictions)
-
         if (!response.data.modelPredictions || response.data.modelPredictions.length === 0) {
             return
         }
