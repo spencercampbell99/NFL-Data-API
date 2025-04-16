@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { AuthProvider } from '@/contexts/Auth.context';
 import { MessageProvider } from '@/contexts/Message.context';
+import { GoogleAnalytics } from '@next/third-parties/google';
 import Footer from '@/components/footer.component';
 import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
@@ -29,6 +30,9 @@ export default function RootLayout({
           </MessageProvider>
         </AuthProvider>
       </body>
+      {process.env.NEXT_PUBLIC_GA_ID ? 
+        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+      : null}
     </html>
   )
 }
