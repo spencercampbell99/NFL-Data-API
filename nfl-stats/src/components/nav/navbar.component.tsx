@@ -123,6 +123,11 @@ const Navbar: FunctionComponent<{}> = () => {
                     </NavbarLink>
                 </NavListItem>
                 <NavListItem>
+                    <NavbarLink href="/about">
+                        About Me
+                    </NavbarLink>
+                </NavListItem>
+                <NavListItem>
                     <NavbarDropdown title={dropdowns.games.title} isActive={dropdowns.games.active} toggleActive={() => toggleActiveDropdown('games')}>
                         <NavbarLink href="/nfl/games/2024/1" className={user ? 'border-b-[1px] border-nflWhite' : ''}>
                             Weekly Games
