@@ -1,8 +1,5 @@
-'use client';
-
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 
 const TechnologyUsed: React.FC<{ name: string }> = ({ name }) => (
     <div className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-700 p-3 rounded-md shadow-sm">
@@ -18,20 +15,25 @@ export default function About() {
         <section className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden mb-10">
             <div className="p-6 md:p-8">
                 <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                NFL Data API Project
+                    NFL Data API Project
                 </h1>
                 
                 <div className="text-gray-700 dark:text-gray-300 space-y-4">
-                <p>
-                    Welcome to my NFL Data API project! This application showcases my skills in building 
-                    modern web applications with real-time data processing and visualization.
-                </p>
-                
-                <p>
-                    As a passionate developer with a love for both football and clean, efficient code,
-                    I created this platform to demonstrate my ability to work with complex datasets and present
-                    them in an intuitive, user-friendly interface.
-                </p>
+                    <p>
+                        Welcome to my NFL Data API project! This application showcases my skills in building 
+                        modern web applications with real-time data processing and visualization.
+                    </p>
+                    
+                    <p>
+                        As a passionate developer with a love for both football and clean, efficient code,
+                        I created this platform to demonstrate my ability to work with complex datasets and present
+                        them in an intuitive, user-friendly interface.
+                    </p>
+
+                    <p>
+                        Please note that most of the advanced features of this application require an authenticated user account.
+                        I will happily provide a full access account to hiring managers and recruiters who are interested in seeing the full capabilities of the application.
+                    </p>
                 </div>
             </div>
         </section>
@@ -100,6 +102,28 @@ export default function About() {
                 <li>Optimized data fetching strategies</li>
                 <li>Role-based access control for protected routes</li>
                 <li>High speed data queries with a focus on performance and cost reduction</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* Future Work */}
+        <section className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden mb-10">
+          <div className="p-6 md:p-8">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              Future Work
+            </h2>
+            
+            <div className="text-gray-700 dark:text-gray-300 space-y-4">
+              <ul className="list-disc list-inside space-y-2">
+                <li>Enhanced predictive models with machine learning</li>
+                <li>One click and scheduled data loaders for administrators</li>
+                <li>Real-time game updates</li>
+                <li>Expanded player and team statistics</li>
+                <li>Improved user interface and experience, with mobile styling</li>
+                <li>Automated testing and deployment</li>
+                <li>Bug reporting</li>
+                <li>Email notifications, mostly for user accounts (2FA, validate email, etc.)</li>
               </ul>
             </div>
           </div>
