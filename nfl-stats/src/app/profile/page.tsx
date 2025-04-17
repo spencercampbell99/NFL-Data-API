@@ -143,7 +143,7 @@ const BetTrackingTab: React.FC<{ bets: Bet[] }> = ({ bets }) => {
                 headers={['Bet ID', 'Bet Date', 'Bet Amount', 'Payout', 'Bet Status']}
                 columnOrder={BetTrackingTableColumnOrder}
                 data={bets}
-                onRowClick={(row) => console.log(row)}
+                onRowClick={() => {}}
                 childHeaders={['Game', 'Wager', 'Odds', 'Line Type', 'Bet Info', 'Status']}
                 childColumnOrder={BetTrackingTableLegsColumnOrder}
                 childrenKey="legs"

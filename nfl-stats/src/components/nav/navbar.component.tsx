@@ -70,7 +70,6 @@ const Navbar: FunctionComponent<{}> = () => {
         // disable all other dropdowns
         for (const dropdownKey in dropdowns) {
             if (dropdowns[dropdownKey]['title'].toLowerCase() === dropdown.toLowerCase()) {
-                console.log(dropdown);
                 continue;
             }
 
@@ -121,6 +120,11 @@ const Navbar: FunctionComponent<{}> = () => {
                 <NavListItem>
                     <NavbarLink href="/">
                         Home
+                    </NavbarLink>
+                </NavListItem>
+                <NavListItem>
+                    <NavbarLink href="/about">
+                        About Me
                     </NavbarLink>
                 </NavListItem>
                 <NavListItem>

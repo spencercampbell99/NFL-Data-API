@@ -13,7 +13,7 @@ module.exports = (app, authMiddleware) => {
     router.get("/teams/historical-matchups", authMiddleware, teamController.historicalMatchups);
 
     // get team's season schedule
-    router.get("/team/:id/season-schedule/:season", authMiddleware, teamController.getTeamScheduleForSeason);
+    router.get("/team/:id/season-schedule/:season", teamController.getTeamScheduleForSeason);
 
     // get team's average performance going into given week and season for weeks back
     router.get("/team/:id/average-window-performance/:season/:week", authMiddleware, teamController.getTeamAveragePerformanceGoingIntoWeek);

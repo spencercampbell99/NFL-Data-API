@@ -18,7 +18,6 @@ const PlayersHubPage = () => {
 
                 // Grab from local storage if available and refresh every 7 days
                 if (localVersion.value && localVersion.last_updated && (new Date().getTime() - localVersion.last_updated.getTime()) < 1000 * 60 * 60 * 24 * 0) {
-                    console.log('Fetched players from local storage');
                     setPlayers(localVersion.value);
                     return;
                 }

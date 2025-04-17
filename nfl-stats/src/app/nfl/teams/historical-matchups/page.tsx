@@ -36,7 +36,6 @@ const HistoricalMatchup: React.FunctionComponent = () => {
     React.useEffect(() => {
         TeamService.listTeams().then((data) => {
             setTeams(data);
-            console.log(data)
         }).catch((error) => {
             console.error(error);
         })

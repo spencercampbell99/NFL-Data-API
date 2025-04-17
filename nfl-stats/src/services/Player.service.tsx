@@ -57,9 +57,9 @@ class PlayerService {
      * @param {string|number} id - The ID of the player to fetch.
      * @returns {Promise<Player>} A promise that resolves to the player object.
      */
-    static async getPlayerById(id: string|number): Promise<Player> {
+    static async getPlayerById(id: string|number, withTeam: boolean = false): Promise<Player> {
         try {
-            const response = await axios.get(`/players/${id}`);
+            const response = await axios.get(`/player/${id}`, { params: { with_team: withTeam } });
             return response.data as Player;
         } catch (error) {
             throw new Error('Error fetching player by ID');

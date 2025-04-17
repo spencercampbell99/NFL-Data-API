@@ -21,7 +21,6 @@ export function AccessLevelProtectedRoute({ children, accessLevelRequired }: { c
         router.replace(REDIRECT_URL);
       } else {
         // Check if user has the required accessLevel
-        console.log(accessLevelRequired, user.access_level);
         const userAccessLevelNumber = user.access_level ? ACCESS_LEVEL_MAPPING[user.access_level] : 0;
         const accessLevelRequiredNumber = accessLevelRequired ? ACCESS_LEVEL_MAPPING[accessLevelRequired] : 0;
         if (userAccessLevelNumber < accessLevelRequiredNumber) {

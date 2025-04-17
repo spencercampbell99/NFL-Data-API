@@ -9,6 +9,15 @@ const inter = Inter({ subsets: ['latin'] })
 
 import Navbar from '../components/nav/navbar.component'
 
+// Mute console logs in production and staging environments
+if (process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_ENV === 'staging') {
+  console.log = () => {};
+  console.info = () => {};
+  console.warn = () => {};
+  console.error = () => {}; // You might want to keep error logs
+  console.debug = () => {};
+}
+
 export const metadata: Metadata = {
   title: 'End Zone Edge',
   description: 'NFL Stats and Analytics',

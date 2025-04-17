@@ -3,14 +3,13 @@
 import React from "react"
 import PlayerService from "@/services/Player.service"
 import Player from "@/interfaces/player.interface"
-import BasicTable from "@/components/tables/basicTable.component"
-import GameService from "@/services/Game.service"
 import Game from "@/interfaces/game.interface"
 import { ScheduleList } from "@/components/games/scheduleList.component"
 import TeamService from "@/services/Team.service"
 import { stat } from "fs"
 import { QBSeasonStatsCard } from "@/components/players/seasonStatCards.component"
 import AveragedTeamPerformance from "@/interfaces/averagedTeamPerformance.interface"
+import { useAuth } from "@/contexts/Auth.context"
 
 const BasicPlayerInfoCard = ({ player }: { player: Player }) => {
     return (
@@ -57,7 +56,7 @@ const BasicPlayerInfoCard = ({ player }: { player: Player }) => {
 const SeasonScheduleCard = ({ schedule, team=null }: { schedule: Game[], team?: string|null }) => {
     return (
         <div className="bg-gray-100 p-6 shadow-md w-full">
-            {schedule.length ?
+            {schedule?.length ?
                 <ScheduleList games={schedule} alternateTitle={'Season Schedule'} targetTeam={team} />
             : null}
         </div>
@@ -120,19 +119,27 @@ const PlayerProfilePage = () => {
     const [schedule, setSchedule] = React.useState<Game[]>([])
     const [nextGame, setNextGame] = React.useState<Game|null>(null)
     const [opponentAveragesNextGame, setOpponentAveragesNextGame] = React.useState<AveragedTeamPerformance|null>(null)
+    const { user } = useAuth()
 
     React.useEffect(() => {
         const playerId = window.location.pathname.split('/').pop()
         if (playerId) {
-            PlayerService.getPlayerSeasonOverview(playerId, 2024)
-                .then((player) => {
-                    setPlayer(player);
-
-                    console.log(player)
-                })
-                .catch((error) => console.error(error))
+            if (!user) {
+                // Non authorized users only see basic info
+                PlayerService.getPlayerById(playerId, true)
+                    .then((player) => {
+                        setPlayer(player);
+                    })
+                    .catch((error) => console.error(error))
+            } else {
+                PlayerService.getPlayerSeasonOverview(playerId, 2024)
+                    .then((player) => {
+                        setPlayer(player);
+                    })
+                    .catch((error) => console.error(error))
+            }
         }
-    }, [])
+    }, [user])
 
     React.useEffect(() => {
         if (player?.team_id) {
@@ -149,13 +156,12 @@ const PlayerProfilePage = () => {
     }, [player])
 
     React.useEffect(() => {
+        if (!user) return; // Non authorized users don't see this info
         if (nextGame) {
             const teamIdToCheck = nextGame.home_team_id == player?.team_id ? nextGame.away_team_id : nextGame.home_team_id
 
             TeamService.getAverageTeamPerformanceGoingIntoWeek(teamIdToCheck, nextGame.week, nextGame.season, 5)
                 .then((result) => {
-                    console.log(result)
-
                     setOpponentAveragesNextGame(result)
                 })
                 .catch((error) => console.error(error))
