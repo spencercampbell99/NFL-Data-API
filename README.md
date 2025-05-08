@@ -2,7 +2,7 @@
 This repository provides an application for accessing NFL data, including player statistics, team information, game schedules, and more. It also provides predictions for game outcomes as well as analysis tool to examine past performance. All predictions are intended for education purposes and are not intended as financial or betting advice.
 
 ## Features
-For more information on features please visit [this](app.endzoneedge.net/about) about page.
+For more information on features please visit [this](https://app.endzoneedge.net/about) about page.
 
 ## Installation
 1. Clone the repository:
