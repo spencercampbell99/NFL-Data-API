@@ -1,10 +1,8 @@
 # NFL Data API
-This repository provides an application for accessing NFL data, including player statistics, team information, game schedules, and more.
+This repository provides an application for accessing NFL data, including player statistics, team information, game schedules, and more. It also provides predictions for game outcomes as well as analysis tool to examine past performance. All predictions are intended for education purposes and are not intended as financial or betting advice.
 
 ## Features
-- Retrieve detailed player statistics.
-- Access team information and standings.
-- Fetch game schedules and results.
+For more information on features please visit [this](app.endzoneedge.net/about) about page.
 
 ## Installation
 1. Clone the repository:
@@ -51,7 +49,7 @@ This repository provides an application for accessing NFL data, including player
 2. Currently there is no entry point. The loaders are split into different scripts as needed and will insert into the connected MySQL instance (update SQLConnector.py with relevant connection details)
 
 ### Machine Models
-These are no present in this repo.
+These are none present in this repo.
 
 ## License
 
