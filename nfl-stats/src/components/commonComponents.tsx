@@ -13,7 +13,7 @@ const DateRangePicker: React.FunctionComponent<{ startDate: string, endDate: str
 }
 
 const defaultSeasons = [
-    2023, 2024
+    2023, 2024, 2025
 ]
 
 const defaultWeeks = Array.from({ length: 18 }, (_, i) => i + 1);

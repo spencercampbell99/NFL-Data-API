@@ -129,13 +129,13 @@ const Navbar: FunctionComponent<{}> = () => {
                 </NavListItem>
                 <NavListItem>
                     <NavbarDropdown title={dropdowns.games.title} isActive={dropdowns.games.active} toggleActive={() => toggleActiveDropdown('games')}>
-                        <NavbarLink href="/nfl/games/2024/1" className={user ? 'border-b-[1px] border-nflWhite' : ''}>
+                        <NavbarLink href="/nfl/games/2025/1" className={user ? 'border-b-[1px] border-nflWhite' : ''}>
                             Weekly Games
                     </NavbarLink>
-                        <NavbarLink href="/nfl/games/2024/1/sportsbook-performance" className={"border-b-[1px] border-nflWhite"} navRequirements={requireBasicAccessObject}>
+                        <NavbarLink href="/nfl/games/2025/1/sportsbook-performance" className={"border-b-[1px] border-nflWhite"} navRequirements={requireBasicAccessObject}>
                             Weekly Sportsbook Performance
                         </NavbarLink>
-                        <NavbarLink href="/nfl/games/2024/1/model-performance" navRequirements={requireBasicAccessObject}>
+                        <NavbarLink href="/nfl/games/2025/1/model-performance" navRequirements={requireBasicAccessObject}>
                             Weekly Historical Model Performance
                         </NavbarLink>
                     </NavbarDropdown>

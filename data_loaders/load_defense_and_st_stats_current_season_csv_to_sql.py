@@ -1,7 +1,7 @@
 import pandas as pd
 
 # load defense data
-defense = pd.read_csv('data_csvs/defense_2024.csv')
+defense = pd.read_csv('data_csvs/defense_2025.csv')
 
 # print(defense.columns)
 
@@ -16,7 +16,7 @@ defense = defense[cols]
 
 # load special teams
 
-special_teams = pd.read_csv('data_csvs/special_teams_2024.csv')
+special_teams = pd.read_csv('data_csvs/special_teams_2025.csv')
 
 # columns to keep
 cols = [

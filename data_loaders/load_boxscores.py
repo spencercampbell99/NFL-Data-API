@@ -4,14 +4,14 @@ from sqlalchemy import text
 # Create a connection to the database
 conn = MySQLConnection()
 
-season = 2024
+season = 2025
 week = 18
 
-# find all games for 2024
+# find all games for 2025
 find_games_query = text(f"""
     SELECT id
     FROM schedules
-    WHERE season = 2024 and week = {week}
+    WHERE season = {season} and week = {week}
 """)
 
 games = conn.connection.execute(find_games_query).fetchall()
@@ -19,13 +19,13 @@ games = conn.connection.execute(find_games_query).fetchall()
 # delete all player_game_stats for the box scores
 delete_player_game_stats_query = text(f"""
     DELETE FROM player_game_stats
-    WHERE boxscore_id IN (SELECT id FROM box_scores WHERE schedule_id IN (SELECT id FROM schedules WHERE season = 2024 and week = {week}))
+    WHERE boxscore_id IN (SELECT id FROM box_scores WHERE schedule_id IN (SELECT id FROM schedules WHERE season = {season} and week = {week}))
 """)
 
 # delete box scores for games
 delete_boxscore_query = text(f"""
     DELETE FROM box_scores
-    WHERE schedule_id IN (SELECT id FROM schedules WHERE season = 2024 and week = {week})
+    WHERE schedule_id IN (SELECT id FROM schedules WHERE season = {season} and week = {week})
 """)
 
 try:

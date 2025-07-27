@@ -5,7 +5,7 @@ from sqlalchemy import text
 # Create a connection to the database
 conn = MySQLConnection()
 
-years = list(range(2024, 2025))
+years = list(range(2025, 2026))
 
 find_boxscore_query = text(f"""
     SELECT id FROM box_scores WHERE schedule_id = :schedule_id AND team_id = :team_id

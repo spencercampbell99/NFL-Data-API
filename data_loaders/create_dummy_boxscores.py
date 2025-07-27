@@ -4,11 +4,11 @@ from sqlalchemy import text
 # Create a connection to the database
 conn = MySQLConnection()
 
-# find all games for 2024
+# find all games for 2025
 find_games_query = text(f"""
     SELECT id, home_team_id, away_team_id, home_team_char_id, away_team_char_id
     FROM schedules
-    WHERE season = 2024 and week = 16
+    WHERE season = 2025 and week = 16
 """)
 
 games = conn.connection.execute(find_games_query).fetchall()

@@ -144,7 +144,7 @@ export default function About() {
               
               <div className="pt-4">
                 <Link 
-                  href="/nfl/games/2024/1"
+                  href="/nfl/games/2025/1"
                   className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-md transition duration-300"
                 >
                   Explore the Application

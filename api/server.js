@@ -13,13 +13,24 @@ if (['staging', 'production'].includes(process.env.NODE_ENV)) {
 }
 
 const app = express();
+let allowedOrigins = [];
+let corsOptions = {};
 
-const allowedOrigins = [
-  ...(process.env.CORS_ALLOWED_ORIGINS ? process.env.CORS_ALLOWED_ORIGINS.split(',').map(origin => origin.trim()) : []),
-  ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL.trim()] : [])
-];
+if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'local') {
+  allowedOrigins = ['*']; // Allow all origins in development or local environments
+  corsOptions = {
+    origin: '*', // Allow all origins
+    allowedMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    credentials: true,
+    optionsSuccessStatus: 204,
+  };
+} else {
+  allowedOrigins = [
+    ...(process.env.CORS_ALLOWED_ORIGINS ? process.env.CORS_ALLOWED_ORIGINS.split(',').map(origin => origin.trim()) : []),
+    ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL.trim()] : [])
+  ];
 
-var corsOptions = {
+  corsOptions = {
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
@@ -31,6 +42,7 @@ var corsOptions = {
   credentials: true,
   optionsSuccessStatus: 204,
 };
+}
 
 // middleware
 app.use(cors(corsOptions));

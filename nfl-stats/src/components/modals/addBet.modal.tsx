@@ -163,6 +163,7 @@ const CreateBetModal: FC<CreateBetModalProps> = ({ isOpen, onClose, overrideGame
                         >
                             <option value="-1">Select a season</option>
                             {/* Replace with actual season options */}
+                            <option value="2025">2025</option>
                             <option value="2024">2024</option>
                             <option value="2023">2023</option>
                         </select>
