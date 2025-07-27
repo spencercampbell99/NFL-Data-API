@@ -2,7 +2,7 @@ import pandas as pd
 import nfl_data_py as nfl
 
 # Load the schedule data
-years = list(range(2024, 2025))
+years = list(range(2025, 2026))
 schedule = nfl.import_schedules(years)
 
 # print(schedule.head())
