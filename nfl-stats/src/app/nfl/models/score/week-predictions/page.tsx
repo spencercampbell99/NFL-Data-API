@@ -25,7 +25,7 @@ function getPredScoreColText(game: Game) {
 const Page: FunctionComponent<{}> = () => {
     const [games, setGames] = React.useState<Game[]>([]);
     const [season, setSeason] = React.useState<number>(2025);
-    const [week, setWeek] = React.useState<number>(7);
+    const [week, setWeek] = React.useState<number>(1);
     const [amountToBet, setAmountToBet] = React.useState<number>(100);
     const [moreInfoOpen, setMoreInfoOpen] = React.useState<boolean>(false);
 
@@ -34,6 +34,7 @@ const Page: FunctionComponent<{}> = () => {
 
     const fetchGames = async () => {
         GameService.getGamesByWeek({ season, week, withModelPredictions: true }).then((data) => {
+            console.log(data)
             // take data, if present, and sort by date and time
             setGames(data);
         }).catch((error) => {

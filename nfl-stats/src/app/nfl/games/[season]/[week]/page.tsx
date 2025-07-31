@@ -11,7 +11,6 @@ import { SeasonWeekSelector } from '@/components/commonComponents';
 const TeamSeasonOverview: React.FunctionComponent<{ team: Team }> = ({ team }) => {
     return (
         <div className="flex flex-row">
-            <img className="w-[32px] h-[32px] mr-2" src={team.team_logo_wikipedia} />
             <div className="text-left">
                 <div className="text-lg font-bold text-gray-800">{team.short_display_name}</div>
                 <div className="text-xs font-medium text-gray-500">12-5</div> {/* TODO: Make dynamic */}
@@ -68,7 +67,7 @@ const GameOverview: React.FunctionComponent<{ game: Game }> = ({ game }) => {
 }
 
 const currentDate = new Date();
-const maxYear = currentDate.getMonth() < 8 ? currentDate.getFullYear() - 1 : currentDate.getFullYear();
+const maxYear = currentDate.getMonth() < 6 ? currentDate.getFullYear() - 1 : currentDate.getFullYear();
 
 const PlayerGamePage: React.FunctionComponent<{ params: { season: number, week: number } }> = ({ params: { season: urlSeason, week: urlWeek } }) => {
     const [season, setSeason] = React.useState<number>(urlSeason);
