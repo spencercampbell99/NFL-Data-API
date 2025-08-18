@@ -58,3 +58,6 @@ This project is licensed under the [MIT License](LICENSE).
 ## Contact
 
 For questions or support, please open an issue or contact the repository owner.
+
+## Deployment
+Rebuild docker containers with no cache.

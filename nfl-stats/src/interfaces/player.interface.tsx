@@ -16,7 +16,7 @@ interface Player {
     rookie_year?: number;
     draft_club?: string;
     draft_number?: number;
-    active?: boolean;
+    active?: boolean|string; // Can be parsed as string to make it readable
     headshot_url?: string;
     espn_id?: number;
     season_stats?: PlayerSeasonStatAveragesQB[];
