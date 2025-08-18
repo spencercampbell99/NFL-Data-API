@@ -63,20 +63,13 @@ const SeasonScheduleCard = ({ schedule, team=null }: { schedule: Game[], team?: 
     )
 }
 
-const NextGameCard = ({ game }: { game: Game }) => {
-    return (
-        <div className="bg-gray-100 p-6 shadow-md w-full">
-            Will show defensive/offensive averages for the opponent team and a link to historical matchups.
-        </div>
-    )
-}
-
 const StatsDisplay = ({ stats, nextGame, teamId }: { stats: AveragedTeamPerformance, nextGame: Game, teamId: number|undefined }) => {
     if (!stats) {
         return <div>No stats available</div>;
     }
 
     const opponentCharId = nextGame.home_team_id == teamId ? nextGame.away_team_char_id : nextGame.home_team_char_id
+    const playersTeamCharId = nextGame.home_team_id == teamId ? nextGame.home_team_char_id : nextGame.away_team_char_id
 
     return (
         <div className="p-4">
@@ -84,11 +77,11 @@ const StatsDisplay = ({ stats, nextGame, teamId }: { stats: AveragedTeamPerforma
                 {nextGame ? `Next Game: ${nextGame.home_team_char_id} vs ${nextGame.away_team_char_id} Week ${nextGame.week}` : 'Upcoming Matchup in week 15'}
             </div>
             <div className="text-lg font-semibold mb-2">
-                These are the average stats for the last several games of the opponent {`${opponentCharId ?? ''}`} going into the game.
+                These are the average stats for the last several games of the opponent {`${opponentCharId ?? ''}`} going into the game. Shows defensive stats of opponent and offensive stats of player's team.
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div className="bg-white shadow-md rounded p-4">
-                    <h2 className="font-bold text-lg mb-4">Avg Offense Stats {`${opponentCharId ?? ''}`}</h2>
+                    <h2 className="font-bold text-lg mb-4">Avg Offense Stats {`${playersTeamCharId ?? ''}`}</h2>
                     <ul className="space-y-2">
                         {Object.entries(stats).filter(([key]) => key.startsWith('avg_') && !key.includes('allowed')).map(([key, value], index) => (
                             <li key={key} className={`flex justify-between ${index % 2 === 0 ? 'bg-slate-100' : 'bg-slate-200'} p-2 rounded`}>
@@ -147,8 +140,8 @@ const PlayerProfilePage = () => {
                 .then((schedule) => {
                     setSchedule(schedule)
                     
-                    if (schedule[15]) {
-                        setNextGame(schedule[15])
+                    if (schedule[0]) {
+                        setNextGame(schedule[0])
                     }
                 })
                 .catch((error) => console.error(error))
@@ -159,6 +152,8 @@ const PlayerProfilePage = () => {
         if (!user) return; // Non authorized users don't see this info
         if (nextGame) {
             const teamIdToCheck = nextGame.home_team_id == player?.team_id ? nextGame.away_team_id : nextGame.home_team_id
+
+            console.log(teamIdToCheck)
 
             TeamService.getAverageTeamPerformanceGoingIntoWeek(teamIdToCheck, nextGame.week, nextGame.season, 5)
                 .then((result) => {
@@ -174,7 +169,6 @@ const PlayerProfilePage = () => {
                 <>
                     <BasicPlayerInfoCard player={player} />
                     <QBSeasonStatsCard player={player} />
-                    {/* {nextGame ? <NextGameCard game={nextGame} /> : null} */}
                     {(opponentAveragesNextGame && nextGame) ? <StatsDisplay stats={opponentAveragesNextGame} nextGame={nextGame} teamId={player.team_id} /> : null}
                     <SeasonScheduleCard schedule={schedule} team={player?.team?.team}/>
                 </>

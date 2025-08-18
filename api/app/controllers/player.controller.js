@@ -208,26 +208,53 @@ exports.getPlayerOverviewBySeason = async (req, res) => {
  * @returns {Object} - response object
  */
 _getQBStatsForSeason = async (playerId, season) => {
-    const query = getTemplateQuery({ filename: 'players/QBSeasonOverview.sql', replaceMapping: {':playerId': playerId, ':season': season} });
+    async function getQbStats() {
+        const query = getTemplateQuery({ filename: 'players/QBSeasonOverview.sql', replaceMapping: {':playerId': playerId, ':season': season} });
 
-    let qbStats = await nflDb.sequelize.query(query, {
-        type: nflDb.Sequelize.QueryTypes.SELECT,
-        logging: false,
-    });
+        return nflDb.sequelize.query(query, {
+            type: nflDb.Sequelize.QueryTypes.SELECT,
+            logging: false,
+        });
+    }
+
+    let qbStats = await getQbStats();
+
+    if (!qbStats || qbStats.length == 0) {
+        // try for previous season
+        season = season - 1;
+
+        qbStats = await getQbStats();
+    }
 
     if (!qbStats || qbStats.length == 0) {
         return [];
     }
 
-    // get latest player averaged stats for 2024 qb
-    const leaguePositionAverages = await LeaguePlayerAveragesBySeason.findOne({
-        where: {
-            position: 'QB',
-            season: season
-        },
-        order: [['createdAt', 'DESC']],
-        logging: false,
-    });
+    // get latest player averaged stats for qb
+    async function getLeaguePositionAverages() {
+        return await LeaguePlayerAveragesBySeason.findOne({
+            where: {
+                position: 'QB',
+                season: season
+            },
+            order: [['createdAt', 'DESC']],
+            logging: false,
+        });
+    }
+
+    let leaguePositionAverages = await getLeaguePositionAverages();
+
+    if (!leaguePositionAverages) {
+        // try to grab for previous season
+        leaguePositionAverages = await LeaguePlayerAveragesBySeason.findOne({
+            where: {
+                position: 'QB',
+                season: season - 1
+            },
+            order: [['createdAt', 'DESC']],
+            logging: false,
+        });
+    }
 
     // if player averages found, add to qbStats
     if (leaguePositionAverages) {

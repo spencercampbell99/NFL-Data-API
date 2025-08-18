@@ -28,6 +28,7 @@ const QBSeasonStatsCard = ({ player }: { player: Player }) => {
 
     return (
         <div className="bg-gray-100 p-6 shadow-md w-full">
+            <p className="text-md mb-4">Season Stats vs Field for {`${player.full_name}`} (previous season stats until current season is established)</p>
             <BasicTable
                 columns={[
                     { header: 'Stat (Per Game)', key: 'stat', searchable: false, sortable: false },
