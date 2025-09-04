@@ -1,4 +1,4 @@
-import { PlayerSeasonStatAveragesQB } from "./playerSeasonStatAverages.interface";
+import { PlayerSeasonStatAveragesQB, PlayerSeasonStatAveragesRB } from "./playerSeasonStatAverages.interface";
 
 interface Player {
     full_name: string;
@@ -19,7 +19,7 @@ interface Player {
     active?: boolean|string; // Can be parsed as string to make it readable
     headshot_url?: string;
     espn_id?: number;
-    season_stats?: PlayerSeasonStatAveragesQB[];
+    season_stats?: PlayerSeasonStatAveragesQB[] | PlayerSeasonStatAveragesRB[];
     team?: any;
 }
 

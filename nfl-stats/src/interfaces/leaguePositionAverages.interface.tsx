@@ -34,6 +34,8 @@ export default interface LeaguePositionAverages {
     rushing_epa: number;
     receiving_epa: number;
     fumbles: number;
+    fumbles_lost: number;
+    sacks_allowed: number;
     createdAt: string;
     updatedAt: string;
 }

@@ -174,6 +174,9 @@ exports.getPlayerOverviewBySeason = async (req, res) => {
                 case 'QB':
                     season_stats = await _getQBStatsForSeason(playerId, season);
                     break;
+                case 'RB':
+                    season_stats = await _getRBStatsForSeason(playerId, season);
+                    break;
                 default:
                     break;
             }
@@ -200,66 +203,62 @@ exports.getPlayerOverviewBySeason = async (req, res) => {
 }
 
 /**
- * Get QB aggregate stats for player at season
+ * Generic function to get aggregate stats for a player at a given season and position
  * 
+ * @param {string} position - player position (e.g., 'QB', 'RB')
+ * @param {string} sqlFile - SQL file to use for the query
  * @param {int} playerId - player id
  * @param {int} season - season
- * 
  * @returns {Object} - response object
  */
-_getQBStatsForSeason = async (playerId, season) => {
-    async function getQbStats() {
-        const query = getTemplateQuery({ filename: 'players/QBSeasonOverview.sql', replaceMapping: {':playerId': playerId, ':season': season} });
-
+const _getStatsForSeason = async (position, sqlFile, playerId, season) => {
+    async function getStats(seasonToQuery) {
+        const query = getTemplateQuery({ filename: sqlFile, replaceMapping: { ':playerId': playerId, ':season': seasonToQuery } });
         return nflDb.sequelize.query(query, {
             type: nflDb.Sequelize.QueryTypes.SELECT,
             logging: false,
         });
     }
 
-    let qbStats = await getQbStats();
+    let stats = await getStats(season);
 
-    if (!qbStats || qbStats.length == 0) {
+    if (!stats || stats.length === 0) {
         // try for previous season
+        stats = await getStats(season - 1);
         season = season - 1;
-
-        qbStats = await getQbStats();
     }
 
-    if (!qbStats || qbStats.length == 0) {
+    if (!stats || stats.length === 0) {
         return [];
     }
 
-    // get latest player averaged stats for qb
-    async function getLeaguePositionAverages() {
+    // get latest player averaged stats for position
+    async function getLeaguePositionAverages(seasonToQuery) {
         return await LeaguePlayerAveragesBySeason.findOne({
             where: {
-                position: 'QB',
-                season: season
+                position: position,
+                season: seasonToQuery
             },
             order: [['createdAt', 'DESC']],
             logging: false,
         });
     }
 
-    let leaguePositionAverages = await getLeaguePositionAverages();
-
+    let leaguePositionAverages = await getLeaguePositionAverages(season);
     if (!leaguePositionAverages) {
-        // try to grab for previous season
-        leaguePositionAverages = await LeaguePlayerAveragesBySeason.findOne({
-            where: {
-                position: 'QB',
-                season: season - 1
-            },
-            order: [['createdAt', 'DESC']],
-            logging: false,
-        });
+        leaguePositionAverages = await getLeaguePositionAverages(season - 1);
     }
 
-    // if player averages found, add to qbStats
     if (leaguePositionAverages) {
-        qbStats[0].league_position_averages = leaguePositionAverages;
+        stats[0].league_position_averages = leaguePositionAverages;
     }
 
-    return qbStats;
-}
+    return stats;
+};
+
+// Replace old functions with wrappers
+const _getQBStatsForSeason = (playerId, season) =>
+    _getStatsForSeason('QB', 'players/QBSeasonOverview.sql', playerId, season);
+
+const _getRBStatsForSeason = (playerId, season) =>
+    _getStatsForSeason('RB', 'players/RBSeasonOverview.sql', playerId, season);
