@@ -60,6 +60,10 @@ module.exports = (sequelize, Sequelize) => {
 
         // errors
         'fumbles': { type: DataTypes.FLOAT, allowNull: true },
+        'fumbles_lost': { type: DataTypes.FLOAT, allowNull: true },
+
+        // sacks
+        'sacks_allowed': { type: DataTypes.FLOAT, allowNull: true },
     }, {
         sequelize,
         modelName: 'LeaguePlayerAveragesBySeason',

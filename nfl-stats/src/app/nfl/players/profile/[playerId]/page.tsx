@@ -6,8 +6,7 @@ import Player from "@/interfaces/player.interface"
 import Game from "@/interfaces/game.interface"
 import { ScheduleList } from "@/components/games/scheduleList.component"
 import TeamService from "@/services/Team.service"
-import { stat } from "fs"
-import { QBSeasonStatsCard } from "@/components/players/seasonStatCards.component"
+import { QBSeasonStatsCard, RBSeasonStatsCard } from "@/components/players/seasonStatCards.component"
 import AveragedTeamPerformance from "@/interfaces/averagedTeamPerformance.interface"
 import { useAuth } from "@/contexts/Auth.context"
 
@@ -153,8 +152,6 @@ const PlayerProfilePage = () => {
         if (nextGame) {
             const teamIdToCheck = nextGame.home_team_id == player?.team_id ? nextGame.away_team_id : nextGame.home_team_id
 
-            console.log(teamIdToCheck)
-
             TeamService.getAverageTeamPerformanceGoingIntoWeek(teamIdToCheck, nextGame.week, nextGame.season, 5)
                 .then((result) => {
                     setOpponentAveragesNextGame(result)
@@ -163,12 +160,23 @@ const PlayerProfilePage = () => {
         }
     }, [nextGame])
 
+    const renderSeasonStatsCard = (player: Player) => {
+        switch (player.position) {
+            case 'QB':
+                return <QBSeasonStatsCard player={player} />;
+            case 'RB':
+                return <RBSeasonStatsCard player={player} />;
+            default:
+                return null;
+        }
+    };
+
     return (
         <div>
             {player ? 
                 <>
                     <BasicPlayerInfoCard player={player} />
-                    <QBSeasonStatsCard player={player} />
+                    {renderSeasonStatsCard(player)}
                     {(opponentAveragesNextGame && nextGame) ? <StatsDisplay stats={opponentAveragesNextGame} nextGame={nextGame} teamId={player.team_id} /> : null}
                     <SeasonScheduleCard schedule={schedule} team={player?.team?.team}/>
                 </>

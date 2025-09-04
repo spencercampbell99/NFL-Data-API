@@ -9,6 +9,7 @@ With pgs as (
 		passing_attempts, passing_completions, passing_yards, passing_air_yards, yards_per_pass_attempt, yards_per_pass_completion, passing_touchdowns, passing_interceptions, passing_sacks, passing_sack_yards, passing_sack_fumbles_lost, qb_rating, adjQBR, passer_rating, passing_first_downs, passing_yards_after_catch, passing_epa,
 		passing_2pt_conversions, pacr, dakota,
         rushing_attempts, rushing_yards, rushing_touchdowns, rushing_first_downs, rushing_epa,
+        fumbles_lost,
         s.home_team_id = pgs.team_id as is_home,
         s.division_game as is_division_game
 	FROM
@@ -28,6 +29,8 @@ agg AS (
         SUM(passing_interceptions) AS interceptions,
         SUM(passing_sack_yards) AS total_sack_yards,
         SUM(passing_sack_fumbles_lost) AS total_sack_fumbles_lost,
+        SUM(fumbles_lost) AS fumbles_lost,
+        SUM(passing_sacks) AS total_sacks,
         SUM(passing_first_downs) AS passing_first_downs,
         SUM(passing_yards_after_catch) AS total_yac,
         SUM(passing_epa) AS passing_epa,
@@ -51,6 +54,8 @@ agg_home AS (
         SUM(passing_interceptions) AS interceptions,
         SUM(passing_sack_yards) AS total_sack_yards,
         SUM(passing_sack_fumbles_lost) AS total_sack_fumbles_lost,
+        SUM(fumbles_lost) AS fumbles_lost,
+        SUM(passing_sacks) AS total_sacks,
         SUM(passing_first_downs) AS passing_first_downs,
         SUM(passing_yards_after_catch) AS total_yac,
         SUM(passing_epa) AS passing_epa,
@@ -76,6 +81,8 @@ agg_away AS (
         SUM(passing_interceptions) AS interceptions,
         SUM(passing_sack_yards) AS total_sack_yards,
         SUM(passing_sack_fumbles_lost) AS total_sack_fumbles_lost,
+        SUM(fumbles_lost) AS fumbles_lost,
+        SUM(passing_sacks) AS total_sacks,
         SUM(passing_first_downs) AS passing_first_downs,
         SUM(passing_yards_after_catch) AS total_yac,
         SUM(passing_epa) AS passing_epa,
@@ -101,6 +108,8 @@ agg_division AS (
         SUM(passing_interceptions) AS interceptions,
         SUM(passing_sack_yards) AS total_sack_yards,
         SUM(passing_sack_fumbles_lost) AS total_sack_fumbles_lost,
+        SUM(fumbles_lost) AS fumbles_lost,
+        SUM(passing_sacks) AS total_sacks,
         SUM(passing_first_downs) AS passing_first_downs,
         SUM(passing_yards_after_catch) AS total_yac,
         SUM(passing_epa) AS passing_epa,
@@ -137,6 +146,8 @@ calc_agg AS (
         ROUND(passing_yards / total_games, 1) AS passing_yards,
         ROUND(passing_tds / total_games, 1) AS passing_tds,
         ROUND(interceptions / total_games, 2) AS interceptions,
+        ROUND(fumbles_lost / total_games, 2) AS fumbles_lost,
+        ROUND(total_sacks / total_games, 2) AS total_sacks,
 
         -- Rushing Stats
         ROUND(rushing_yards / total_rushing_attempts, 1) AS rushing_yards_per_attempt,
@@ -169,6 +180,8 @@ calc_agg_home AS (
         ROUND(passing_yards / total_games, 1) AS passing_yards_home,
         ROUND(passing_tds / total_games, 1) AS passing_tds_home,
         ROUND(interceptions / total_games, 2) AS interceptions_home,
+        ROUND(fumbles_lost / total_games, 2) AS fumbles_lost_home,
+        ROUND(total_sacks / total_games, 2) AS total_sacks_home,
 
         -- Rushing Stats
         ROUND(rushing_yards / total_rushing_attempts, 1) AS rushing_yards_per_attempt_home,
@@ -201,6 +214,8 @@ calc_agg_away AS (
         ROUND(passing_yards / total_games, 1) AS passing_yards_away,
         ROUND(passing_tds / total_games, 1) AS passing_tds_away,
         ROUND(interceptions / total_games, 2) AS interceptions_away,
+        ROUND(fumbles_lost / total_games, 2) AS fumbles_lost_away,
+        ROUND(total_sacks / total_games, 2) AS total_sacks_away,
 
         -- Rushing Stats
         ROUND(rushing_yards / total_rushing_attempts, 1) AS rushing_yards_per_attempt_away,
@@ -234,6 +249,8 @@ calc_agg_division AS (
         ROUND(passing_yards / total_games, 1) AS passing_yards_division,
         ROUND(passing_tds / total_games, 1) AS passing_tds_division,
         ROUND(interceptions / total_games, 2) AS interceptions_division,
+        ROUND(fumbles_lost / total_games, 2) AS fumbles_lost_division,
+        ROUND(total_sacks / total_games, 2) AS total_sacks_division,
 
         -- Rushing Stats
         ROUND(rushing_yards / total_rushing_attempts, 1) AS rushing_yards_per_attempt_division,
