@@ -294,11 +294,10 @@ export default function WeekOverview({ params }: { params: { season: number, wee
         if (season === params.season && week === params.week) {
             return;
         }
-        if (!season || !week || season < 2010 || season > 2024 || week < 1 || week > 18) {
+        if (!season || !week || season < 2023 || season > 2025 || week < 1 || week > 18) {
             return;
         }
-
-        router.push(`/nfl/games/${season}/${week}/model_performance`);
+        router.push(`/nfl/games/${season}/${week}/model-performance`);
     }
 
     return (
@@ -306,11 +305,11 @@ export default function WeekOverview({ params }: { params: { season: number, wee
             <div className="h-auto mb-1">
                 <RoundedButton text="Previous Week" onClick={() => {
                     const previousWeek = Number(params.week) - 1;
-                    router.push(`/nfl/games/${params.season}/${previousWeek}/model_performance`);
+                    router.push(`/nfl/games/${params.season}/${previousWeek}/model-performance`);
                 }} className="absolute mt-1 left-1"/>
                 <RoundedButton text="Next Week" onClick={() => {
                     const nextWeek = Number(params.week) + 1;
-                    router.push(`/nfl/games/${params.season}/${nextWeek}/model_performance`);
+                    router.push(`/nfl/games/${params.season}/${nextWeek}/model-performance`);
                 }} className="absolute mt-1 right-1" />
                 <div>
                     <h1 className="text-2xl font-bold text-center leading-[45px]">{`Week ${params.week} Model Performance`}</h1>
