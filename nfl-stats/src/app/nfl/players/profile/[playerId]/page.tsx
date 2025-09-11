@@ -82,7 +82,7 @@ const StatsDisplay = ({ stats, nextGame, teamId }: { stats: AveragedTeamPerforma
                 <div className="bg-white shadow-md rounded p-4">
                     <h2 className="font-bold text-lg mb-4">Avg Offense Stats {`${playersTeamCharId ?? ''}`}</h2>
                     <ul className="space-y-2">
-                        {Object.entries(stats).filter(([key]) => key.startsWith('avg_') && !key.includes('allowed')).map(([key, value], index) => (
+                        {Object.entries(stats).filter(([key]) => key.startsWith('avg_') && !key.includes('allowed') && !key.includes('defense') && !key.includes('def_')).map(([key, value], index) => (
                             <li key={key} className={`flex justify-between ${index % 2 === 0 ? 'bg-slate-100' : 'bg-slate-200'} p-2 rounded`}>
                                 <span className="capitalize">{key.replace('avg_', '').replace(/_/g, ' ')}</span>
                                 <span>{value ?? 'N/A'}</span>
@@ -139,8 +139,12 @@ const PlayerProfilePage = () => {
                 .then((schedule) => {
                     setSchedule(schedule)
                     
-                    if (schedule[0]) {
-                        setNextGame(schedule[0])
+                    // go through schedule, find first game with null scores and set as next game, if none use last game in list
+                    const upcomingGame = schedule.find((game: Game) => game.home_score === null || game.away_score === null)
+                    if (upcomingGame) {
+                        setNextGame(upcomingGame)
+                    } else if (schedule.length > 0) {
+                        setNextGame(schedule[schedule.length - 1])
                     }
                 })
                 .catch((error) => console.error(error))
