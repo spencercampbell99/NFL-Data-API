@@ -97,14 +97,34 @@ const TeamKickingComparison: React.FunctionComponent<{ awayBoxscore: BoxScore, h
     )
 }
 
+const TeamPowerScoreComparison: React.FunctionComponent<{ awayBoxscore: BoxScore, homeBoxscore: BoxScore, awayName: string, homeName: string }> = ({ awayBoxscore, homeBoxscore, awayName, homeName }) => {
+    if (!awayBoxscore.rolling_offense_power_score || !awayBoxscore.rolling_defense_power_score || !homeBoxscore.rolling_offense_power_score || !homeBoxscore.rolling_defense_power_score) {
+        return null;
+    }
+
+    return (
+        <div className="w-full">
+            <h2 className="font-bold text-xl text-center">{`Power Scores`}</h2>
+            <TeamStatComparisonTable awayName={awayName} homeName={homeName}>
+                <TeamStatComparisonRow awayStat={awayBoxscore.rolling_offense_power_score} homeStat={homeBoxscore.rolling_offense_power_score} statName="Offense Power Score" />
+                <TeamStatComparisonRow awayStat={awayBoxscore.rolling_defense_power_score} homeStat={homeBoxscore.rolling_defense_power_score} statName="Defense Power Score" />
+            </TeamStatComparisonTable>
+            {/* Description */}
+            <p className="text-center text-xs italic mt-2">Power Scores are calculated weekly based on the prior 6 weeks performance. 0 is average.</p>
+        </div>
+    )
+}
+
 const TeamStatsAtAGlance: React.FunctionComponent<{ awayBoxscore: BoxScore, homeBoxscore: BoxScore, awayName: string|undefined, homeName: string|undefined }> = ({ awayBoxscore, homeBoxscore, awayName, homeName }) => {
     if (!awayName || !homeName) {
         awayName = 'Away'
         homeName = 'Home'
     }
 
+    const className = homeBoxscore.rolling_defense_power_score ? "grid grid-cols-5 gap-4 text-black w-[100%] mt-5 min-w-[1000px]" : "grid grid-cols-4 gap-4 text-black w-[100%] mt-5 min-w-[750px]";
+
     return (
-        <div className="grid grid-cols-4 gap-4 text-black w-[100%] mt-5 min-w-[1000px]">
+        <div className={className}>
             <div className="min-w-[250px]">
                 <TeamYardageComparison awayBoxscore={awayBoxscore} homeBoxscore={homeBoxscore} awayName={awayName} homeName={homeName} />
             </div>
@@ -117,6 +137,10 @@ const TeamStatsAtAGlance: React.FunctionComponent<{ awayBoxscore: BoxScore, home
             <div className="min-w-[250px]">
                 <TeamKickingComparison awayBoxscore={awayBoxscore} homeBoxscore={homeBoxscore} awayName={awayName} homeName={homeName} />
             </div>
+            { homeBoxscore.rolling_offense_power_score && homeBoxscore.rolling_defense_power_score ?
+                <TeamPowerScoreComparison awayBoxscore={awayBoxscore} homeBoxscore={homeBoxscore} awayName={awayName} homeName={homeName} />
+                : null
+            }
         </div>
     );
 }

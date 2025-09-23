@@ -1,10 +1,17 @@
 'use client'
 import React, { ReactNode } from 'react';
-import axios from '@/axiosConfig';
 import GameHeader from '@/components/games/gameHeader.component';
 import Game from '@/interfaces/game.interface';
 import TeamStatsAtAGlance from '@/components/games/atAGlance.component';
 import GameService from '@/services/Game.service';
+import {
+    PassingStats,
+    RushingStats,
+    ReceivingStats,
+    FumblesStats,
+    DefensiveStats,
+    FieldGoalStats,
+} from '@/interfaces/playerGameStat.interface';
 
 interface Params {
     gameId: string
@@ -86,6 +93,36 @@ const ReceivingStatRow: React.FunctionComponent<{ receivingStats: any, totalRow?
     );
 }
 
+const DefenseStatRow: React.FunctionComponent<{ defenseStats: DefensiveStats, totalRow?: boolean }> = ({ defenseStats, totalRow=false }) => {
+    return (
+        <tr className={`${totalRow ? 'bg-slate-300' : ''}`}>
+            <StatCell value={defenseStats.full_name} additionalClassNames="border-r" />
+            <StatCell value={defenseStats.tackles} />
+            <StatCell value={defenseStats.sacks} />
+            <StatCell value={defenseStats.interceptions} />
+            <StatCell value={defenseStats.defensive_touchdowns} />
+            <StatCell value={defenseStats.tackles_for_loss} />
+            <StatCell value={defenseStats.pass_defended} />
+            <StatCell value={defenseStats.qb_hits} />
+            <StatCell value={defenseStats.fumbles_forced} />
+            <StatCell value={defenseStats.def_penalty_yards} />
+        </tr>
+    );
+}
+
+const KickingStatRow: React.FunctionComponent<{ kickingStats: FieldGoalStats, totalRow?: boolean }> = ({ kickingStats, totalRow=false }) => {
+    return (
+        <tr className={`${totalRow ? 'bg-slate-300' : ''}`}>
+            <StatCell value={kickingStats.full_name} additionalClassNames="border-r" />
+            <StatCell value={kickingStats.fg_made} />
+            <StatCell value={kickingStats.fg_att} />
+            <StatCell value={kickingStats.fg_long} />
+            <StatCell value={kickingStats.pat_made} />
+            <StatCell value={kickingStats.pat_att} />
+        </tr>
+    );
+}
+
 interface StatBlockProps {
     title: string,
     stats: Array<any>,
@@ -154,6 +191,31 @@ const StatBlock: React.FunctionComponent<StatBlockProps> = ({ title, stats, team
 
         // add per reception
         totalStats['yards_per_reception'] = totalStats['receiving_yards'] / totalStats['receptions'];
+    } else if (stat_type === 'defense') {
+        totalStats = {
+            full_name: 'Total',
+            tackles: stats.reduce((acc, player) => acc + player.tackles, 0),
+            sacks: stats.reduce((acc, player) => acc + player.sacks, 0),
+            interceptions: stats.reduce((acc, player) => acc + player.interceptions, 0),
+            defensive_touchdowns: stats.reduce((acc, player) => acc + player.defensive_touchdowns + player.touchdowns, 0),
+            tackles_for_loss: stats.reduce((acc, player) => acc + player.tackles_for_loss, 0),
+            pass_defended: stats.reduce((acc, player) => acc + player.pass_defended, 0),
+            qb_hits: stats.reduce((acc, player) => acc + player.qb_hits, 0),
+            fumbles_forced: stats.reduce((acc, player) => acc + player.fumbles_forced, 0),
+            def_penalty_yards: stats.reduce((acc, player) => acc + player.def_penalty_yards, 0),
+            def_fumble_recovery_opp: stats.reduce((acc, player) => acc + (player.def_fumble_recovery_opp ?? 0), 0),
+            def_safety_forced: stats.reduce((acc, player) => acc + (player.def_safety_forced ?? 0), 0),
+            def_penalty: stats.reduce((acc, player) => acc + (player.def_penalty ?? 0), 0),
+        } as DefensiveStats;
+    } else if (stat_type === 'kicking') {
+        totalStats = {
+            full_name: 'Total',
+            fg_made: stats.reduce((acc, player) => acc + (player.fg_made ?? player.kicking_field_goals_made ?? 0), 0),
+            fg_att: stats.reduce((acc, player) => acc + (player.fg_att ?? player.kicking_field_goals_attempted ?? 0), 0),
+            fg_long: Math.max(...stats.map(player => (player.fg_long ?? player.kicking_longest_field_goal ?? 0))),
+            pat_made: stats.reduce((acc, player) => acc + (player.xp_made ?? player.kicking_extra_points_made ?? 0), 0),
+            pat_att: stats.reduce((acc, player) => acc + (player.xp_att ?? player.kicking_extra_points_attempted ?? 0), 0),
+        } as FieldGoalStats
     }
 
     return (
@@ -177,17 +239,19 @@ const StatBlock: React.FunctionComponent<StatBlockProps> = ({ title, stats, team
                         if (stat_type === 'receiving') {
                             return <ReceivingStatRow key={index} receivingStats={player} />
                         }
-                        // if (stat_type === 'defense') {
-                        //     return <DefenseStatRow key={index} defenseStats={player} />
-                        // }
-                        // if (stat_type === 'kicking') {
-                        //     return <KickingStatRow key={index} kickingStats={player} />
-                        // }
+                        if (stat_type === 'defense') {
+                            return <DefenseStatRow key={index} defenseStats={player} />
+                        }
+                        if (stat_type === 'kicking') {
+                            return <KickingStatRow key={index} kickingStats={player} />
+                        }
                     }) }
                     {/* Display total stats here */}
                     { stat_type === 'passing' ? <PassingStatRow passingStats={totalStats} totalRow={true} /> : null }
                     { stat_type === 'rushing' ? <RushingStatRow rushingStats={totalStats} totalRow={true}  /> : null }
                     { stat_type === 'receiving' ? <ReceivingStatRow receivingStats={totalStats} totalRow={true}  /> : null }
+                    { stat_type === 'defense' && totalStats ? <DefenseStatRow defenseStats={totalStats as DefensiveStats} totalRow={true}  /> : null }
+                    { stat_type === 'kicking' ? <KickingStatRow kickingStats={totalStats as FieldGoalStats} totalRow={true}  /> : null }
                 </tbody>
             </table>
         </>
@@ -232,6 +296,28 @@ const receivingColumns = [
     '2PTC'
 ];
 
+const defenseColumns = [
+    'Player',
+    'Tackles',
+    'Sacks',
+    'Int',
+    'TDs',
+    'TFL',
+    'PD',
+    'QB Hits',
+    'Fum. Forced',
+    'Penalty Yards',
+]
+
+const kickingColumns = [
+    'Player',
+    'FG Made',
+    'FG Att',
+    'Long',
+    'XP Made',
+    'XP Att',
+];
+
 const GameOverviewPage: React.FunctionComponent<{ params: Params }> = ({ params }) => {
     const [game, setGame] = React.useState<Game|null>(null);
 
@@ -266,8 +352,26 @@ const GameOverviewPage: React.FunctionComponent<{ params: Params }> = ({ params 
                     <div className="w-full">
                         <StatBlock title={`${game.away_team.short_display_name} Receiving`} stats={game.player_stats.receiving} team_id={game.away_team_id} stat_type='receiving' columns={receivingColumns} />
                     </div>
-                    <div>
+                    <div className="w-full">
                         <StatBlock title={`${game.home_team.short_display_name} Receiving`} stats={game.player_stats.receiving} team_id={game.home_team_id} stat_type='receiving' columns={receivingColumns} />
+                    </div>
+                    {/* Disclaimer that defense stats are WIP */}
+                    <div className="col-span-2 text-center text-sm italic text-gray-600">
+                        Defensive and Kicking player stats are a work in progress and may be incomplete or inaccurate.
+                    </div>
+                    {/* Defense stats */}
+                    <div className="w-full">
+                        <StatBlock title={`${game.away_team.short_display_name} Defense`} stats={game.player_stats.defensive} team_id={game.away_team_id} stat_type='defense' columns={defenseColumns} />
+                    </div>
+                    <div className="w-full">
+                        <StatBlock title={`${game.home_team.short_display_name} Defense`} stats={game.player_stats.defensive} team_id={game.home_team_id} stat_type='defense' columns={defenseColumns} />
+                    </div>
+                    {/* Kicking stats */}
+                    <div className="w-full">
+                        <StatBlock title={`${game.away_team.short_display_name} Kicking`} stats={game.player_stats.kicking} team_id={game.away_team_id} stat_type='kicking' columns={kickingColumns} />
+                    </div>
+                    <div className="w-full">
+                        <StatBlock title={`${game.home_team.short_display_name} Kicking`} stats={game.player_stats.kicking} team_id={game.home_team_id} stat_type='kicking' columns={kickingColumns} />
                     </div>
                 </div>
             </div>
