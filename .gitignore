@@ -8,6 +8,7 @@ data_loaders/api_pass.txt
 
 # Docker production
 docker-compose.production.yaml
+docker-compose.yaml
 Dockerfile.*
 nginx.conf
 
