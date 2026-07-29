@@ -8,12 +8,17 @@ import Team from '@/interfaces/team.interface';
 import { useRouter } from 'next/navigation';
 import { SeasonWeekSelector } from '@/components/commonComponents';
 
-const TeamSeasonOverview: React.FunctionComponent<{ team: Team }> = ({ team }) => {
+interface TeamRecord {
+    wins: number;
+    losses: number;
+}
+
+const TeamSeasonOverview: React.FunctionComponent<{ team: Team, teamRecord?: TeamRecord|null }> = ({ team, teamRecord = null }) => {
     return (
         <div className="flex flex-row">
             <div className="text-left">
                 <div className="text-lg font-bold text-gray-800">{team.short_display_name}</div>
-                <div className="text-xs font-medium text-gray-500">12-5</div> {/* TODO: Make dynamic */}
+                <div className="text-xs font-medium text-gray-500">{teamRecord ? `${teamRecord.wins}-${teamRecord.losses}` : 'N/A'}</div>
             </div>
         </div>
     )
@@ -28,6 +33,13 @@ const GameOverview: React.FunctionComponent<{ game: Game }> = ({ game }) => {
         return null;
     }
 
+    const homeRecord = game.home_team_season_games_won !== undefined && game.home_team_season_games_lost !== undefined
+        ? { wins: game.home_team_season_games_won, losses: game.home_team_season_games_lost }
+        : null;
+    const awayRecord = game.away_team_season_games_won !== undefined && game.away_team_season_games_lost !== undefined
+        ? { wins: game.away_team_season_games_won, losses: game.away_team_season_games_lost }
+        : null;
+
     return (
         <>
             <div className="bg-white border border-gray-200 rounded-lg shadow-md px-4">
@@ -35,8 +47,8 @@ const GameOverview: React.FunctionComponent<{ game: Game }> = ({ game }) => {
 
                 <div className="grid grid-cols-6 items-center gap-2 mb-2">
                     <div className="text-left flex flex-col">
-                        <TeamSeasonOverview team={game.away_team} />
-                        <TeamSeasonOverview team={game.home_team} />
+                        <TeamSeasonOverview team={game.away_team} teamRecord={awayRecord} />
+                        <TeamSeasonOverview team={game.home_team} teamRecord={homeRecord} />
                     </div>
                     <div className="flex flex-col">
                         <div className="text-center">

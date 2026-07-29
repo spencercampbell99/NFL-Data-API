@@ -16,4 +16,6 @@ export default interface BoxScore {
     field_goals_attempted: number;
     punts_inside_20: number;
     time_of_possession: string;
+    rolling_offense_power_score?: number;
+    rolling_defense_power_score?: number;
 }

@@ -66,13 +66,22 @@ async function _generateTokens(user, res) {
         access_level: user.access_level,
     }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
 
-    // Generate a separate auth token
-    const authToken = generateToken();
-    const sessionExpiration = generateExpirationDate();
+    let authToken;
+    // check if user already has auth and session tokens
+    if (user.session_token && user.session_expiration && new Date(user.session_expiration) > new Date()) {
+        // Set HTTP-only cookie
+        res.cookie('ENDZONE-EDGE-JWT-USER', token, { httpOnly: true, maxAge: 3600000 });
+        res.cookie('ENDZONE-EDGE-AUTH', user.session_token, { httpOnly: true });
+        authToken = user.session_token;
+    } else {
+        // Generate a separate auth token
+        authToken = generateToken();
 
-    // Set HTTP-only cookie
-    res.cookie('ENDZONE-EDGE-JWT-USER', token, { httpOnly: true, maxAge: 3600000 });
-    res.cookie('ENDZONE-EDGE-AUTH', authToken, { httpOnly: true });
+        // Set HTTP-only cookie
+        res.cookie('ENDZONE-EDGE-JWT-USER', token, { httpOnly: true, maxAge: 3600000 });
+        res.cookie('ENDZONE-EDGE-AUTH', authToken, { httpOnly: true });
+    }
+    const sessionExpiration = generateExpirationDate();
 
     // Set session token and expiration
     await User.update({
@@ -80,7 +89,7 @@ async function _generateTokens(user, res) {
         session_expiration: sessionExpiration,
     }, {
         where: { id: user.id },
-    });
+    }, logging = false);
 
     return { token, authToken, sessionExpiration };
 }

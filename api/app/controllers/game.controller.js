@@ -103,6 +103,63 @@ exports.getGamesOverviewBySeasonAndWeek = async (req, res) => {
             ],
         });
 
+        // for season, week get each home and away team record
+        for (const game of games) {
+            const homeTeamId = game.home_team_char_id;
+            const awayTeamId = game.away_team_char_id;
+
+            const homeTeamRecord = await Schedule.findAll({
+                where: {
+                    season: season,
+                    week: { [nflDb.Sequelize.Op.lte]: week },
+                    [nflDb.Sequelize.Op.or]: [
+                        { home_team_char_id: homeTeamId },
+                        { away_team_char_id: homeTeamId }
+                    ],
+                },
+                attributes: ['home_team_char_id', 'away_team_char_id', 'home_score', 'away_score'],
+            });
+
+            const awayTeamRecord = await Schedule.findAll({
+                where: {
+                    season: season,
+                    week: { [nflDb.Sequelize.Op.lte]: week },
+                    [nflDb.Sequelize.Op.or]: [
+                        { home_team_char_id: awayTeamId },
+                        { away_team_char_id: awayTeamId }
+                    ],
+                },
+                attributes: ['home_team_char_id', 'away_team_char_id', 'home_score', 'away_score'],
+            });
+            
+            let homeWins = 0;
+            let homeLosses = 0;
+            homeTeamRecord.forEach(g => {
+                if ((g.home_team_char_id === homeTeamId && g.home_score > g.away_score) ||
+                    (g.away_team_char_id === homeTeamId && g.away_score > g.home_score)) {
+                    homeWins++;
+                } else {
+                    homeLosses++;
+                }
+            });
+            
+            let awayWins = 0;
+            let awayLosses = 0;
+            awayTeamRecord.forEach(g => {
+                if ((g.home_team_char_id === awayTeamId && g.home_score > g.away_score) ||
+                    (g.away_team_char_id === awayTeamId && g.away_score > g.home_score)) {
+                    awayWins++;
+                } else {
+                    awayLosses++;
+                }
+            });
+
+            game.dataValues.home_team_season_games_won = homeWins;
+            game.dataValues.home_team_season_games_lost = homeLosses;
+            game.dataValues.away_team_season_games_won = awayWins;
+            game.dataValues.away_team_season_games_lost = awayLosses;
+        }
+
         // build name and short name
         games.forEach(game => {
             game.short_name = `${game.away_team_char_id} @ ${game.home_team_char_id}`;
@@ -142,7 +199,7 @@ exports.getGameOverviewById = async (req, res) => {
             'total_offensive_yards', 'total_drives', 'total_offensive_plays', 'yards_per_play', 'first_downs',
             'passing_yards', 'rushing_yards', 'passing_first_downs', 'rushing_first_downs', 'third_down_conversions',
             'fourth_down_conversions', 'red_zone_attempts', 'turnovers', 'field_goals_made', 'field_goals_attempted',
-            'punts_inside_20', 'time_of_possession'
+            'punts_inside_20', 'time_of_possession', 'rolling_offense_power_score', 'rolling_defense_power_score',
         ]
 
         var game = await Schedule.findByPk(id, {

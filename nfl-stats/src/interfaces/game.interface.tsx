@@ -33,4 +33,9 @@ export default interface Game {
     away_boxscore: BoxScore;
     espn_id: number;
     model_predictions: ScoreModelPrediction[];
+
+    home_team_season_games_won?: number;
+    home_team_season_games_lost?: number;
+    away_team_season_games_won?: number;
+    away_team_season_games_lost?: number;
 }
