@@ -2,7 +2,7 @@ import pandas as pd
 import nfl_data_py as nfl
 
 # Load the players data
-years = list(range(2010, 2025))
+years = list(range(2010, 2027))
 players = nfl.import_seasonal_rosters(years)
 
 # keep only the latest season entry for each player
@@ -27,8 +27,23 @@ players = players[cols]
 
 from SQLConnector import MySQLConnection
 from sqlalchemy import text
-# Create a connection to the database
-conn = MySQLConnection()
+from sqlalchemy.exc import IntegrityError
+
+ACTIVE_SEASON = 2025
+
+def normalize_player_id(raw_player_id):
+    if raw_player_id is None:
+        return None
+
+    player_id = str(raw_player_id).strip()
+    if player_id.startswith('00-'):
+        player_id = player_id[3:]
+
+    if player_id == '' or not player_id.isnumeric():
+        return None
+
+    # Canonicalize numeric IDs so values like '0000045' match DB id 45.
+    return str(int(player_id))
 
 # insert statement
 insert_statement = text(f"""
@@ -36,40 +51,70 @@ insert_statement = text(f"""
     VALUES (:player_id, :position, :jersey_number, :active, :player_name, :first_name, :last_name, :birth_date, :height, :weight, :college, :espn_id, :headshot_url, :rookie_year, :draft_club, :draft_number, :years_exp)
 """)
 
-# update statement
-update_statement = text(f"""
-    UPDATE players
-    SET position = :position, jersey_number = :jersey_number, active = :active, full_name = :player_name, first_name = :first_name, last_name = :last_name, date_of_birth = :birth_date, height = :height, weight = :weight, college = :college, espn_id = :espn_id, headshot_url = :headshot_url, rookie_year = :rookie_year, draft_club = :draft_club, draft_number = :draft_number, experience = :years_exp
-    WHERE id = :player_id
-""")
+conn = MySQLConnection()
 
-# Insert the data into the database
-for index, row in players.iterrows():
-    # replace any nan values with None
-    row = row.where(pd.notnull(row), None)
-    
-    if row['player_name'] is None:
-        continue # probably not an important player
-    
-    # if season = 2023 then player is active
-    row['active'] = row['season'] == 2023
-    row.drop(['season', 'status'], inplace=True)
-    
-    row['player_id'] = row['player_id'][3:] # drop 00- preceeding
-    player_id = row['player_id']
-    # Check if the player already exists in the database
-    query = text("SELECT id FROM players WHERE id = :player_id")
-    result = conn.connection.execute(query, {'player_id': player_id})
-    if result.fetchone() is None:
-        print(f"Inserting player {row['player_name']} into the database")
-        conn.connection.execute(insert_statement, row.to_dict())
-    else:
-        print(f"Updating player {row['player_name']} in the database")
-        
-        # drop player_id from row and move to end of row
-        row = row.drop('player_id')
+try:
+    existing_player_ids = {
+        normalize_player_id(row[0])
+        for row in conn.connection.execute(text("SELECT id FROM players")).fetchall()
+        if row[0] is not None
+    }
+
+    complete = 0
+    inserted = 0
+    skipped_existing = 0
+    skipped_invalid_id = 0
+
+    # Insert the data into the database
+    for _, row in players.iterrows():
+        if complete % 100 == 0:
+            print(f"Processing player {complete} of {len(players)}")
+        complete += 1
+
+        # replace any nan values with None
+        row = row.where(pd.notnull(row), None)
+
+        if row['player_name'] is None:
+            continue  # probably not an important player
+
+        # if season = ACTIVE_SEASON then player is active
+        row['active'] = row['season'] == ACTIVE_SEASON
+        row.drop(['season', 'status'], inplace=True)
+
+        # Convert birth_date to string if it's a Timestamp
+        if row['birth_date'] is not None and hasattr(row['birth_date'], 'strftime'):
+            row['birth_date'] = row['birth_date'].strftime('%Y-%m-%d')
+
+        # for college take only character preceeding any existing ;
+        row['college'] = row['college'].split(';')[0] if row['college'] is not None else None
+
+        player_id = normalize_player_id(row['player_id'])
+        if player_id is None:
+            skipped_invalid_id += 1
+            continue
+
+        if player_id in existing_player_ids:
+            skipped_existing += 1
+            continue
+
         row['player_id'] = player_id
-        conn.connection.execute(update_statement, row.to_dict())
+        print(f"Inserting player {row['player_name']} into the database")
+        try:
+            conn.connection.execute(insert_statement, row.to_dict())
+            existing_player_ids.add(player_id)
+            inserted += 1
+        except IntegrityError as exc:
+            # Skip duplicates that may still happen due to race/canonicalization edge cases.
+            if '1062' in str(exc):
+                skipped_existing += 1
+                existing_player_ids.add(player_id)
+                continue
+            raise
 
-conn.connection.commit()
-conn.close()
+    conn.connection.commit()
+    print(
+        f"Done. Inserted={inserted}, SkippedExisting={skipped_existing}, "
+        f"SkippedInvalidId={skipped_invalid_id}"
+    )
+finally:
+    conn.close()

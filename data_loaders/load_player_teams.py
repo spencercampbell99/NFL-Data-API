@@ -36,6 +36,18 @@ update_statement = text(f"""
     WHERE id = :player_id
 """)
 
+team_mappings = {
+    'AZ': 'ARI'
+}
+
+# get all teams as mapping of char id to id from the db
+team_mapping = {}
+with conn.connection.begin() as trans:
+    result = conn.connection.execute(text("SELECT id, char_id FROM teams"))
+    # Fetch results as dictionaries
+    for row in result.mappings():
+        team_mapping[row['char_id']] = row['id']
+
 def clean_bad_values(row):
     '''
     Takes in a row and cleans out any bad, unparsable values
@@ -79,6 +91,12 @@ for index, row in data.iterrows():
     
     row = clean_bad_values(row)
     
+    if team_mappings.get(row['latest_team'], None) is not None:
+        row['latest_team'] = team_mappings[row['latest_team']]
+
+    if team_mapping.get(row['latest_team'], None) is None and row['latest_team'] is not None:
+        print(row['latest_team'])
+
     # build insert dict
     insert_dict = {
         'player_id': player_id,
@@ -89,14 +107,14 @@ for index, row in data.iterrows():
         'birth_date': row['birth_date'],
         'height': row['height'],
         'weight': row['weight'],
-        'college': row['college_name'],
+        'college': row['college_name'].split(';')[0] if row['college_name'] else None,
         'headshot': row['headshot'],
-        'rookie_year': row['rookie_year'],
-        'draft_club': row['draft_club'],
-        'draft_number': row['draft_number'],
+        'rookie_year': row['rookie_season'],
+        'draft_club': row['draft_team'],
+        'draft_number': row['draft_pick'],
         'years_of_experience': row['years_of_experience'],
         'uniform_number': row['uniform_number'],
-        'current_team_id': row['current_team_id'],
+        'current_team_id': team_mapping.get(row['latest_team'], None)
     }
     
     # run update

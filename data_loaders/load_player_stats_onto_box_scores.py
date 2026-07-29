@@ -2,16 +2,14 @@ import pandas as pd
 
 from SQLConnector import MySQLConnection
 from sqlalchemy import text
-# Create a connection to the database
-conn = MySQLConnection()
 
 years = list(range(2025, 2026))
 
-find_boxscore_query = text(f"""
+find_boxscore_query = text("""
     SELECT id FROM box_scores WHERE schedule_id = :schedule_id AND team_id = :team_id
 """)
 
-grouped_player_stats_by_game_and_team = text(f"""
+grouped_player_stats_by_game_and_team = text("""
     select
         team_id,
         game_id,
@@ -44,48 +42,71 @@ grouped_player_stats_by_game_and_team = text(f"""
 """)
 
 # update query
-update_box_score_statement = text(f"""
+update_box_score_statement = text("""
     UPDATE box_scores
     SET total_epa = :total_epa, passing_epa = :passing_epa, rushing_epa = :rushing_epa, receiving_epa = :receiving_epa, defense_tackles = :defense_tackles, defense_tackles_for_loss = :defense_tackles_for_loss, defense_forced_fumbles = :defense_forced_fumbles, defense_sacks = :defense_sacks, defense_qb_hits = :defense_qb_hits, defense_interceptions = :defense_interceptions, defense_passes_defended = :defense_passes_defended, defense_special_teams_tds = :defense_special_teams_tds, defense_safeties = :defense_safeties, field_goals_made = :field_goals_made, field_goals_attempted = :field_goals_attempted, extra_points_made = :extra_points_made, extra_points_attempted = :extra_points_attempted, punts = :punts, punt_yards = :punt_yards, yards_per_punt = :yards_per_punt, touchbacks = :touchbacks, punts_inside_20 = :punts_inside_20
     WHERE schedule_id = :game_id AND team_id = :team_id
 """)
 
-for year in years:
-    # load player stats for year
-    summed_player_stats = pd.read_sql(grouped_player_stats_by_game_and_team, conn.connection, params={'year': year})
-    
-    completed = 0
-    total = len(summed_player_stats)
-    
-    print(f"Loading player stats into box scores for {year}")
-    
-    for index, player_stat in summed_player_stats.iterrows():
-        # convert ids to integers
-        player_stat['team_id'] = int(player_stat['team_id'])
-        player_stat['game_id'] = int(player_stat['game_id'])
-        
-        # print percent completion if divisible by 100
-        if completed % 100 == 0:
-            print(f"{completed} / {total} ({completed / total * 100}%)")
-            
-        # replace NAN with None
-        player_stat = player_stat.where(pd.notnull(player_stat), 0)
-        
-        # find boxscore
-        boxscore = conn.connection.execute(find_boxscore_query, {'schedule_id': player_stat['game_id'], 'team_id': player_stat['team_id']}).fetchone()
-        
-        if boxscore is None:
-            print(f"Boxscore not found for team {player_stat['team_id']} in game {player_stat['game_id']}")
-            completed += 1
-            continue
-        
-        print(f"Updating boxscore for team {player_stat['team_id']} in game {player_stat['game_id']}")
-        
-        # update the boxscore
-        conn.connection.execute(update_box_score_statement, player_stat.to_dict())
-        
-        completed += 1
+def main():
+    conn = MySQLConnection()
+    try:
+        for year in years:
+            summed_player_stats = pd.read_sql(
+                grouped_player_stats_by_game_and_team,
+                conn.connection,
+                params={'year': year}
+            )
 
-print("Done loading player stats into box scores")
-conn.connection.commit()
-conn.close()
+            # Force integer types for ids before SQL updates.
+            summed_player_stats['team_id'] = summed_player_stats['team_id'].astype('int64')
+            summed_player_stats['game_id'] = summed_player_stats['game_id'].astype('int64')
+
+            total = len(summed_player_stats)
+            print(f"Loading player stats into box scores for {year}")
+
+            completed = 0
+            for row in summed_player_stats.itertuples(index=False):
+                team_id = int(row.team_id)
+                game_id = int(row.game_id)
+
+                if completed % 100 == 0:
+                    pct = (completed / total * 100) if total else 100
+                    print(f"{completed} / {total} ({pct:.2f}%)")
+
+                boxscore = conn.connection.execute(
+                    find_boxscore_query,
+                    {'schedule_id': game_id, 'team_id': team_id}
+                ).fetchone()
+
+                if boxscore is None:
+                    print(f"Boxscore not found for team {team_id} in game {game_id}")
+                    completed += 1
+                    continue
+
+                # Build params dict explicitly (avoid float ids and keep None where appropriate)
+                data = row._asdict()
+                data['team_id'] = team_id
+                data['game_id'] = game_id  # used as schedule_id in WHERE
+
+                # Replace NaNs with 0 except yards_per_punt (keep None)
+                for k, v in list(data.items()):
+                    if k == 'yards_per_punt':
+                        data[k] = None if pd.isna(v) else v
+                    else:
+                        data[k] = 0 if pd.isna(v) else v
+
+                conn.connection.execute(update_box_score_statement, data)
+                completed += 1
+
+        conn.connection.commit()
+        print("Done loading player stats into box scores")
+    except Exception:
+        conn.connection.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+if __name__ == '__main__':
+    main()

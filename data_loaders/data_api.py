@@ -2,7 +2,7 @@ import requests
 
 class LocalhostAPI:
     def __init__(self):
-        self.base_url = 'http://localhost:8000'
+        self.base_url = 'http://192.168.0.189:8001'
         self.auth_cookie = None
         
         # Load the password from the file
