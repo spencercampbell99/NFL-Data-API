@@ -124,7 +124,7 @@ const PlayerProfilePage = () => {
                     })
                     .catch((error) => console.error(error))
             } else {
-                PlayerService.getPlayerSeasonOverview(playerId, 2025)
+                PlayerService.getPlayerSeasonOverview(playerId, 2026)
                     .then((player) => {
                         setPlayer(player);
                     })
@@ -135,7 +135,7 @@ const PlayerProfilePage = () => {
 
     React.useEffect(() => {
         if (player?.team_id) {
-            TeamService.getSeasonScheduleForTeam(player.team_id, 2025)
+            TeamService.getSeasonScheduleForTeam(player.team_id, 2026)
                 .then((schedule) => {
                     setSchedule(schedule)
                     

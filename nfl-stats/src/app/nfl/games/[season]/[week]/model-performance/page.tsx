@@ -294,7 +294,7 @@ export default function WeekOverview({ params }: { params: { season: number, wee
         if (season === params.season && week === params.week) {
             return;
         }
-        if (!season || !week || season < 2023 || season > 2025 || week < 1 || week > 18) {
+        if (!season || !week || season < 2023 || season > 2026 || week < 1 || week > 18) {
             return;
         }
         router.push(`/nfl/games/${season}/${week}/model-performance`);

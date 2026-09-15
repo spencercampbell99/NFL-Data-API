@@ -24,7 +24,7 @@ function getPredScoreColText(game: Game) {
 
 const Page: FunctionComponent<{}> = () => {
     const [games, setGames] = React.useState<Game[]>([]);
-    const [season, setSeason] = React.useState<number>(2025);
+    const [season, setSeason] = React.useState<number>(2026);
     const [week, setWeek] = React.useState<number>(1);
     const [amountToBet, setAmountToBet] = React.useState<number>(100);
     const [moreInfoOpen, setMoreInfoOpen] = React.useState<boolean>(false);

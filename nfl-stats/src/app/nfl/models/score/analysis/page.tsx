@@ -98,7 +98,7 @@ const StatsContainer: React.FC<StatsContainerProps> = (props) => {
 
     const stats = [
         { label: 'Total Games', value: props.total_games, helpText: 'Total number of games analyzed' },
-        { label: 'Correct Winner Count', value: props.correct_winner_count, helpText: 'Number of games where the correct winner was predicted' },
+        { label: 'Correct Winner Count', value: props.correct_winner_count, helpText: 'Number of games where the score model predicted the correct winner' },
         { label: 'Correct Spread Count', value: props.correct_spread_count, helpText: 'Number of games where the correct spread was predicted' },
         { label: 'Correct Over/Under Count', value: props.correct_over_under_count, helpText: 'Number of games where the correct over/under was predicted' },
         { label: 'Absolute Error Sum', value: props.total_error_sum, helpText: 'Sum of the absolute value of the error between predicted total score and actual total score' },
@@ -136,7 +136,7 @@ const StatsContainer: React.FC<StatsContainerProps> = (props) => {
 }
 
 // seasons
-const seasons = [2023, 2024, 2025];
+const seasons = [2023, 2024, 2025, 2026];
 const weeksToShow = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 
 export default function ScoreModelAnalysis() {
@@ -193,7 +193,7 @@ export default function ScoreModelAnalysis() {
                 <StatsContainer
                     total_games={stats.total_games}
                     total_weeks={stats.total_weeks}
-                    correct_winner_count={stats.correct_winner_count}
+                    correct_winner_count={stats.correct_winner_count_by_score}
                     correct_spread_count={stats.correct_spread_count}
                     correct_over_under_count={stats.correct_over_under_count}
                     total_error_sum={stats.total_error_sum}
