@@ -80,7 +80,7 @@ interface WeekSummary {
 const GameCard: React.FunctionComponent<{ game: Game, numGames?: number }> = ({ game, numGames = 1 }) => {
     return (
         <>
-            <div className={`flex flex-col justify-center items-center${!game.correct_winner_by_score ? ' bg-red-100' : ' bg-green-200'}`}>
+            <div className={`flex flex-col justify-center items-center${game.home_team_score === game.away_team_score ? '' : game.correct_winner_by_score ? ' bg-green-200' : ' bg-red-100'}`}>
                 <h1 className="w-full text-center text-xl font-medium">{game.schedule.name}</h1>
                 <table className="w-full table-auto">
                     <thead className="border-black border-b-[1px]">

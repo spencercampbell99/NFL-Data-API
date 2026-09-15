@@ -22,6 +22,19 @@ function getPredScoreColText(game: Game) {
     return `${game.home_team_char_id} ${prediction.home_team_score} - ${prediction.away_team_score} ${game.away_team_char_id} (${winnerCharId})`;
 }
 
+function getPredWinnerColText(game: Game) {
+    if (!game || !game.model_predictions || game.model_predictions.length === 0) {
+        return 'n/a';
+    }
+
+    const prediction = game.model_predictions[0];
+    if (prediction.home_team_score === prediction.away_team_score) {
+        return 'n/a';
+    }
+
+    return prediction.home_team_score > prediction.away_team_score ? game.home_team_char_id : game.away_team_char_id;
+}
+
 const Page: FunctionComponent<{}> = () => {
     const [games, setGames] = React.useState<Game[]>([]);
     const [season, setSeason] = React.useState<number>(2026);
@@ -136,6 +149,7 @@ const Page: FunctionComponent<{}> = () => {
             <NestedTable
                 headers = {[
                     'Matchup (Home vs Away)',
+                    'Pred Winner',
                     'Time',
                     'Spread (Pred Cover)',
                     'Over/Under (Pred)',
@@ -143,6 +157,7 @@ const Page: FunctionComponent<{}> = () => {
                 ]}
                 columnOrder={[
                     { key: ['home_team_char_id', 'away_team_char_id', 'home_moneyline', 'away_moneyline'], transformer: (home_team_char_id: string, away_team_char_id: string, home_moneyline: number, away_moneyline: number) => `${home_team_char_id} (${home_moneyline}) vs ${away_team_char_id} (${away_moneyline})` },
+                    { key: null, transformer: getPredWinnerColText },
                     { key: ['weekday', 'time'], transformer: (weekday: string, time: string) => `${weekday ? weekday.substring(0, 3) : ''} ${moment(time, 'HH:mm:ss').format('h:mm A')}` },
                     { key: ['model_predictions', 'spread', 'home_moneyline', 'away_moneyline'], transformer: (model_predictions: any, spread: number, home_moneyline: number, away_moneyline: number) => (home_moneyline < away_moneyline ? -spread : spread) + ' (' + (model_predictions[0]?.cover_spread ? 'Y' : 'N') + ')' },
                     { key: ['model_predictions', 'over_under'], transformer: (model_predictions: any, over_under: number) => over_under + ' (' + model_predictions[0]?.over_under + ')' },
