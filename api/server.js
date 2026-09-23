@@ -13,13 +13,15 @@ if (['staging', 'production'].includes(process.env.NODE_ENV)) {
 }
 
 const app = express();
+const environment = process.env.ENVIRONMENT || process.env.NODE_ENV;
 let allowedOrigins = [];
 let corsOptions = {};
 
-if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'local') {
-  allowedOrigins = ['*']; // Allow all origins in development or local environments
+if (environment === 'development' || environment === 'local') {
   corsOptions = {
-    origin: '*', // Allow all origins
+    origin: function (origin, callback) {
+      callback(null, origin || true);
+    },
     allowedMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
     optionsSuccessStatus: 204,

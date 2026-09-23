@@ -54,7 +54,7 @@ WITH GameData AS (
         AND (:teams IS NULL OR sch.home_team_id IN (:teams) OR sch.away_team_id IN (:teams))
 ), Stats AS (
     SELECT
-        COUNT(*) AS total_games,
+        COUNT(CASE WHEN NOT predicted_tie_by_score THEN 1 END) AS total_games,
         COUNT(DISTINCT week) AS total_weeks,
         SUM(CASE WHEN correct_winner = true THEN 1 ELSE 0 END) AS correct_winner_count,
         SUM(CASE WHEN correct_winner_by_score = true AND NOT predicted_tie_by_score THEN 1 ELSE 0 END) AS correct_winner_count_by_score,

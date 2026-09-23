@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import axios from '@/axiosConfig';
 import { useRouter } from 'next/navigation';
 import { AxiosError } from 'axios';
@@ -34,40 +34,45 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const authRequestRef = useRef(0);
 
   const router = useRouter();
 
-  const checkUser = async (reload = false) => {
-    let token;
-    if (reload) {
-      try {
-        const response = await axios.get('/auth/me');
-        token = response.data.token;
-        sessionStorage.setItem('token', token);
-      } catch (error) {
-        console.error('Check user error:', error);
+  const checkUser = async (_reload = true) => {
+    const requestId = ++authRequestRef.current;
+
+    try {
+      const response = await axios.get('/auth/me');
+      const token = response.data.token;
+
+      if (requestId !== authRequestRef.current) {
+        return;
       }
-    } else {
-      token = sessionStorage.getItem('token');
-    }
-    if (token) {
-      try {
-        const decodedUser = jwtDecode<User>(token);
-        setUser(decodedUser);
-      } catch (error) {
-        console.error('Invalid token:', error);
+
+      sessionStorage.setItem('token', token);
+      setUser(jwtDecode<User>(token));
+    } catch (error) {
+      if (requestId !== authRequestRef.current) {
+        return;
       }
-    } else {
+
+      sessionStorage.removeItem('token');
       setUser(null);
+      console.error('Check user error:', error);
+    } finally {
+      if (requestId === authRequestRef.current) {
+        setLoading(false);
+      }
     }
-    setLoading(false);
   };
 
   useEffect(() => {
-    checkUser();
+    checkUser(true);
   }, []);
 
   const login = async (email: string, password: string): Promise<void> => {
+    ++authRequestRef.current;
+
     try {
       const response = await axios.post('/auth/login', { email, password });
       const token = response.data.token;
@@ -77,10 +82,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } catch (error) {
       console.error('Login error:', error);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
   const register = async ({ email, password, username, firstName }: { email: string; password: string; username: string; firstName: string }): Promise<void> => {
+    ++authRequestRef.current;
+
     try {
       const response = await axios.post('/auth/register', {
         email,
@@ -95,6 +104,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } catch (error) {
       console.error('Register error:', error);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 

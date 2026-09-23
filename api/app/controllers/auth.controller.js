@@ -58,6 +58,14 @@ exports.register = async (req, res) => {
 }
 
 async function _generateTokens(user, res) {
+    const environment = process.env.ENVIRONMENT || process.env.NODE_ENV;
+    const cookieOptions = {
+        httpOnly: true,
+        path: '/',
+        sameSite: 'lax',
+        secure: environment === 'production',
+    };
+
     // Generate JWT
     const token = jwt.sign({
         id: user.id,
@@ -70,16 +78,16 @@ async function _generateTokens(user, res) {
     // check if user already has auth and session tokens
     if (user.session_token && user.session_expiration && new Date(user.session_expiration) > new Date()) {
         // Set HTTP-only cookie
-        res.cookie('ENDZONE-EDGE-JWT-USER', token, { httpOnly: true, maxAge: 3600000 });
-        res.cookie('ENDZONE-EDGE-AUTH', user.session_token, { httpOnly: true });
+        res.cookie('ENDZONE-EDGE-JWT-USER', token, { ...cookieOptions, maxAge: 3600000 });
+        res.cookie('ENDZONE-EDGE-AUTH', user.session_token, cookieOptions);
         authToken = user.session_token;
     } else {
         // Generate a separate auth token
         authToken = generateToken();
 
         // Set HTTP-only cookie
-        res.cookie('ENDZONE-EDGE-JWT-USER', token, { httpOnly: true, maxAge: 3600000 });
-        res.cookie('ENDZONE-EDGE-AUTH', authToken, { httpOnly: true });
+        res.cookie('ENDZONE-EDGE-JWT-USER', token, { ...cookieOptions, maxAge: 3600000 });
+        res.cookie('ENDZONE-EDGE-AUTH', authToken, cookieOptions);
     }
     const sessionExpiration = generateExpirationDate();
 
@@ -156,8 +164,8 @@ exports.logout = async (req, res) => {
             where: { session_token: req.cookies['ENDZONE-EDGE-AUTH'] },
         });
 
-        res.clearCookie('ENDZONE-EDGE-AUTH');
-        res.clearCookie('ENDZONE-EDGE-JWT-USER');
+        res.clearCookie('ENDZONE-EDGE-AUTH', { path: '/' });
+        res.clearCookie('ENDZONE-EDGE-JWT-USER', { path: '/' });
 
         return res.status(200).send({ message: 'User logged out successfully!' }).end();
     } catch (err) {
