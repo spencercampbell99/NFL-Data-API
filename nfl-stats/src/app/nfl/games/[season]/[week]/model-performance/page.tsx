@@ -80,7 +80,7 @@ interface WeekSummary {
 const GameCard: React.FunctionComponent<{ game: Game, numGames?: number }> = ({ game, numGames = 1 }) => {
     return (
         <>
-            <div className={`flex flex-col justify-center items-center${game.home_team_score === game.away_team_score ? '' : game.correct_winner_by_score ? ' bg-green-200' : ' bg-red-100'}`}>
+            <div className={`flex flex-col justify-center items-center${game.home_team_score === game.away_team_score || game.schedule.home_score == game.schedule.away_score ? '' : game.correct_winner_by_score ? ' bg-green-200' : ' bg-red-100'}`}>
                 <h1 className="w-full text-center text-xl font-medium">{game.schedule.name}</h1>
                 <table className="w-full table-auto">
                     <thead className="border-black border-b-[1px]">
@@ -214,7 +214,7 @@ export default function WeekOverview({ params }: { params: { season: number, wee
             if (homeWinner === null) {
                 return
             }
-            
+
             // calculate decimal odds for winner
             if (homeWinner && game.schedule.home_moneyline < 0) {
                 decimalOdds = 100 / (game.schedule.home_moneyline * -1) + 1
@@ -238,7 +238,10 @@ export default function WeekOverview({ params }: { params: { season: number, wee
             spreadMoneyWagered += _hypotheticalBet
             overUnderMoneyWagered += _hypotheticalBet
 
-            if (game.correct_winner_by_score && game.home_team_score != game.away_team_score) {
+            if (game.schedule.home_score === game.schedule.away_score && game.home_team_score != game.away_team_score) {
+                moneyWon += _hypotheticalBet // push, no win or loss
+                moneyLineMoneyWon += _hypotheticalBet // push, no win or loss
+            } else if (game.correct_winner_by_score && game.home_team_score != game.away_team_score) {
                 moneyWon += hypotheticalBetScore * decimalOdds
                 moneyLineMoneyWon += hypotheticalBetScore * decimalOdds
             }
