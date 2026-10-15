@@ -89,6 +89,10 @@ const Page: FunctionComponent<{}> = () => {
                     return;
                 }
 
+                if (modelPredictions.home_team_score != modelPredictions.away_team_score && game.home_score === game.away_score) {
+                    totalMoneyWon += betAmount // push, no win or loss
+                }
+
                 if (!modelPredictions.correct_winner_by_score) {
                     return;
                 }
